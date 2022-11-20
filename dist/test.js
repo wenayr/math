@@ -1,7 +1,7 @@
 export var test;
 (function (test) {
-    function test1() {
-        console.log("test1");
+    function test1(a) {
+        console.log("test1" + (a ?? 0));
     }
     test.test1 = test1;
 })(test || (test = {}));
