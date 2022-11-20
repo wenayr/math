@@ -17,6 +17,10 @@
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
     "forceConsistentCasingInFileNames": true,
+
+    "declaration": true,
+    "outDir": "./lib",
+    "strict": true,
     //    "requires": true,
     //    "skipLibCheck": true,
     //    "esModuleInterop": true,

@@ -4,8 +4,6 @@
   "description": "math math math",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "declaration": true,
-  "outDir": "./lib",
   "strict": true,
   "scripts": {
     "build": "tsc",
@@ -13,6 +11,9 @@
     "prepare": "npm run build",
     "prepublishOnly": "npm test"
   },
+  "files": [
+    "lib/**/*"
+  ],
   "author": "I",
   "license": "ISC",
   "type": "module",
