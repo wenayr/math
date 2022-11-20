@@ -1,6 +1,5 @@
-import {test} from "./test";
-
-export namespace test2 {
-    export const test1 = test.test1
+export namespace test {
+    export function test1(a?:number) {
+        console.log("test1" + (a??0))
+    }
 }
-
