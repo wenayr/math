@@ -1,13 +1,33 @@
 {
-  "name": "math",
+  "name": "server",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "check": "tsc --noEmit",
+    "start2": "node dist/index.js",
+    "start": "node -r dotenv/config -r source-map-support/register --experimental-specifier-resolution=node --trace-uncaught dist/server/src/index.js",
+    "testLocal": "node -r source-map-support/register --trace-uncaught --experimental-specifier-resolution=node dist/server/src/runTestLocal.js",
+    "testGlobal": "node -r source-map-support/register --experimental-specifier-resolution=node --trace-uncaught dist/server/src/runTestGlobal.js",
+    "testByIp": "node -r source-map-support/register --experimental-specifier-resolution=node --trace-uncaught dist/server/src/runTestByIp.js"
   },
   "author": "",
   "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@types/express": "^4.17.13",
+    "@types/node": "^18.0.3",
+    "body-parser": "^1.20.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.1",
+    "path": "^0.12.7",
+    "socket.io": "^2.5.0",
+    "tslib": "^2.4.0"
+  },
   "dependencies": {
+  },
+  "optionalDependencies": {
+    "utf-8-validate": "^5.0.9"
   }
 }
