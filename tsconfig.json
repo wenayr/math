@@ -29,7 +29,7 @@
     "lib": [
       "esnext"
     ],
-    "outDir": "dist",
+    //    "outDir": "dist",
     "baseUrl": ".",
     "paths": {
       "*": [
