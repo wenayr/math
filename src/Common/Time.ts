@@ -1,5 +1,4 @@
-///<reference path="./BaseTypes.d.ts"/>
-
+import { const_Date } from "./BaseTypes";
 import * as lib from "./Common";
 
 import {CreateArrayProxy} from "./Common";
@@ -11,7 +10,6 @@ import {CreateArrayProxy} from "./Common";
 
 type const_Date_ = const_Date;
 
-// @ts-ignore
 export { const_Date_ as const_Date }
 
 

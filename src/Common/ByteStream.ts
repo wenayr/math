@@ -1,5 +1,6 @@
 //import {NullLiteral} from "typescript";
-// @ts-nocheck
+
+import {const_Date} from "./BaseTypes";
 
 function createCopyOfBuffer(src : Readonly<ArrayBuffer>, length :number= src.byteLength)  {
 	let dst = new ArrayBuffer(length);
@@ -198,7 +199,7 @@ export class ByteStreamW
 //type ReaderFromBytes<T extends object|number|string|boolean> = { read(stream : ByteStreamR) : T; }
 //type ReaderFromBytes<T extends NonNullable<any>> = { read(stream : ByteStreamR) : T; }
 
-type ReaderFromBytes<T> = { read(stream : ByteStreamR) : T; }
+type ReaderFromBytes<T> = { read(stream : ByteStreamR|any) : T; }
 
 
 //type NullableNumericTypes= Nullable<NumericTypes>
@@ -289,7 +290,7 @@ class ByteStreamR_<throwable extends boolean>
 
 	readNumber(type :NumericTypes|Nullable<NumericTypes>)  { return this._getReadFuncForNumeric(type)(this); }
 
-	readDate() { return new Date(this.readInt64()); }
+	readDate() { return new Date(this.readInt64() ?? 0); }
 
 	toType<T>(value :T) { return value as (throwable extends true ? T : T|null); }
 
@@ -324,7 +325,7 @@ class ByteStreamR_<throwable extends boolean>
 		//if (typeof arg=="function") return this._readArrayByFunc(arg);
 	}
 
-	protected _readArrayByFunc<T>(func: (stream :ByteStreamR)=>T) : T[]|null {
+	protected _readArrayByFunc<T>(func: (stream :ByteStreamR|any)=>T) : T[]|null {
 		let size= this.readUint32();  if (size==null) return null;
 		let array= new Array(size);  //let ddd= this;  func(this);
 		for(let i=0; i<size; i++) array[i]= func(this);

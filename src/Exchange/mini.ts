@@ -1,4 +1,4 @@
-import {TF} from "../Common/Time";
+import {const_Date, TF} from "../Common/Time";
 import {tSymbolInfoBase} from "./IHistoryBase";
 
 

@@ -1,4 +1,4 @@
-/// <reference path="./BaseTypes.d.ts" />
+
 //import 'source-map-support/register'
 //if (0) console.log();
 //import 'source-map-support/register.js';
@@ -27,6 +27,7 @@ sourceMapSupport.install({
 
 import "./node_console"
 import "./Time";
+import {Immutable, KeysWithoutType, MutableFull, PickTypes, ReadonlyFull} from "./BaseTypes";
 
 export function GetEnumKeys<TT extends {[key:string]:any}> (T :TT) : readonly (keyof typeof T)[] { return Object.keys(T).filter(k => isNaN(k as any)); }
 
@@ -41,8 +42,7 @@ type const_Date= Omit<Date, "setTime"|"setFullYear"|"setMonth"|"setDate"|"setHou
 //export function is_const_Date<T extends any & (const_Date extends T ? T : never)> (value :T) : value is const_Date { return value instanceof Date; }
 
 
-export function isDate<T> (value :T & (Extract<T,const_Date> extends never ? never :T))
-// @ts-ignore
+export function isDate<T> (value :T & (Extract<T,const_Date>))
 : value is Extract<T,const_Date>
 {
     return value instanceof Date;
@@ -52,13 +52,13 @@ export function isDate<T> (value :T & (Extract<T,const_Date> extends never ? nev
     let aaa! : number;//|const_Date;
     //is_const_Date(aaa);  // ошибка
 
-    let bbb! : number|const_Date;
-    if (isDate(bbb))
-        bbb.getDate();
-
-    let ccc! : number|Date;
-    if (isDate(ccc))
-        ccc.getDate();
+    // let bbb! : number|const_Date;
+    // if (isDate(bbb))
+    //     bbb.getDate();
+	//
+    // let ccc! : number|Date;
+    // if (isDate(ccc))
+    //     ccc.getDate();
 }
 
 
