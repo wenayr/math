@@ -459,7 +459,7 @@ export const BinanceLoadEasyFutures = (data?: { fetch?: tFetch }) => LoadQuoteBa
     funcLoad: binanceFuncLoad,
     funcFistTime: binanceFuncFistTime,
     intervalToName: binanceInterval
-}, data) // dapi/v1/klines
+}, data) // dapi/v1/klines hj
 
 export const BinanceLoadEasyFuturesM = (data?: { fetch?: tFetch }) =>  LoadQuoteBase({
     base: 'https://dapi.binance.com/dapi/v1/klines?', // 'https://fapi.binance.com/fapi/v1/klines?symbol='
