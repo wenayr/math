@@ -25,9 +25,9 @@ sourceMapSupport.install({
 //import SourceMapIndexGenerator from 'source-map-index-generator';
 //SourceMapIndexGenerator.install();
 
-import "./node_console"
-import "./Time";
 import {Immutable, KeysWithoutType, MutableFull, PickTypes, ReadonlyFull} from "./BaseTypes";
+import "./node_console"
+// import "./Time";
 
 export function GetEnumKeys<TT extends {[key:string]:any}> (T :TT) : readonly (keyof typeof T)[] { return Object.keys(T).filter(k => isNaN(k as any)); }
 
