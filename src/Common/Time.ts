@@ -1,7 +1,9 @@
 import { const_Date } from "./BaseTypes";
-import * as lib from "./Common";
+// import * as lib from "./Common";
 
 import {CreateArrayProxy} from "./Common";
+
+function GetEnumKeys<TT extends {[key:string]:any}> (T :TT) : readonly (keyof typeof T)[] { return Object.keys(T).filter(k => isNaN(k as any)); }
 
 //export * from "./Common";
 
@@ -138,7 +140,7 @@ export class TF implements IPeriod
 	static readonly all : readonly TF[] = function() {
 		let i=1;
 		let arr : TF[]= [];
-		for(let key of lib.GetEnumKeys(__E_TF)) { arr[__E_TF[key]]= new TF(__Tf_S[i], key);  i++; }
+		for(let key of GetEnumKeys(__E_TF)) { arr[__E_TF[key]]= new TF(__Tf_S[i], key);  i++; }
 		return arr;
 	}();
 
