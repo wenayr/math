@@ -1,10 +1,11 @@
 
 import {tPrice, tTick} from "./mini";
 import exp from "constants";
-import {const_Date, TF} from "../Common/Time";
+import {TF} from "../Common/Time";
 import {CBar, IBars} from "./Bars";
 import {CQuotesHistory, CQuotesHistoryMutable} from "./MarketData";
 import {iListNodeMini} from "../Common/ListNodeAnd";
+import {const_Date} from "../Common/BaseTypes";
 
 
 export type tTimeBar = const_Date;

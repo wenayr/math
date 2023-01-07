@@ -1,5 +1,5 @@
 {
-  "name": "lib",
+  "name": "wenay-common",
   "version": "1.0.2",
   "description": "math math math",
   "main": "lib/index.js",
@@ -14,9 +14,12 @@
   "files": [
     "lib/**/*"
   ],
-  "author": "I",
+  "author": "wenay",
   "license": "ISC",
   "type": "module",
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "devDependencies": {
     "@types/jest": "^27.0.1",
     "@types/node": "^18.0.3",

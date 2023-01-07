@@ -1,5 +1,6 @@
-import {const_Date, TF} from "../Common/Time";
+import {TF} from "../Common/Time";
 import {tSymbolInfoBase} from "./IHistoryBase";
+import {const_Date} from "../Common/BaseTypes";
 
 
 export type tAlertMini = Readonly<{ signal: string, alarm: string, text: string }>;
