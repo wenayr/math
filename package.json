@@ -16,17 +16,15 @@
   ],
   "author": "wenay",
   "license": "ISC",
-  "type": "module",
+  "type": "commonjs",
   "engines": {
     "node": ">=17.0.0"
   },
   "devDependencies": {
-    "@types/jest": "^27.0.1",
-    "@types/node": "^18.0.3",
-    "@types/uuid": "^8.3.1",
-    "jest": "^27.1.1",
-    "ts-jest": "^27.0.5",
-    "typescript": "^4.9.3"
+    "@types/jest": "^29.2.5",
+    "@types/node": "^18.11.18",
+    "@types/uuid": "^9.0.0",
+    "typescript": "^4.9.4"
   },
   "repository": {
     "type": "git",
@@ -36,6 +34,6 @@
     "node-fetch": "^3.3.0"
   },
   "optionalDependencies": {
-    "utf-8-validate": "^5.0.9"
+    "utf-8-validate": "^6.0.0"
   }
 }
