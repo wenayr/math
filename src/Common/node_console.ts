@@ -1,6 +1,6 @@
-///<reference no-default-lib="true"/>
-///<reference lib="esnext"/>
-///<reference types="node"/>
+//// /<reference no-default-lib="true"/>
+//// /<reference lib="esnext"/>
+//// /<reference types="node"/>
 
 export {};
 
