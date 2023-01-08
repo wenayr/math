@@ -25,7 +25,7 @@ sourceMapSupport.install({
 //import SourceMapIndexGenerator from 'source-map-index-generator';
 //SourceMapIndexGenerator.install();
 
-import {Immutable, KeysWithoutType, MutableFull, PickTypes, ReadonlyFull} from "./BaseTypes";
+import {Immutable, KeysWithoutType, Mutable, MutableFull, PickTypes, ReadonlyFull} from "./BaseTypes";
 // import "./node_console"
 // import "./Time";
 
@@ -80,7 +80,7 @@ Object.prototype.valueOf= function(this) {
 
 //export type Mutable<T> = T extends object ? { -readonly [P in keyof T]: T[P]; } : T;
 
-export type Mutable<T> = { -readonly [P in keyof T]: T[P]; };
+// export type Mutable<T> = { -readonly [P in keyof T]: T[P]; };
 
 //export type MutableFull<T> = T extends Function ? T : { -readonly [P in keyof T] : MutableFull<T[P]> } //T[P] extends object ? ReadonlyFull<T[P]> : T[P] }
 
