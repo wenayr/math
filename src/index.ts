@@ -4,10 +4,10 @@
 // import * as time from "./Common/Time";
 // import * as math from "./Common/Math";
 // import * as list from "./Common/List";
-import * as color from "./Common/Color";
-import * as listNodeAnd from "./Common/ListNodeAnd";
+// import * as color from "./Common/Color";
+// import * as listNodeAnd from "./Common/ListNodeAnd";
 // import * as console from "console";
-import {CListNodeAnd} from "./Common/ListNodeAnd";
+import {CListNodeAnd, iListNodeMini} from "./Common/ListNodeAnd";
 // // export {common}
 // // export * from "./and/CParams";
 //
@@ -22,6 +22,9 @@ import {CListNodeAnd} from "./Common/ListNodeAnd";
 //
 //
 
+export * as color from "./Common/Color";
+
+export {CListNodeAnd, iListNodeMini} from "./Common/ListNodeAnd";
 
 export function test() {
     const tt = new CListNodeAnd()
