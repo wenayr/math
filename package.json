@@ -16,7 +16,7 @@
   ],
   "author": "wenay",
   "license": "ISC",
-  "type": "module",
+  "type": "commonjs",
   "engines": {
     "node": ">=17.0.0"
   },
