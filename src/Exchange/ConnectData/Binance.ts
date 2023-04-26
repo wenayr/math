@@ -2,6 +2,9 @@ import {LoadQuoteBase, tFuncLoad, tLoadFist, tSetHistoryData} from "../LoadBase"
 import {tGetAllData, tSocketInput, tSymbolLoadInfo, tUpDateAllKline} from "../IHistoryBase";
 import {TF} from "../../Common/Time";
 
+
+export {LoadQuoteBase} from "../LoadBase";
+
 type tFetch = any | ((input: any | URL, init?: any | undefined) => Promise<any>)
 type tBinanceSymbolsAllObjs = {
     fetch: tFetch,
