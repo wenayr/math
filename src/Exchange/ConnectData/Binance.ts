@@ -401,8 +401,8 @@ type tBinanceLoadBase = {
     intervalToName: { time: TF, name: string }[]
 }
 
-
-const binanceFuncLoad = async ({symbol,interval,startTime,endTime,limit,baseURL,fetch}: tFuncLoad): Promise<tSetHistoryData[]> => {
+type tMBar = tSetHistoryData
+const binanceFuncLoad = async ({symbol,interval,startTime,endTime,limit,baseURL,fetch}: tFuncLoad): Promise<tMBar[]> => {
     const _interval =   `&interval=${interval}`
     const _startTime =  `&startTime=${startTime.valueOf()}`
     const _endTime =    endTime?`&endTime=${endTime.valueOf()}`:``
@@ -442,7 +442,7 @@ const binanceInterval: { time: TF, name: string }[] = [
     , {time: TF.W1,     name: '1w'}
 ]
 
-export const BinanceLoadEasySpot = (data?: { fetch?: tFetch }) => LoadQuoteBase({
+export const BinanceLoadEasySpot = (data?: { fetch?: tFetch }) => LoadQuoteBase<tMBar>({
     base: 'https://api1.binance.com/api/v3/klines?',
     maxLoadBars2: 1000,
     countConnect: 1150,
@@ -452,6 +452,8 @@ export const BinanceLoadEasySpot = (data?: { fetch?: tFetch }) => LoadQuoteBase(
     funcFistTime: binanceFuncFistTime,
     intervalToName: binanceInterval
 }, data)
+
+
 
 export const BinanceLoadEasyFutures = (data?: { fetch?: tFetch }) => LoadQuoteBase({
     base: 'https://fapi.binance.com/fapi/v1/klines?', // 'https://fapi.binance.com/fapi/v1/klines?symbol='

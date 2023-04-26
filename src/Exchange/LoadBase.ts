@@ -19,7 +19,7 @@ export type tLoadFist = {fetch: tFetch3, baseURL: string, symbol: string, interv
 
 
 export type tSetHistoryData = CBar & {tf?: TF}
-type tBinanceLoadBase = {
+type tBinanceLoadBase<Bar = tSetHistoryData> = {
     // адрес загрузки // http
     base : string
     // максимум загрузки баров за раз при первом запроса
@@ -31,7 +31,7 @@ type tBinanceLoadBase = {
     // период сброса лимитов
     time?: number,
     // загрузка и сохранения баров
-    funcLoad: (data: tFuncLoad) => Promise<tSetHistoryData[]>,
+    funcLoad: (data: tFuncLoad) => Promise<Bar[]>,
     // дата начала доступной истории
     funcFistTime: (data: tLoadFist) => Promise<Date>,
     // перевод timeframe в название интервалов
@@ -39,7 +39,7 @@ type tBinanceLoadBase = {
 }
 
 
-export function LoadQuoteBase (setting: tBinanceLoadBase, data?: { fetch?: tFetch3 }){
+export function LoadQuoteBase<Bar = tSetHistoryData> (setting: tBinanceLoadBase<Bar>, data?: { fetch?: tFetch3 }){
     const {base,maxLoadBars,countConnect,intervalToName} = setting
     const maxLoadBars2 = setting.maxLoadBars2 ?? maxLoadBars
     const date = [Date.now()]
@@ -75,7 +75,7 @@ export function LoadQuoteBase (setting: tBinanceLoadBase, data?: { fetch?: tFetc
     }
     // @ts-ignore
     const _fetch = data?.fetch??fetch
-    return async (info: tInfoForLoadHistory ) : Promise<{bars: tSetHistoryData[], tf: TF}|undefined>  => {   //
+    return async (info: tInfoForLoadHistory ) : Promise<{bars: Bar[], tf: TF}|undefined>  => {   //
         const infoTF = searchTF(info)
         let lastTime: number
         if (!_fetch) throw "_fetch - не определен";
@@ -108,7 +108,7 @@ export function LoadQuoteBase (setting: tBinanceLoadBase, data?: { fetch?: tFetc
             if (bars<0) arr.push(t2)
         }
 
-        const map: Promise <tSetHistoryData | any>[]= []
+        const map: Promise <Bar[]>[]= []
 
         for (let i = 1; i < arr.length; i++) {
             if (arr[i].valueOf() >= arr[i-1].valueOf()) continue;
@@ -133,7 +133,7 @@ export function LoadQuoteBase (setting: tBinanceLoadBase, data?: { fetch?: tFetc
 
         }
         const resulI = await Promise.allSettled(map)
-        const result: tSetHistoryData[] = []
+        const result: Bar[] = []
         resulI.forEach((e,i)=>{
             if (e.status == "fulfilled") result.unshift(...e.value)
         })
