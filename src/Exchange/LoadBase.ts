@@ -38,7 +38,7 @@ type tBinanceLoadBase<Bar = tSetHistoryData> = {
     intervalToName: { time: TF, name: string }[]
 }
 
-
+// Обертка для создания запросов котировок по времени и лимиту
 export function LoadQuoteBase<Bar = tSetHistoryData> (setting: tBinanceLoadBase<Bar>, data?: { fetch?: tFetch3 }){
     const {base,maxLoadBars,countConnect,intervalToName} = setting
     const maxLoadBars2 = setting.maxLoadBars2 ?? maxLoadBars

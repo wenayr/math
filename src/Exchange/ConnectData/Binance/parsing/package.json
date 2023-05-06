@@ -1,0 +1,11 @@
+{
+  "name": "parsing",
+  "version": "1.0.0",
+  "scripts": {
+    "runParsing": "ts-node src/pars.ts"
+  },
+  "dependencies": {
+    "ts-node": "^10.9.1",
+    "xmlhttprequest": "^1.8.0"
+  }
+}

@@ -16,15 +16,15 @@
     "noPropertyAccessFromIndexSignature": true,
     "forceConsistentCasingInFileNames": true,
     "declaration": true,
-    "outDir": "./lib",
+//    "outDir": "./lib",
     "strict": true,
     "allowSyntheticDefaultImports": true,
     "lib": [
       "esnext",
-//      "dom"
+      "dom"
     ],
     //    "outDir": "dist",
-    "baseUrl": ".",
+    "baseUrl": "./",
     "paths": {
       "*": [
         "node_modules/*",
@@ -38,7 +38,7 @@
   ],
   "exclude": [
     "node_modules",
-    "../node_modules",
+    "../../../../../node_modules"
   ]
 }
 

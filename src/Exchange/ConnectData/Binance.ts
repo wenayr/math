@@ -325,7 +325,7 @@ export function BinanceSocketSpotAllTurboNew(_WebSocket: any) {
 
 
 
-//Прмиер подключения к АПИ Bicnance потдключение к юарам в 1000мс
+//Пример подключения к АПИ Bicnance потдключение к юарам в 1000мс
 //обьемы приходя от начала дня сумированные
 
 export function BinanceSocketAllBase(data: {WebSocket: any , url?: string}) {
