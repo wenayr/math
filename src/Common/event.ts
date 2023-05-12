@@ -11,7 +11,7 @@ export type tListEvent<T=any, T2=void> = {
     OnDel?:()=>void
 }
 
-//callback версия 2.0 по массивам (вдруг окажется производительнее)
+//callback версия 2.0 по массивам
 export class CObjectEventsArr<T extends object>{
     private data :tListEvent[] = []
 
@@ -61,7 +61,6 @@ export class CObjectEventsList<T=unknown>{
     private set setup(link:CListNodeAnd<tListEvent<T>>) {
         const buf = link;
         const data = link.data!
-        // редкое читерство, теперь и ты попробуй догадаться для чего это тут
         let fanClub = data.del
         data.del = ()=>{
             fanClub?.()

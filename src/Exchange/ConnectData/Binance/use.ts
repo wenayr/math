@@ -101,6 +101,7 @@ export function BinanceAcc2F(data: spaceBinance.tFtt) {
 
 
     const BFunc2 = BinanceFuncConvert3(tt, data)
+    // BFunc2.DepositHistory({limit:500, status: })
 
     return {
         all: BFunc,

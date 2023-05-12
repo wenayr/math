@@ -2,10 +2,11 @@
   "name": "parsing",
   "version": "1.0.0",
   "scripts": {
-    "runParsing": "ts-node src/pars.ts"
+    "runParsing": "ts-node src/pars.ts",
+    "runParsing2": "ts-node src/pars2.ts"
   },
   "dependencies": {
     "ts-node": "^10.9.1",
-    "xmlhttprequest": "^1.8.0"
+    "fs": "^0.0.1-security"
   }
 }
