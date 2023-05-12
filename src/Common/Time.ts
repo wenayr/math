@@ -1,7 +1,7 @@
-import { const_Date } from "./BaseTypes";
+import { const_Date } from "./BaseTypes"
+import {CreateArrayProxy} from "./common";
 // import * as lib from "./Common";
 
-import {CreateArrayProxy} from "./Common";
 
 function GetEnumKeys<TT extends {[key:string]:any}> (T :TT) : readonly (keyof typeof T)[] { return Object.keys(T).filter(k => isNaN(k as any)); }
 
