@@ -75,7 +75,7 @@ export function LoadQuoteBase<Bar = tSetHistoryData> (setting: tBinanceLoadBase<
     }
     // @ts-ignore
     const _fetch = data?.fetch??fetch
-    return async (info: tInfoForLoadHistory ) : Promise<{bars: Bar[], tf: TF}|undefined>  => {   //
+    return async (info: tInfoForLoadHistory ) : Promise<{bars: Bar[], tf: TF}>  => {   //
         const infoTF = searchTF(info)
         let lastTime: number
         if (!_fetch) throw "_fetch - не определен";

@@ -106,7 +106,8 @@ function fParsingName() {
         const name = dop>=0 ? b.substring(0,dop)  : b
         return {
             name: name,
-            type: dop>=0 ? getSubStringElBy(b, "(",")") : ""
+            type: dop>=0 ? getSubStringElBy(b, "(",")") : "",
+            www: getSubStringElBy(st, "id='","'")
         }
     }
     return func
@@ -479,13 +480,16 @@ async function start() {
     }
 
 
-
+    // https://binance-docs.github.io/apidocs/pm/en/#cancel-cm-order-trade
     const str = result.map((e,i)=>{
+        // &#39; &#39;
+        const _name = e.name?.name.replaceAll("&#39;","")
+        const _type = e.name?.type.replaceAll("&#39;","")
+        const www = e.name?.www && `//${url+"#"+(e.name.www??"")}`
+        const name = _name && `const name: "${(_name??"" )+ (_type? "("+_type+")" :"")}"`
+        const nameType = e.name && `const nameType: "${(_type??"")}"`
 
-        const name = e.name && `const name: "${(e.name?.name??"" )+ (e.name?.type? "("+e.name?.type+")" :"")}"`
-        const nameType = e.name && `const nameType: "${(e.name?.type??"")}"`
-
-        const nameFunc = e.name?.name ? e.name?.name
+        const nameFunc = _name ? _name
             .replaceAll(" ","")
             .replaceAll("(","")
             .replaceAll(")","")
@@ -522,22 +526,23 @@ async function start() {
             st =  "type params = {\n"
             const {arrParams} = e.params
             for (const ps of arrParams) {
-                if (ps) st+=`\t${ ps[0] }${ ps[2] == "NO" ? "?" : "" } : ${ ps[1] }${ !ps[3] || ps[3] == "" ? "" : " // " + ps[3]}\n`
+                if (ps[3]?.length) st+="\t// " + ps[3] +"\n"
+                if (ps) st+=`\t${ ps[0] }${ ps[2] == "NO" ? "?" : "" } : ${ ps[1] }\n`
             }
             st+="}"
         }
 
 
-        let url = ""
+        let url2 = ""
         if (e.address) {
             const address = e.address
-            url = "const address : {\n"
+            url2 = "const address : {\n"
             const buf: string[] = []
             Object.entries(address).forEach(([key,v])=>{
                 if (v) buf.push(key + " : " + v)
             })
-            url += buf.map((e,i,ar)=>ar[i]="\t"+e).join("\n")
-            url +="\n}"
+            url2 += buf.map((e,i,ar)=>ar[i]="\t"+e).join("\n")
+            url2 +="\n}"
         }
 
 
@@ -547,34 +552,65 @@ async function start() {
             return s?.length ? s + "\n" : ""
         }
 
-        let bb = tr( name )
+        let bb =
+            //tr(www)
+            tr( name )
             + tr( nameType )
             + tr( wight )
-            + tr( url )
+            + tr( url2 )
             + tr( paramComment )
             + tr( st )
             + "type req = " + (e.st?? "{}")
 
         bb = "\t" + bb.replaceAll("\n","\n\t")
 
-        return `const ${nameFunc} = () => {\n`
+        return tr(www) + `\n${nameFunc} = () => {\n`
             + bb
             + `\n}\n\n`
 
     }).join("")
 
+
+
+
     const def = `type LONG = number
 type NUMBER = number
 type STRING = string
 type INT = number
-type NumberString = string\n\n`
+type DECIMAL = number
+type INTEGER = number
+type ARRAY<T = any> = T[];
+type BigDecimal = number
+type DOUBLE = number  
+type BOOLEAN = boolean    
+type NumberString = string\n\n 
+ 
+`
+    const tr ="type tData<T1> = {\n" +
+        "\tname: string, \n" +
+        "\tnameType: string, \n" +
+        "\twight: {\n" +
+        "\t\tname : string,\n" +
+        "\t\tdata : number\n" +
+        "\t}[], \n" +
+        "\taddress: {\n" +
+        "\t\ttype: \"GET\"|\"POST\"\n" +
+        "\t\turl: string\n" +
+        "\t\tHMAC: boolean\n" +
+        "\t}, params: T1}"
+
+    const rq = `
+class CBinance {
+${str}
+}    
+`
 
 
     // = arrData.join("")
     /*<p><strong>Weight(UID):</strong> 1
 <strong>Weight(IP):</strong> 1</p>*/
 
-    fs.writeFileSync('proba745.ts', def+str);
+    fs.writeFileSync('proba745.ts', def+rq);
 
     console.log(req)
     // await req2.json()
@@ -585,3 +621,4 @@ type NumberString = string\n\n`
     // req.onload=(data:any)=> console.log(data);
     // req.send();
 }
+
