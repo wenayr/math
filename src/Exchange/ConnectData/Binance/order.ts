@@ -2,9 +2,7 @@
 // import {apiKey, normalizeLot} from "../../binance/binance.main";
 // import {addWeightReq, getSumWeightReq} from "../../tempdata.service";
 import axios, {AxiosStatic} from "axios";
-// import {IBorrowable} from "../../binance/binance.isolated";
 import {GetSignatureFunc} from "./signatureCoder";
-import {NormalizeDouble} from "../../../Common/Common";
 import {NormalizeLot} from "./commonOrder";
 import {IBorrowable, IIsolatedAcc, ISpotOrderRaw} from "./interfaces";
 

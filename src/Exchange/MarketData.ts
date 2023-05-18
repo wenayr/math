@@ -1,5 +1,5 @@
-import * as lib from "../Common/Common";
-import {E_MATCH, MyNumMap, ParsedUrlQueryInputMy} from "../Common/Common";
+import * as lib from "../Common/common";
+import {E_MATCH, MyNumMap, ParsedUrlQueryInputMy} from "../Common/common";
 import {
 	CBar,
 	CBars,
@@ -554,4 +554,4 @@ function main()
 
 main();
 */
-export {deepEqual} from "../Common/Common";
+export {deepEqual} from "../Common/common";

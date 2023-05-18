@@ -1,4 +1,4 @@
-import {sleepAsync} from "../Common/Common";
+import {sleepAsync} from "../Common/common";
 import {TF} from "../Common/Time";
 import {CBar} from "./Bars";
 
