@@ -272,6 +272,7 @@ async function start() {
         data: 3,
         comments: 4,
         unknow: 5,
+        helper: 0
     }
 
     let lvlType = 0
@@ -320,9 +321,15 @@ async function start() {
 
             if (data == "{" || data == "[" || data == ":{" || data == ":[") {
                 if (data == "{" || data == ":{" ) {
+                    if (tLvl.helper == 2) {
+                        data =  "| " + data
+                    }
+                    tLvl.helper = 1
+
                     lvlName ++;
                     data =   data + "\n"
                     lvlType = 0// tLvl.name
+
                 }
                 if (data == "[" || data == ":[") {
                     lvlType = -1
@@ -332,12 +339,16 @@ async function start() {
                 // data = "\n" + tab(specSum) + data
             } else
             if (data == "}" || data == "]" || data == "}," || data == "],") {
+                if (data == "}" || data == "},") {
+                    tLvl.helper = 2
+                }
                 lvlType = 0
                 data = "\n" + getTab(specSum) + data
                 specSum--
                 data += "\n" //+ tab(specSum)
             } else
             if ((lvlType == 3 || lvlType == -1) && data != ",") {
+                tLvl.helper = 0
                 const kv1 = data.indexOf('"')
                 // если это номер
                 if (kv1 == -1) {
@@ -427,6 +438,7 @@ async function start() {
 
     function newEl() {
         el = {}
+        tLvl.helper = 0
         result.push(el)
     }
     for (const string of arr) {
@@ -481,13 +493,13 @@ async function start() {
 
 
     // https://binance-docs.github.io/apidocs/pm/en/#cancel-cm-order-trade
-    const str = result.map((e,i)=>{
+    const str = result.map((e,i)=> {
         // &#39; &#39;
         const _name = e.name?.name.replaceAll("&#39;","")
         const _type = e.name?.type.replaceAll("&#39;","")
         const www = e.name?.www && `//${url+"#"+(e.name.www??"")}`
-        const name = _name && `const name: "${(_name??"" )+ (_type? "("+_type+")" :"")}"`
-        const nameType = e.name && `const nameType: "${(_type??"")}"`
+        const name = _name && `const name = "${(_name??"" )+ (_type? "("+_type+")" :"")}"`
+        const nameType = e.name && `const nameType = "${(_type??"")}"`
 
         const nameFunc = _name ? _name
             .replaceAll(" ","")
@@ -497,12 +509,12 @@ async function start() {
             .replaceAll("-",""): "noname" + i
 
 
-        let wight = `const wight: [`;
+        let wight = `const wight = [`;
         (e.wight ?? []).forEach((e,i, ar)=>{
 
             const buf: string[] = []
             Object.entries(e).forEach(([key,v])=>{
-                if (v) buf.push(key + " : " + v)
+                if (v) buf.push(key + " : " + v + ",")
             })
             let p2 = buf.map((e,i,ar)=>ar[i]="\t\t"+e).join("\n")
 
@@ -536,10 +548,10 @@ async function start() {
         let url2 = ""
         if (e.address) {
             const address = e.address
-            url2 = "const address : {\n"
+            url2 = "const address = {\n"
             const buf: string[] = []
             Object.entries(address).forEach(([key,v])=>{
-                if (v) buf.push(key + " : " + v)
+                if (v) buf.push(key + " : " + v + ",")
             })
             url2 += buf.map((e,i,ar)=>ar[i]="\t"+e).join("\n")
             url2 +="\n}"
