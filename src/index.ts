@@ -14,14 +14,14 @@
 
 // export * from "./Common/BaseTypes";
 export * from "./Common/Time";
-export * from "./Common/common";
+export * from "./Common/Common";
 export * from "./Common/Color";
 export * from "./Common/ListNodeAnd";
 export * from "./Common/Math";
 export * from "./Exchange/ConnectData/Binance";
 
 export * as BaseTypes from "./Common/BaseTypes";
-export * as Common from "./Common/common";
+export * as Common from "./Common/Common";
 export * as Time from "./Common/Time";
 export * as Color from "./Common/Color";
 export * as ListNodeAnd from "./Common/ListNodeAnd";

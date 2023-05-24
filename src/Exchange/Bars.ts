@@ -4,8 +4,8 @@
 // ///<reference types="../BaseTypes"/>
 
 
-import * as lib from "../Common/common";
-import {BSearch,CreateArrayProxy, deepEqual,GetDblPrecision, IItems,NormalizeDouble, ParsedUrlQueryInputMy, SearchMatchMode, VirtualItems} from "../Common/common";
+import * as lib from "../Common/Common";
+import {BSearch,CreateArrayProxy, deepEqual,GetDblPrecision, IItems,NormalizeDouble, ParsedUrlQueryInputMy, SearchMatchMode, VirtualItems} from "../Common/Common";
 import {D1_MS, Period, TF, TFIndex} from "../Common/Time";
 import {ByteStreamR, ByteStreamW, Nullable, NumericTypes} from "../Common/ByteStream"
 import {const_Date, ReadonlyFull} from "../Common/BaseTypes";

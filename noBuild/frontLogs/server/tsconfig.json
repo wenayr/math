@@ -16,47 +16,30 @@
     "noPropertyAccessFromIndexSignature": true,
     "forceConsistentCasingInFileNames": true,
     "declaration": true,
-    "outDir": "./lib",
+//    "outDir": "./lib",
     "strict": true,
     "allowSyntheticDefaultImports": true,
     "lib": [
       "esnext",
-//      "dom"
+      "dom"
     ],
     //    "outDir": "dist",
-    "baseUrl": ".",
+    "baseUrl": "./",
     "paths": {
-      "@wenay/server": ["./lib/srcServer/*"],
-      "@wenay/Client": ["./lib/srcClient/*"],
-      "@all/*": ["./lib/all/*"]
-//      "*": [
-//        "node_modules/*",
-//        "./src/types/*"
-//      ]
+      "*": [
+        "../../node_modules/*",
+        "node_modules/*",
+        "./src/types/*"
+      ]
     }
   },
   "include": [
-//    "./srcLib/**/*"
-//    "./src/**/*",
-    "./srcServer/**/*",
-    "./srcClient/**/*",
+    "./src/**/*"
 //    "./src/*"
   ],
   "exclude": [
-    "**/*.spec.ts",
-    "./srcLib/noBuild/**/*",
-    "node_modules",
-    "../node_modules",
-  ],
-//  "references": [
-//    {
-//      "path": "./srcServer",
-////      "prepend": true
-//    },
-//    {
-//      "path": "./srcClient",
-////      "prepend": true
-//    }
-//  ]
+    "../../../node_modules",
+    "node_modules"
+  ]
 }
 

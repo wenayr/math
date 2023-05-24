@@ -1,4 +1,4 @@
-import {sleepAsync} from "../Common/common";
+import {sleepAsync} from "../Common/Common";
 import {TF} from "../Common/Time";
 import {CBar} from "./Bars";
 
@@ -19,7 +19,7 @@ export type tLoadFist = {fetch: tFetch3, baseURL: string, symbol: string, interv
 
 
 export type tSetHistoryData = CBar & {tf?: TF}
-type tBinanceLoadBase<Bar = tSetHistoryData> = {
+type tBinanceLoadBase<Bar> = {
     // адрес загрузки // http
     base : string
     // максимум загрузки баров за раз при первом запроса
@@ -39,7 +39,7 @@ type tBinanceLoadBase<Bar = tSetHistoryData> = {
 }
 
 // Обертка для создания запросов котировок по времени и лимиту
-export function LoadQuoteBase<Bar = tSetHistoryData> (setting: tBinanceLoadBase<Bar>, data?: { fetch?: tFetch3 }){
+export function LoadQuoteBase<Bar> (setting: tBinanceLoadBase<Bar>, data?: { fetch?: tFetch3 }){
     const {base,maxLoadBars,countConnect,intervalToName} = setting
     const maxLoadBars2 = setting.maxLoadBars2 ?? maxLoadBars
     const date = [Date.now()]

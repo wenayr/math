@@ -442,6 +442,9 @@ const binanceInterval: { time: TF, name: string }[] = [
     , {time: TF.W1,     name: '1w'}
 ]
 
+
+
+
 export const BinanceLoadEasySpot = (data?: { fetch?: tFetch }) => LoadQuoteBase<tMBar>({
     base: 'https://api1.binance.com/api/v3/klines?',
     maxLoadBars2: 1000,

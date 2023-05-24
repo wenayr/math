@@ -1,7 +1,9 @@
 {
   "name": "wenay-common",
-  "version": "1.0.20",
+  "version": "1.0.19",
   "description": "math math math",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "strict": true,
   "scripts": {
     "build": "tsc",
@@ -10,9 +12,7 @@
     "prepublishOnly": "npm test"
   },
   "files": [
-    "lib/srcServer",
-    "lib/srcClient",
-    "lib/src"
+    "lib/**/*"
   ],
   "author": "wenay",
   "license": "ISC",
