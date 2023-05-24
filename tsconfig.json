@@ -39,7 +39,7 @@
 //    "./srcLib/**/*"
 //    "./src/**/*",
     "./srcServer/**/*",
-    "./srcClient/**/*",
+//    "./srcClient/**/*",
 //    "./src/*"
   ],
   "exclude": [
