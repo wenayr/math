@@ -26,13 +26,13 @@
     //    "outDir": "dist",
     "baseUrl": ".",
     "paths": {
-      "@wenay/server": ["./lib/srcServer/*"],
-      "@wenay/Client": ["./lib/srcClient/*"],
-      "@all/*": ["./lib/all/*"]
-//      "*": [
-//        "node_modules/*",
-//        "./src/types/*"
-//      ]
+//      "@wenay/server": ["./lib/srcServer/*"],
+//      "@wenay/Client": ["./lib/srcClient/*"],
+//      "@all/*": ["./lib/all/*"]
+      "*": [
+        "node_modules/*",
+        "./src/types/*"
+      ]
     }
   },
   "include": [

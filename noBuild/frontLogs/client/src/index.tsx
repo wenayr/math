@@ -1,9 +1,11 @@
-import {FTest} from "./data/tada";
+import {StartReact} from "./front";
+import {fConnect} from "./connect/io";
 
 
 window.onload = function() {
     console.log("2321312");
-    FTest()
+    fConnect()
+    StartReact()
 }
 
 

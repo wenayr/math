@@ -16,7 +16,7 @@
     "noPropertyAccessFromIndexSignature": true,
     "forceConsistentCasingInFileNames": true,
     "declaration": true,
-//    "outDir": "./lib",
+    "outDir": "./dist",
     "strict": true,
     "allowSyntheticDefaultImports": true,
     "lib": [
@@ -24,7 +24,7 @@
       "dom"
     ],
     //    "outDir": "dist",
-    "baseUrl": "./",
+    "baseUrl": ".",
     "paths": {
       "*": [
         "../../node_modules/*",
@@ -38,8 +38,8 @@
 //    "./src/*"
   ],
   "exclude": [
-    "../../../node_modules",
-    "node_modules"
+    "node_modules",
+    "../../../node_modules"
   ]
 }
 
