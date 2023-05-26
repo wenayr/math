@@ -1,6 +1,6 @@
 {
   "name": "wenay-common",
-  "version": "1.0.25",
+  "version": "1.0.28",
   "description": "math math math",
   "strict": true,
   "main": "lib/index.js",
