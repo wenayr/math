@@ -7,7 +7,7 @@
     "lint2": "eslint src --fix",
     "buildWebpack": "webpack --mode production",
     "start": "react-app-rewired start",
-    "build": "react-app-rewired build",
+    "buildSite": "react-app-rewired build",
     "start_NoEslint": "set DISABLE_ESLINT_PLUGIN=true&& react-app-rewired start"
   },
   "dependencies": {

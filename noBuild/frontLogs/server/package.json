@@ -4,7 +4,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "runSaveQ": "ts-node src/index.ts",
+    "runSaver": "ts-node src/index.ts",
     "runParsing": "../node_modules/.bin/ts-node src/pars.ts",
     "runParsing2": "../node_modules/.bin/ts-node src/pars2.ts"
   },

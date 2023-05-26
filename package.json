@@ -39,6 +39,22 @@
   },
   "optionalDependencies": {
     "utf-8-validate": "^6.0.3"
+  },
+  "exports": {
+    ".": {
+      "types": {
+        "default": "./index.d.ts"
+      }
+    },
+    "./client": {
+      "types": {
+        "default": "./client.d.ts"
+      }
+    },
+    "./server": {
+      "types": {
+        "default": "./server.d.ts"
+      }
+    }
   }
-
 }

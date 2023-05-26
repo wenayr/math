@@ -31,6 +31,8 @@
   },
   "include": [
     "src/index.tsx",
+    "../aCode/**/*",
+    "../../../src/Common/**/*"
   ],
   "exclude": [
     "node_modules",

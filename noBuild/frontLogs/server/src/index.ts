@@ -6,10 +6,11 @@ import * as path from "path";
 import * as bodyParser from "body-parser";
 import * as basicAuth from 'express-basic-auth';
 import {Server} from "socket.io";
+import {initSocketIo} from "./socket/socket";
 
 const router = express.Router()
 
-export type tIo = InstanceType<typeof Server>
+export type tIo = Server
 
 dotenv.config()
 
@@ -30,11 +31,11 @@ function getIo() {
 function f() {
     const {app,io,server} = getIo()
     // подробно расписанные правила работы
-    // initSocketIo(io)
+    initSocketIo(io)
 
-    app.use(cors({credentials: true, origin: true}))
-    app.use(bodyParser.urlencoded({extended: true}))
-    app.use(bodyParser.json())
+    app.use( cors({credentials: true, origin: true}) )
+    app.use( bodyParser.urlencoded({extended: true}) )
+    app.use( bodyParser.json() )
 
     // app.use('/api', apiRoutes)
 
