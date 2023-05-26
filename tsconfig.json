@@ -31,7 +31,7 @@
 //      "@all/*": ["./lib/all/*"]
       "*": [
         "node_modules/*",
-        "./src/types/*"
+//        "./src/types/*"
       ]
     }
   },
@@ -40,7 +40,9 @@
     "./src/**/*",
 //    "./srcServer/**/*",
 //    "./srcClient/**/*",
-//    "./src/*"
+//    "./src/index.ts",
+//    "./src/server.ts",
+//    "./src/client.ts"
   ],
   "exclude": [
     "**/*.spec.ts",

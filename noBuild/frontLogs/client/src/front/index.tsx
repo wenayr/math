@@ -7,16 +7,16 @@ class GeneralReact extends React.Component<any, any>{
     render() {
         return <div style={{width: 500, height:500, background:'rgb(212,77,77)'}}
             onClick={async ()=>{
-                // console.log("click");
-                // const bud = await miniApi.func.sayHi()
-                // console.log(bud)
-                // //
-                // console.log(await miniApi.func.sum(5,7))
-                // console.log(await miniApi.func.pow({x2:3,x1:3}))
-                // // console.log(await miniApi.test2.sayHi4())
-                // console.log(await miniApi.func.sayHi2())
-                // console.log(await miniApi.func.sayHi())
-                // console.log(await miniApi.space.sayHi4())
+                console.log("click");
+                const bud = await miniApi.func.sayHi()
+                console.log(bud)
+                //
+                console.log(await miniApi.func.sum(5,7))
+                console.log(await miniApi.func.pow({x2:3,x1:3}))
+                // console.log(await miniApi.test2.sayHi4())
+                console.log(await miniApi.func.sayHi2())
+                console.log(await miniApi.func.sayHi())
+                console.log(await miniApi.space.sayHi4())
 
                 // @ts-ignore
                 console.log(await miniApi.func.sayHi4())

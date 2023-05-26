@@ -1,6 +1,6 @@
 {
   "name": "wenay-common",
-  "version": "1.0.33",
+  "version": "1.0.40",
   "description": "math math math",
   "strict": true,
   "main": "lib/index.js",
@@ -12,7 +12,7 @@
     "prepublishOnly": "npm test"
   },
   "files": [
-    "lib/**/"
+    "lib/**/*"
   ],
   "author": "wenay",
   "license": "ISC",
@@ -39,6 +39,13 @@
   },
   "optionalDependencies": {
     "utf-8-validate": "^6.0.3"
+  },
+  "exports": {
+    ".": "./lib/index.js",
+    "./lib/client": "./lib/client.js",
+    "./lib/server": "./lib/server.js",
+    "./client": "./lib/client.js",
+    "./server": "./lib/server.js",
+    "./package.json": "./package.json"
   }
-
 }

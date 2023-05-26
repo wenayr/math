@@ -6,9 +6,9 @@
 
 // export type tKeyScreener = keyof IScreenerRun
 
-export async function sleepAsync(msec :number=0) {
-    return new Promise((resolve, reject) => { setTimeout(resolve, msec); });
-}
+
+import {sleepAsync} from "./Common";
+import {FasadOne} from "../../noBuild/frontLogs/aCode/all/fasad/fasad";
 
 export type tRequestScreenerT<T> = {
     key: keyof T,
@@ -252,7 +252,32 @@ export type typeNoVoid2<T> = {
 
 
 
+export function CreatAPIFacadeClient<T extends object>({socketKey, socket} : {socket: any, socketKey: string}){
+    const tr = funcForWebSocket<any>({
+        sendMessage: (data) => socket.emit(socketKey, data),
+        api: (data)=> {
+            socket.on(socketKey, (d: any) => {
+                data.onMessage(d)
+            })
+        }
+    })
+    const func = funcScreenerClient2<typeVoid2<T>>(tr)
+    const space = funcScreenerClient2<typeNoVoid2<T>>(tr, false)
+    return {
+        func, space
+    }
+}
 
+export function CreatAPIFacadeServer<T extends object>({object, socket, socketKey} : {socket: any, object: T, socketKey: string}){
+    // серверная часть (она же клиенская для выполнения подписок)
+    funcPromiseServer({
+            sendMessage: (data) => socket.emit(socketKey, data),
+            api:(api) => {
+                socket.on(socketKey, (d: any)=> api.onMessage(d))
+            }}
+        ,object)
+
+}
 
 
 

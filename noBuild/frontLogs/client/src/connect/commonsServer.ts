@@ -135,7 +135,7 @@ export function funcForWebSocket<T>(data: screenerSoc<tSocketData <tRequestScree
                 map.set(send.mapId,
                     (data) => {
                         // console.log("data = ", data);
-                        if (data == undefined) reject()
+                        // if (data == undefined) reject()
                         resolve(data)
                     });
                 if (map.size > 0) console.log("map.size = ",map.size)
