@@ -12,7 +12,7 @@
 //
 //
 
-// export * from "./Common/BaseTypes";
+
 export * from "./Common/Time";
 export * from "./Common/Common";
 export * from "./Common/Color";
@@ -35,3 +35,22 @@ export function test() {
     console.log("test");
     console.log("lalalal")
 }
+
+// let myModule;
+// // if (typeof window !== 'undefined') {
+// //     // клиентская сборка (браузер)
+// //     myModule = require('./client.js');
+// // } else
+//     if (typeof process !== 'undefined' &&
+//     process + '' === '[object process]') {
+//     // серверная сборка (Node.js)
+//         myModule = import("./server")
+//     // export * from "./Common/Math";
+//     // myModule = require('./server.js');
+// } else {
+//         myModule = import("./client")
+//         // myModule = require('./client.js')
+//     }
+// // использование модуля myModule
+//
+// export {myModule}
