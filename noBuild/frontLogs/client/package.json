@@ -15,7 +15,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "socket.io-client": "^4.6.1",
-    "wenay-common": "^1.0.40"
+    "wenay-common": "^1.0.47"
   },
   "devDependencies": {
     "@types/node": "^18.16.14",

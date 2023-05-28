@@ -1,7 +1,7 @@
 // import Binance from "node-binance-api";
 import {spaceBinance} from "./order";
 import {FuncTimeWait} from "../../../Common/funcTimeWait";
-import {BinanceSpot} from "./BinanceLib/spot";
+// import {BinanceSpot} from "./BinanceLib/spot";
 import tFtt = spaceBinance.tFtt;
 
 const binanceFunc = spaceBinance.binanceFunc
@@ -56,17 +56,17 @@ function BinanceFuncConvert(data: spaceBinance.BinanceDataFunc, input: spaceBina
 }
 
 
-function BinanceFuncConvert3(data: BinanceSpot.BinanceDataFunc, input: tFtt) {
-    let tt = data as unknown as {[key : string] : any;}
-    for (let key in data) {
-        const a = data[key]
-        if (typeof a == "function") {
-            const buf = a(input)
-            tt[key] = helper4(buf, "function")
-        }
-    }
-    return tt as Simple22<BinanceSpot.BinanceDataFunc>
-}
+// function BinanceFuncConvert3(data: BinanceSpot.BinanceDataFunc, input: tFtt) {
+//     let tt = data as unknown as {[key : string] : any;}
+//     for (let key in data) {
+//         const a = data[key]
+//         if (typeof a == "function") {
+//             const buf = a(input)
+//             tt[key] = helper4(buf, "function")
+//         }
+//     }
+//     return tt as Simple22<BinanceSpot.BinanceDataFunc>
+// }
 
 
 function BinanceFuncConvert2(data: spaceBinance.BinanceDataFunc, input: spaceBinance.tFtt) {
@@ -97,10 +97,10 @@ export function BinanceAcc2F(data: spaceBinance.tFtt) {
     // Binance functions
     const BFunc = BinanceFuncConvert(binanceFunc, data)
 
-    const tt = new BinanceSpot.BinanceDataFunc
+    // const tt = new BinanceSpot.BinanceDataFunc
 
 
-    const BFunc2 = BinanceFuncConvert3(tt, data)
+    // const BFunc2 = BinanceFuncConvert3(tt, data)
     // BFunc2.DepositHistory({limit:500, status: })
 
     return {

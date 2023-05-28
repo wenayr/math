@@ -2,7 +2,7 @@
 // import {apiKey, normalizeLot} from "../../binance/binance.main";
 // import {addWeightReq, getSumWeightReq} from "../../tempdata.service";
 import axios, {AxiosStatic} from "axios";
-import {GetSignatureFunc} from "./signatureCoder";
+import type {tGetSignatureFunc} from "./signatureCoder";
 import {NormalizeLot} from "./commonOrder";
 import {IBorrowable, IIsolatedAcc, ISpotOrderRaw} from "./interfaces";
 
@@ -100,7 +100,7 @@ export namespace spaceBinance {
 
 // type tFtt = {apiKey: string, getSignature(object, apiSecret: string): string, axios: AxiosStatic, apiSecret: string}
 
-    export type tFtt = {apiKey: string, axios: AxiosStatic, apiSecret: string}
+    export type tFtt = {apiKey: string, axios: AxiosStatic, apiSecret: string, GetSignatureFunc: tGetSignatureFunc}
 
     const binanceHeader = (apiKey: string) => ({headers: {'Content-type': 'application/x-www-form-urlencoded', 'X-MBX-APIKEY': apiKey}})
 
@@ -116,7 +116,7 @@ export namespace spaceBinance {
     type tSimpleFunc2<T> = (arg: T) =>  (standard<tSimpleFunc>) //(testT<tSimpleFunc>| tSimpleFunc)
     export class BinanceDataFunc{
         [ket: string]: tSimpleFunc2<tFtt>
-        maxBorrowableCrossF({axios, apiKey, apiSecret}: tFtt): standard<tMaxBorrowableCrossF>  {
+        maxBorrowableCrossF({axios, apiKey, apiSecret, GetSignatureFunc}: tFtt): standard<tMaxBorrowableCrossF>  {
             return {
                 wight: {
                     type: "IP",
@@ -140,7 +140,7 @@ export namespace spaceBinance {
             }
         }
 
-        maxBorrowableIsolatedF({axios, apiKey, apiSecret}: tFtt) {
+        maxBorrowableIsolatedF({axios, apiKey, apiSecret, GetSignatureFunc}: tFtt) {
             return {
                 wight: {
                     type: "IP",
@@ -164,7 +164,7 @@ export namespace spaceBinance {
             }
         }
 
-        maxTransferableCrossF({axios, apiKey, apiSecret}: tFtt) {
+        maxTransferableCrossF({axios, apiKey, apiSecret, GetSignatureFunc}: tFtt) {
             return {
                 wight: {
                     type: "IP",
@@ -187,7 +187,7 @@ export namespace spaceBinance {
             }
         }
 
-        maxTransferableIsolatedF({axios, apiKey, apiSecret}: tFtt) {
+        maxTransferableIsolatedF({axios, apiKey, apiSecret, GetSignatureFunc}: tFtt) {
             return {
                 wight: {
                     type: "IP",
@@ -210,7 +210,7 @@ export namespace spaceBinance {
             }
         }
 
-        transferIsolatedF({axios, apiKey, apiSecret}: tFtt) {
+        transferIsolatedF({axios, apiKey, apiSecret, GetSignatureFunc}: tFtt) {
             return {
                 wight: {
                     type: "IP",
@@ -233,7 +233,7 @@ export namespace spaceBinance {
             }
         }
 
-        transferIsolatedToSpotF({axios, apiKey, apiSecret}: tFtt) {
+        transferIsolatedToSpotF({axios, apiKey, apiSecret, GetSignatureFunc}: tFtt) {
             return {
                 wight: {
                     type: "UID",
@@ -256,7 +256,7 @@ export namespace spaceBinance {
         }
 
 
-        updateIsolatedAccsInfoАF({axios, apiKey, apiSecret}: tFtt) {
+        updateIsolatedAccsInfoАF({axios, apiKey, apiSecret, GetSignatureFunc}: tFtt) {
             return {
                 wight: {
                     type: "UID",
@@ -285,7 +285,7 @@ export namespace spaceBinance {
             }
         }
 
-        disableIsolatedAccF({axios, apiKey, apiSecret}: tFtt) {
+        disableIsolatedAccF({axios, apiKey, apiSecret, GetSignatureFunc}: tFtt) {
             return {
                 wight: {
                     type: "UID",
@@ -308,7 +308,7 @@ export namespace spaceBinance {
         }
 
 
-        enableIsolatedAccF({axios, apiKey, apiSecret}: tFtt) {
+        enableIsolatedAccF({axios, apiKey, apiSecret, GetSignatureFunc}: tFtt) {
             return {
                 wight: {
                     type: "UID",
@@ -330,7 +330,7 @@ export namespace spaceBinance {
             }
         }
 
-        getIsolatedAccountsLimitF({axios, apiKey, apiSecret}: tFtt) {
+        getIsolatedAccountsLimitF({axios, apiKey, apiSecret, GetSignatureFunc}: tFtt) {
             return {
                 wight: {
                     type: "UID",
@@ -353,7 +353,7 @@ export namespace spaceBinance {
         }
 
 
-        getIsolationFeeDataF({axios, apiKey, apiSecret}: tFtt) {
+        getIsolationFeeDataF({axios, apiKey, apiSecret, GetSignatureFunc}: tFtt) {
             return {
                 wight: {
                     type: "UID",
@@ -375,7 +375,7 @@ export namespace spaceBinance {
             }
         }
 
-        getIsolationFeeDataBySymbolF({axios, apiKey, apiSecret}: tFtt) {
+        getIsolationFeeDataBySymbolF({axios, apiKey, apiSecret, GetSignatureFunc}: tFtt) {
             return {
                 wight: {
                     type: "UID",
@@ -397,7 +397,7 @@ export namespace spaceBinance {
             }
         }
 
-        getAllCrossMarginPairs({axios, apiKey, apiSecret}: tFtt) {
+        getAllCrossMarginPairs({axios, apiKey, apiSecret, GetSignatureFunc}: tFtt) {
             return {
                 wight: {
                     type: "IP",
@@ -423,7 +423,7 @@ export namespace spaceBinance {
             }
         }
 
-        getAllCrossIsolatePairs({axios, apiKey, apiSecret}: tFtt) {
+        getAllCrossIsolatePairs({axios, apiKey, apiSecret, GetSignatureFunc}: tFtt) {
             return {
                 wight: {
                     type: "IP",
@@ -448,7 +448,7 @@ export namespace spaceBinance {
                 }
             }
         }
-        crossMarginAccountDetails ({axios, apiKey, apiSecret}: tFtt) {
+        crossMarginAccountDetails ({axios, apiKey, apiSecret, GetSignatureFunc}: tFtt) {
             return {
                 wight: {
                     type: "IP",

@@ -1,6 +1,6 @@
-import {AxiosStatic} from "axios/index";
-import {IBorrowable} from "../interfaces";
-import {GetSignatureFunc} from "../signatureCoder";
+import type {AxiosStatic} from "axios/index";
+// import {IBorrowable} from "../interfaces";
+// import {GetSignatureFunc} from "../signatureCoder";
 
 export type tFtt = {apiKey: string, axios: AxiosStatic, apiSecret: string}
 

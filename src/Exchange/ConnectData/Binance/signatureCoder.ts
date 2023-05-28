@@ -1,6 +1,8 @@
 // шифрование
-import {createHmac} from "node:crypto";
-
+// import {createHmac} from "node:crypto";
+//
+import * as createHmac from 'create-hmac'
+// var createHmac = require('create-hmac')
 export type MilliSec = number
 type tInputBaseR = {
     [key:string] : number | string | string[]
@@ -37,4 +39,6 @@ export function getSignatureFuncF(data: {createHmac: any}) {
         return data.createHmac('sha256', apiSecret).update(query).digest('hex') as string
     }
 }
-export const GetSignatureFunc = getSignatureFuncF({createHmac})
+
+// export const GetSignatureFunc = getSignatureFuncF({createHmac})
+export type tGetSignatureFunc = ReturnType<typeof getSignatureFuncF>

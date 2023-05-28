@@ -1,7 +1,7 @@
 import {io} from "socket.io-client";
 import {environment} from "../environments/environment";
 import {FasadOne} from "../../../aCode/all/fasad/fasad";
-import {funcForWebSocket, funcScreenerClient2, typeNoVoid2, typeVoid2} from "./commonsServer";
+import {funcForWebSocket, funcScreenerClient2, typeNoVoid2, typeVoid2} from "wenay-common";
 
 export const miniApi = fConnect()
 
@@ -42,6 +42,7 @@ export function fConnect() {
     const space = funcScreenerClient2<typeNoVoid2<FasadOne>>(tr, false)
 
 
+    //space.sum()
     type MyType = {
         foo: () => void;
         bar: () => number;

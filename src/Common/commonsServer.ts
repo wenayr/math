@@ -8,7 +8,7 @@
 
 
 import {sleepAsync} from "./Common";
-import {FasadOne} from "../../noBuild/frontLogs/aCode/all/fasad/fasad";
+import {OmitTypes} from "./BaseTypes";
 
 export type tRequestScreenerT<T> = {
     key: keyof T,
@@ -255,6 +255,7 @@ export type typeNoVoid2<T> = {
 };
 
 
+// OmitTypes
 
 export function CreatAPIFacadeClient<T extends object>({socketKey, socket} : {socket: any, socketKey: string}){
     const tr = funcForWebSocket<any>({
