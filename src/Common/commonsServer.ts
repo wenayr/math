@@ -98,7 +98,9 @@ export function funcForWebSocket<T>(data: screenerSoc<tSocketData <tRequestScree
     // const sendMessage = (datum: tSocketData <tRequestScreenerT<T>>) => data.sendMessage(JSON.stringify(datum))
 
     const sendMessage = (datum: tSocketData <tRequestScreenerT<T>>) => data.sendMessage(datum)
-    let d = 0
+
+    let total = 0
+
     const map = new Map<number, (data: tRequestScreenerT<T>|undefined)=> void >()
 
     const long = async (send: tSocketData<tRequestScreenerT<T>>, time: Date) => {
@@ -130,7 +132,7 @@ export function funcForWebSocket<T>(data: screenerSoc<tSocketData <tRequestScree
     return {
         send:(data, wait?: boolean) => new Promise((resolve, reject) => {
             // console.log("wait ",wait, " ", wait!==false)
-            const send: tSocketData <tRequestScreenerT<T>> = {mapId: ++d, data}
+            const send: tSocketData <tRequestScreenerT<T>> = {mapId: ++total, data}
             if (wait!==false) {
                 map.set(send.mapId,
                     (data) => {
@@ -152,6 +154,8 @@ export function funcForWebSocket<T>(data: screenerSoc<tSocketData <tRequestScree
 /**
  * Отправка сообщений для клиента, через авто создание апи, по методу пост запроса, с настраиваемым header
  * */
+
+
 // export class CSendForPost {
 //     header: HeadersInit | undefined = {
 //         'content-type': 'application/json'
@@ -262,6 +266,8 @@ export function CreatAPIFacadeClient<T extends object>({socketKey, socket} : {so
         }
     })
     const func = funcScreenerClient2<typeVoid2<T>>(tr)
+
+    //Не ждет ответа
     const space = funcScreenerClient2<typeNoVoid2<T>>(tr, false)
     return {
         func, space

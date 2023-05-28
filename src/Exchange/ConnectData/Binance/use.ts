@@ -1,6 +1,6 @@
 // import Binance from "node-binance-api";
 import {spaceBinance} from "./order";
-import {FuncTimeWait} from "./funcTimeWait";
+import {FuncTimeWait} from "../../../Common/funcTimeWait";
 import {BinanceSpot} from "./BinanceLib/spot";
 import tFtt = spaceBinance.tFtt;
 

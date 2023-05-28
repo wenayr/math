@@ -12,13 +12,15 @@ export function funcTimeW() {
     type ttt = {[key: tType]: tt1[] }
 
     // const dd: {[key: tType]: ttt} = {}
-    const d: ttt = {} as const
+    const d: ttt = {}
     const data: any[] = []
     return {
         data: data,
         // записывает время в массив
         add(data: tFunc) {
-            (d[data.type] ??= []).push([data.timeStamp ?? Date.now(), data.weight]) /// TODO: не уверен в корректности работы d[data.type] ??= [], но проверить
+            if (!d[data.type]) d[data.type] = [];
+            if (d[data.type]) d[data.type]?.push([data.timeStamp ?? Date.now(), data.weight]);
+            // (d[data.type] ??= []).push([data.timeStamp ?? Date.now(), data.weight]) /// TODO: не уверен в корректности работы d[data.type] ??= [], но проверить
         },
         cleanByTime(type: tType, ms = 60*1000){
             const [arr, timeStamp] = [d[type], Date.now() as tWeight]
@@ -31,6 +33,7 @@ export function funcTimeW() {
         },
         // возвращает сумму веса за период времени мс
         weight(type: tType, ms = 60*1000) {
+            if (!d[type]) return 0
             const [arr, timeStamp] = [d[type], Date.now() as tWeight]
             let [sum, i] = [0, arr.length - 1];
             for (; i >= 0; i--) {
@@ -43,6 +46,7 @@ export function funcTimeW() {
         },
         // возвращает время (дату/число)
         byWeight(type: tType, weight = 50000) {
+            if (!d[type]) return 0
             const [arr, timeStamp] = [d[type], Date.now()]
             let [sum, i] = [0, arr.length - 1];
             for (; i >= 0; i--) {
