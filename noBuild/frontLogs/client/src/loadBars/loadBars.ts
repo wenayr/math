@@ -7,7 +7,7 @@ export async function funcTestLoad() {
 
     const BinanceLoadSpot2 = BinanceLoadEasySpot({fetch: fetch})
 
-    const nBars = 8995
+    const nBars = 28995
     const tf = TF.M15
     const time2 = new Date()
     const time1 = new Date(time2.valueOf() - tf.valueOf() * nBars)

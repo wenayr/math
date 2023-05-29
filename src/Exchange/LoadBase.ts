@@ -54,8 +54,8 @@ export function LoadQuoteBase<Bar> (setting: tBinanceLoadBase<Bar>, data?: { fet
 
     async function waitLimit() {
         ++count;
-        const t1 = FuncTimeWait.byWeight(keyName, setting.maxLoadBars) - (Date.now() - time)
         FuncTimeWait.add({type: keyName, weight: 1})
+        const t1 = FuncTimeWait.byWeight(keyName, setting.maxLoadBars) - (Date.now() - time)
         if (t1 > 0 ) await sleepAsync(t1)
         --count;
     }
