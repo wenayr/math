@@ -1,8 +1,12 @@
 import {tIo} from "../index";
-import {CTestWeb, funcPromiseServer, funcPromiseServer2} from "../../../../../src/Common/commonsServer";
 import {FasadOne} from "../../../aCode/all/fasad/fasad";
+import {CreatAPIFacadeServer} from "wenay-common";
 
 export function initSocketIo(io : tIo) {
+
+    const FacadeApi = new FasadOne()
+    const socketKey = "la"
+
 
     io.use(async (socket, next) => {
         try {
@@ -41,24 +45,11 @@ export function initSocketIo(io : tIo) {
         })
 
 
-// const send = ((data: object) => socket.emit(socketKey, data)) satisfies Parameters<(typeof funcPromiseServer<CTestWeb>)>[0]["sendMessage"]
 
-        const t = new FasadOne()
-        const socketKey = "la"
-
-
-        // const api_ = funcPromiseServer2( data => socket.emit(socketKey, data),t)
-        // socket.on(socketKey, (d)=> api_(d))
-
-
-        // серверная часть (она же клиенская для выполнения подписок)
-        funcPromiseServer({
-                sendMessage: (data) => socket.emit(socketKey, data),
-                api:(api) => {
-                socket.on(socketKey, (d)=> api.onMessage(d))
-            }}
-            ,t)
+        CreatAPIFacadeServer({object: FacadeApi, socketKey: socketKey, socket: socket})
 
     })
+
+
 }
 

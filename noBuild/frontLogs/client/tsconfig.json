@@ -30,7 +30,8 @@
       //"typescript": ["../node_modules/typescript"]
   },
   "include": [
-    "src/index.tsx",
+    "src/index.ts",
+    "src/**/*",
     "../aCode/**/*",
     "../../../src/Common/**/*"
   ],

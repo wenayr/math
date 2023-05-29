@@ -1,4 +1,3 @@
-import {FuncTimeWait} from "./Common/funcTimeWait";
 
 
 export * from "./index";

@@ -1,6 +1,7 @@
 import {sleepAsync} from "../Common/Common";
 import {TF} from "../Common/Time";
-import {CBar} from "./Bars";
+import type {CBar} from "./Bars";
+import {FuncTimeWait} from "../Common/funcTimeWait";
 
 
 type RequestInfo = any //
@@ -35,7 +36,9 @@ type tBinanceLoadBase<Bar> = {
     // дата начала доступной истории
     funcFistTime: (data: tLoadFist) => Promise<Date>,
     // перевод timeframe в название интервалов
-    intervalToName: { time: TF, name: string }[]
+    intervalToName: { time: TF, name: string }[],
+    // имя ключа, к которому будет применяться данный веся
+    nameKey?: string
 }
 
 // Обертка для создания запросов котировок по времени и лимиту
@@ -46,23 +49,17 @@ export function LoadQuoteBase<Bar> (setting: tBinanceLoadBase<Bar>, data?: { fet
     // тут будем хранить время начало котировок по символам + TF
     const startMap = new Map<string, Date>()
     let count = 0;
+    const keyName = setting.nameKey ?? "loadKey"
+    const time = setting.time ?? 60000
+
     async function waitLimit() {
         ++count;
-        while (true) {
-            if (Date.now() - date[0] > (setting.time ?? 60000)) {
-                date.push(Date.now());
-                date.splice(0,1)
-                break;
-            }
-            else
-            if (date.length < countConnect - 2) {
-                date.push(Date.now());
-                break;
-            }
-            await sleepAsync(1000)
-        }
+        const t1 = FuncTimeWait.byWeight(keyName, setting.maxLoadBars) - (Date.now() - time)
+        FuncTimeWait.add({type: keyName, weight: 1})
+        if (t1 > 0 ) await sleepAsync(t1)
         --count;
     }
+
     //перечисляем доступные методы закачки
     //ищем подходящее время для скачивания
     function searchTF(info: tInfoForLoadHistory){
