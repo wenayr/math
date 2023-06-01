@@ -285,6 +285,10 @@ async function start() {
             let st = "params : {\n"
             const arrParams = params.arrParams
             for (let ps of arrParams) {
+                let param = ps[2]
+                if (param == "ENUM") {
+                    param = "ENUM" + ps[0]
+                }
                 if (ps) st+=`\t${ ps[0] }${ ps[2] == "NO" ? "?" : "" } : ${ ps[1] }${ !ps[3] || ps[3] == "" ? "" : " // " + ps[3]}\n`
             }
             st+="}\n"

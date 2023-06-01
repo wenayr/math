@@ -10,10 +10,32 @@ type DOUBLE = number
 type BOOLEAN = boolean    
 type NumberString = string
 
- 
- 
 
-class CBinance {
+type ENUM_type 			= any
+type ENUM_interval 			= any
+type ENUM_windowSize 			= any
+type ENUM_side 			= any
+type ENUM_timeInForce 			= any
+type ENUM_newOrderRespType 			= any
+type ENUM_cancelRestrictions 			= any
+type ENUM_selfTradePreventionMode		= any
+type ENUM_cancelReplaceMode		= any
+type ENUM_stopLimitTimeInForce		= any
+type ENUM_sideEffectType		= any
+type ENUM_status		= any
+type ENUM_lendingType		= any
+type ENUM_product			= any
+type ENUM_sortBy			= any
+type ENUM_txnType			= any
+type ENUM_positionSide			= any
+type ENUM_urgency			= any
+type LIST			= any
+type ENUM_operation			= any
+type ENUM_direction			= any
+type ENUM_walletType			= any
+type ENUM_validTime			= any
+
+export class CBinanceAll {
 //https://binance-docs.github.io/apidocs/spot/en#introduction
 
 APIKeySetup = () => {
@@ -91,9 +113,78 @@ DataSources = () => {
 	type req = {}
 }
 
-//https://binance-docs.github.io/apidocs/sp 
+//https://binance-docs.github.io/apidocs/spot/en#endpoint-security-type
+
+Endpointsecuritytype = () => {
+	const name = "Endpoint security type"
+	const nameType = ""
+	const wight = []
+	// Security Type Description
+	// type params = {
+	// 	NONE : Endpoint can be accessed freely.
+	// 	TRADE : Endpoint requires sending a valid API-Key and signature.
+	// 	MARGIN : Endpoint requires sending a valid API-Key and signature.
+	// 	USER_DATA : Endpoint requires sending a valid API-Key and signature.
+	// 	USER_STREAM : Endpoint requires sending a valid API-Key.
+	// 	MARKET_DATA : Endpoint requires sending a valid API-Key.
+	// }
+	// type req = {}
+}
+
+//https://binance-docs.github.io/apidocs/spot/en#signed-trade-user_data-and-margin-endpoint-security
+
+SIGNED = () => {
+	const name = "SIGNED (TRADE, USER_DATA, AND MARGIN)"
+	const nameType = "TRADE, USER_DATA, AND MARGIN"
+	const wight = []
+	type req = {
+		// process request 
+		
+		}
+	| {
+		// reject request 
+		
+		} 
+	
+}
+
 //https://binance-docs.github.io/apidocs/spot/en#public-api-definitions
- 
+
+PublicAPIDefinitions = () => {
+	const name = "Public API Definitions"
+	const nameType = ""
+	const wight = []
+	type req = {
+		"rateLimitType" :  string , // "REQUEST_WEIGHT"  
+		"interval" :  string , // "MINUTE"  
+		"intervalNum" :  number , // 1  
+		"limit" :  number , // 1200 
+		
+		}
+	| {
+		"rateLimitType" :  string , // "ORDERS"  
+		"interval" :  string , // "SECOND"  
+		"intervalNum" :  number , // 10  
+		"limit" :  number , // 100 
+		
+		} 
+	| {
+		"rateLimitType" :  string , // "ORDERS"  
+		"interval" :  string , // "DAY"  
+		"intervalNum" :  number , // 1  
+		"limit" :  number , // 200000 
+		
+		}
+	| {
+		"rateLimitType" :  string , // "RAW_REQUESTS"  
+		"interval" :  string , // "MINUTE"  
+		"intervalNum" :  number , // 5  
+		"limit" :  number , // 5000 
+		
+		}
+	
+}
+
 //https://binance-docs.github.io/apidocs/spot/en#filters
 
 Filters = () => {
@@ -436,8 +527,8 @@ DailyAccountSnapshot = () => {
 							}
 						
 						],
-					"position" :[					
-	 | {
+					"position"  :[					
+	  {
 							"entryPrice" :  NumberString , // "7130.41000000"  
 							"markPrice" :  NumberString , // "7257.66239673"  
 							"positionAmt" :  NumberString , // "0.01000000"  
@@ -891,9 +982,9 @@ DustLog = () => {
 			]
 		
 		}
-	
-	}
 	 
+}
+
 //https://binance-docs.github.io/apidocs/spot/en#get-assets-that-can-be-converted-into-bnb-user_data
 
 GetAssetsThatCanBeConvertedIntoBNB = () => {
@@ -1155,7 +1246,7 @@ UserUniversalTransfer = () => {
 	}
 	// Name Type Mandatory Description
 	type params = {
-		type : ENUM
+		type : ENUM_type
 		asset : STRING
 		amount : DECIMAL
 		fromSymbol? : STRING
@@ -1187,7 +1278,7 @@ QueryUserUniversalTransferHistory = () => {
 	}
 	// Name Type Mandatory Description
 	type params = {
-		type : ENUM
+		type : ENUM_type
 		startTime? : LONG
 		endTime? : LONG
 		// Default 1
@@ -2244,7 +2335,7 @@ GetDetailonSubaccountsMarginAccount = () => {
 		"normalBar" :  NumberString , // "2.00000000" // Initial margin ratio 
 		
 		},
-	"marginUserAssetVoList" : [	
+	"marginUserAssetVoList" : | [	
 	 | {
 			"asset" :  string , // "BTC"  
 			"borrowed" :  NumberString , // "0.00000000"  
@@ -3134,7 +3225,7 @@ AddIPRestrictionforSubAccountAPIkey = () => {
 
 //https://binance-docs.github.io/apidocs/spot/en#deposit-assets-into-the-managed-sub-account-for-investor-master-account
 
-DepositAssetsIntoTheManagedSubaccountMA = () => {
+DepositAssetsIntoTheManagedSubaccountFA = () => {
 	const name = "Deposit Assets Into The Managed Sub-account（For Investor Master Account）"
 	const nameType = ""
 	const wight = [{
@@ -3159,7 +3250,7 @@ DepositAssetsIntoTheManagedSubaccountMA = () => {
 
 //https://binance-docs.github.io/apidocs/spot/en#query-managed-sub-account-asset-details-for-investor-master-account
 
-QueryManagedSubaccountAssetDetailsMA = () => {
+QueryManagedSubaccountAssetDetailsFA = () => {
 	const name = "Query Managed Sub-account Asset Details（For Investor Master Account）"
 	const nameType = ""
 	const wight = [{
@@ -3199,7 +3290,7 @@ QueryManagedSubaccountAssetDetailsMA = () => {
 
 //https://binance-docs.github.io/apidocs/spot/en#withdrawl-assets-from-the-managed-sub-account-for-investor-master-account
 
-WithdrawlAssetsFromTheManagedSubaccountMA = () => {
+WithdrawlAssetsFromTheManagedSubaccountFA = () => {
 	const name = "Withdrawl Assets From The Managed Sub-account（For Investor Master Account）"
 	const nameType = ""
 	const wight = [{
@@ -3226,7 +3317,7 @@ WithdrawlAssetsFromTheManagedSubaccountMA = () => {
 
 //https://binance-docs.github.io/apidocs/spot/en#query-managed-sub-account-snapshot-for-investor-master-account
 
-QueryManagedSubaccountSnapshotMA = () => {
+QueryManagedSubaccountSnapshotFA = () => {
 	const name = "Query Managed Sub-account Snapshot（For Investor Master Account）"
 	const nameType = ""
 	const wight = [{
@@ -3336,7 +3427,7 @@ QueryManagedSubaccountSnapshotMA = () => {
 						}
 					
 					],
-				"position" :[				
+				"position"  :[				
 	 | {
 						"entryPrice" :  NumberString , // "7130.41000000"  
 						"markPrice" :  NumberString , // "7257.66239673"  
@@ -3401,7 +3492,8 @@ QueryManagedSubAccountTransferLog = () => {
 			status :  string , // "SUCCESS" 
 			tranId :  number , // 91077779 
 			
-			}  | {
+			}
+	  | {
 			fromEmail :  string , // "wdywl0lddakh@test.com" 
 			fromAccountType :  string , // "SPOT" 
 			toEmail :  string , // "test_0_virtual@kq3kno9imanagedsub.com" 
@@ -3463,7 +3555,8 @@ QueryManagedSubAccountTransferLog2 = () => {
 			status :  string , // "SUCCESS" 
 			tranId :  number , // 91077779 
 			
-			}  | {
+			}
+		 | {
 			fromEmail :  string , // "wdywl0lddakh@test.com" 
 			fromAccountType :  string , // "SPOT" 
 			toEmail :  string , // "test_0_virtual@kq3kno9imanagedsub.com" 
@@ -3475,7 +3568,8 @@ QueryManagedSubAccountTransferLog2 = () => {
 			status :  string , // "SUCCESS" 
 			tranId :  number , // 91077676 
 			
-			} 
+			}
+		
 		]
 	count :  number , // 2 
 	
@@ -3485,7 +3579,7 @@ QueryManagedSubAccountTransferLog2 = () => {
 
 //https://binance-docs.github.io/apidocs/spot/en#query-managed-sub-account-futures-asset-details-for-investor-master-account-user_data
 
-QueryManagedSubaccountFuturesAssetDetailsMA = () => {
+QueryManagedSubaccountFuturesAssetDetailsFA = () => {
 	const name = "Query Managed Sub-account Futures Asset Details（For Investor Master Account）(USER_DATA)"
 	const nameType = "USER_DATA"
 	const wight = [{
@@ -3515,7 +3609,7 @@ QueryManagedSubaccountFuturesAssetDetailsMA = () => {
 						}
 					
 					],
-				"position" : [				
+				"position" : | [				
 	 | {
 						"symbol" :  string , // "BTCUSDT"  
 						"entryPrice" :  number , // 17000  
@@ -3565,7 +3659,8 @@ QueryManagedSubaccountMarginAssetDetails = () => {
 			locked :  NumberString , // "0" 
 			netAsset :  NumberString , // "0" 
 			
-			}  
+			} 
+		
 		]
 	
 	}
@@ -3706,6 +3801,28 @@ QuerySubaccountTransactionStatistics = () => {
 			"busdMargin" :  number , // 0  
 			"date" :  number , // 1676851200000 
 			
+			},
+		| {
+			"userId" :  number , // 1000138138384  
+			"btc" :  number , // 0  
+			"btcFutures" :  number , // 0  
+			"btcMargin" :  number , // 0  
+			"busd" :  number , // 0  
+			"busdFutures" :  number , // 0  
+			"busdMargin" :  number , // 0  
+			"date" :  number , // 1677110400000 
+			
+			},
+		| {
+			"userId" :  number , // 1000138138384  
+			"btc" :  number , // 0  
+			"btcFutures" :  number , // 0  
+			"btcMargin" :  number , // 0  
+			"busd" :  number , // 0  
+			"busdFutures" :  number , // 0  
+			"busdMargin" :  number , // 0  
+			"date" :  number , // 1677369600000 
+			
 			}
 		
 		]
@@ -3816,7 +3933,7 @@ ExchangeInformation = () => {
 			}
 		
 		],
-	"exchangeFilters" : [	//These are the defined filters in the `Filters` section.
+	"exchangeFilters" : | [	//These are the defined filters in the `Filters` section.
 	
 		//All filters are optional.
 	
@@ -4072,7 +4189,7 @@ KlineCandlestickData = () => {
 	// Name Type Mandatory Description
 	type params = {
 		symbol : STRING
-		interval : ENUM
+		interval : ENUM_interval
 		startTime? : LONG
 		endTime? : LONG
 		// Default 500; max 1000.
@@ -4151,7 +4268,7 @@ UIKlines = () => {
 	// Name Type Mandatory Description
 	type params = {
 		symbol : STRING
-		interval : ENUM
+		interval : ENUM_interval
 		startTime? : LONG
 		endTime? : LONG
 		// Default 500; max 1000.
@@ -4241,140 +4358,140 @@ CurrentAveragePrice = () => {
 
 //https://binance-docs.github.io/apidocs/spot/en#24hr-ticker-price-change-statistics
 
-// z24hrTickerPriceChangeStatistics = () => {
-// 	const name = "24hr Ticker Price Change Statistics"
-// 	const nameType = ""
-// 	const wight = [{
-// 			name : "IP",
-// 		}
-// 	]
-// 	const address = {
-// 		type : "GET",
-// 		url : "/api/v3/ticker/24hr",
-// 	}
-// 	// Name Type Mandatory Description
-// 	type params = {
-// 		symbol? : STRING
-// 		symbols? : STRING
-// 		// Supported values: 
-// 		type? : ENUM
-// 	}
-// 	type req = {
-// 	"symbol" :  string , // "BNBBTC"  
-// 	"priceChange" :  NumberString , // "-94.99999800"  
-// 	"priceChangePercent" :  NumberString , // "-95.960"  
-// 	"weightedAvgPrice" :  NumberString , // "0.29628482"  
-// 	"prevClosePrice" :  NumberString , // "0.10002000"  
-// 	"lastPrice" :  NumberString , // "4.00000200"  
-// 	"lastQty" :  NumberString , // "200.00000000"  
-// 	"bidPrice" :  NumberString , // "4.00000000"  
-// 	"bidQty" :  NumberString , // "100.00000000"  
-// 	"askPrice" :  NumberString , // "4.00000200"  
-// 	"askQty" :  NumberString , // "100.00000000"  
-// 	"openPrice" :  NumberString , // "99.00000000"  
-// 	"highPrice" :  NumberString , // "100.00000000"  
-// 	"lowPrice" :  NumberString , // "0.10000000"  
-// 	"volume" :  NumberString , // "8913.30000000"  
-// 	"quoteVolume" :  NumberString , // "15.30000000"  
-// 	"openTime" :  number , // 1499783499040  
-// 	"closeTime" :  number , // 1499869899040  
-// 	"firstId" :  number , // 28385  // First tradeId
-//	 
-// 	"lastId" :  number , // 28460  // Last tradeId
-//	 
-// 	"count" :  number , // 76 // Trade count 
-//	
-// 	}
-// 	[
-// 	 | {
-// 		"symbol" :  string , // "BNBBTC"  
-// 		"priceChange" :  NumberString , // "-94.99999800"  
-// 		"priceChangePercent" :  NumberString , // "-95.960"  
-// 		"weightedAvgPrice" :  NumberString , // "0.29628482"  
-// 		"prevClosePrice" :  NumberString , // "0.10002000"  
-// 		"lastPrice" :  NumberString , // "4.00000200"  
-// 		"lastQty" :  NumberString , // "200.00000000"  
-// 		"bidPrice" :  NumberString , // "4.00000000"  
-// 		"bidQty" :  NumberString , // "100.00000000"  
-// 		"askPrice" :  NumberString , // "4.00000200"  
-// 		"askQty" :  NumberString , // "100.00000000"  
-// 		"openPrice" :  NumberString , // "99.00000000"  
-// 		"highPrice" :  NumberString , // "100.00000000"  
-// 		"lowPrice" :  NumberString , // "0.10000000"  
-// 		"volume" :  NumberString , // "8913.30000000"  
-// 		"quoteVolume" :  NumberString , // "15.30000000"  
-// 		"openTime" :  number , // 1499783499040  
-// 		"closeTime" :  number , // 1499869899040  
-// 		"firstId" :  number , // 28385  // First tradeId
-//	 
-// 		"lastId" :  number , // 28460  // Last tradeId
-//	 
-// 		"count" :  number , // 76 // Trade count 
-//		
-// 		}
-//	
-// 	]
-// 	| {
-// 	"symbol" :  string , // "BNBBTC"  // Symbol Name
-//	 
-// 	"openPrice" :  NumberString , // "99.00000000"  // Opening price of the Interval
-//	 
-// 	"highPrice" :  NumberString , // "100.00000000"  // Highest price in the interval
-//	 
-// 	"lowPrice" :  NumberString , // "0.10000000"  // Lowest  price in the interval
-//	 
-// 	"lastPrice" :  NumberString , // "4.00000200"  // Closing price of the interval
-//	 
-// 	"volume" :  NumberString , // "8913.30000000"  // Total trade volume (in base asset)
-//	 
-// 	"quoteVolume" :  NumberString , // "15.30000000"  // Total trade volume (in quote asset)
-//	 
-// 	"openTime" :  number , // 1499783499040  // Start of the ticker interval
-//	 
-// 	"closeTime" :  number , // 1499869899040  // End of the ticker interval
-//	 
-// 	"firstId" :  number , // 28385  // First tradeId considered
-//	 
-// 	"lastId" :  number , // 28460  // Last tradeId considered
-//	 
-// 	"count" :  number , // 76 // Total trade count 
-//	
-// 	}
-// 	[
-// 	 | {
-// 		"symbol" :  string , // "BNBBTC"  
-// 		"openPrice" :  NumberString , // "99.00000000"  
-// 		"highPrice" :  NumberString , // "100.00000000"  
-// 		"lowPrice" :  NumberString , // "0.10000000"  
-// 		"lastPrice" :  NumberString , // "4.00000200"  
-// 		"volume" :  NumberString , // "8913.30000000"  
-// 		"quoteVolume" :  NumberString , // "15.30000000"  
-// 		"openTime" :  number , // 1499783499040  
-// 		"closeTime" :  number , // 1499869899040  
-// 		"firstId" :  number , // 28385  
-// 		"lastId" :  number , // 28460  
-// 		"count" :  number , // 76 
-//		
-// 		},
-// 	| {
-// 		"symbol" :  string , // "LTCBTC"  
-// 		"openPrice" :  NumberString , // "0.07000000"  
-// 		"highPrice" :  NumberString , // "0.07000000"  
-// 		"lowPrice" :  NumberString , // "0.07000000"  
-// 		"lastPrice" :  NumberString , // "0.07000000"  
-// 		"volume" :  NumberString , // "11.00000000"  
-// 		"quoteVolume" :  NumberString , // "0.77000000"  
-// 		"openTime" :  number , // 1656908192899  
-// 		"closeTime" :  number , // 1656994592899  
-// 		"firstId" :  number , // 0  
-// 		"lastId" :  number , // 10  
-// 		"count" :  number , // 11 
-//		
-// 		}
-//	
-// 	]
-//	
-// }
+hrTickerPriceChangeStatistics24 = () => {
+	const name = "24hr Ticker Price Change Statistics"
+	const nameType = ""
+	const wight = [{
+			name : "IP",
+		}
+	]
+	const address = {
+		type : "GET",
+		url : "/api/v3/ticker/24hr",
+	}
+	// Name Type Mandatory Description
+	type params = {
+		symbol? : STRING
+		symbols? : STRING
+		// Supported values: 
+		type? : ENUM_type
+	}
+	type req = {
+	"symbol" :  string , // "BNBBTC"  
+	"priceChange" :  NumberString , // "-94.99999800"  
+	"priceChangePercent" :  NumberString , // "-95.960"  
+	"weightedAvgPrice" :  NumberString , // "0.29628482"  
+	"prevClosePrice" :  NumberString , // "0.10002000"  
+	"lastPrice" :  NumberString , // "4.00000200"  
+	"lastQty" :  NumberString , // "200.00000000"  
+	"bidPrice" :  NumberString , // "4.00000000"  
+	"bidQty" :  NumberString , // "100.00000000"  
+	"askPrice" :  NumberString , // "4.00000200"  
+	"askQty" :  NumberString , // "100.00000000"  
+	"openPrice" :  NumberString , // "99.00000000"  
+	"highPrice" :  NumberString , // "100.00000000"  
+	"lowPrice" :  NumberString , // "0.10000000"  
+	"volume" :  NumberString , // "8913.30000000"  
+	"quoteVolume" :  NumberString , // "15.30000000"  
+	"openTime" :  number , // 1499783499040  
+	"closeTime" :  number , // 1499869899040  
+	"firstId" :  number , // 28385  // First tradeId
+	 
+	"lastId" :  number , // 28460  // Last tradeId
+	 
+	"count" :  number , // 76 // Trade count 
+	
+	}
+	| [
+	 | {
+		"symbol" :  string , // "BNBBTC"  
+		"priceChange" :  NumberString , // "-94.99999800"  
+		"priceChangePercent" :  NumberString , // "-95.960"  
+		"weightedAvgPrice" :  NumberString , // "0.29628482"  
+		"prevClosePrice" :  NumberString , // "0.10002000"  
+		"lastPrice" :  NumberString , // "4.00000200"  
+		"lastQty" :  NumberString , // "200.00000000"  
+		"bidPrice" :  NumberString , // "4.00000000"  
+		"bidQty" :  NumberString , // "100.00000000"  
+		"askPrice" :  NumberString , // "4.00000200"  
+		"askQty" :  NumberString , // "100.00000000"  
+		"openPrice" :  NumberString , // "99.00000000"  
+		"highPrice" :  NumberString , // "100.00000000"  
+		"lowPrice" :  NumberString , // "0.10000000"  
+		"volume" :  NumberString , // "8913.30000000"  
+		"quoteVolume" :  NumberString , // "15.30000000"  
+		"openTime" :  number , // 1499783499040  
+		"closeTime" :  number , // 1499869899040  
+		"firstId" :  number , // 28385  // First tradeId
+	 
+		"lastId" :  number , // 28460  // Last tradeId
+	 
+		"count" :  number , // 76 // Trade count 
+		
+		}
+	
+	]
+	| {
+	"symbol" :  string , // "BNBBTC"  // Symbol Name
+	 
+	"openPrice" :  NumberString , // "99.00000000"  // Opening price of the Interval
+	 
+	"highPrice" :  NumberString , // "100.00000000"  // Highest price in the interval
+	 
+	"lowPrice" :  NumberString , // "0.10000000"  // Lowest  price in the interval
+	 
+	"lastPrice" :  NumberString , // "4.00000200"  // Closing price of the interval
+	 
+	"volume" :  NumberString , // "8913.30000000"  // Total trade volume (in base asset)
+	 
+	"quoteVolume" :  NumberString , // "15.30000000"  // Total trade volume (in quote asset)
+	 
+	"openTime" :  number , // 1499783499040  // Start of the ticker interval
+	 
+	"closeTime" :  number , // 1499869899040  // End of the ticker interval
+	 
+	"firstId" :  number , // 28385  // First tradeId considered
+	 
+	"lastId" :  number , // 28460  // Last tradeId considered
+	 
+	"count" :  number , // 76 // Total trade count 
+	
+	}
+	| [
+	 | {
+		"symbol" :  string , // "BNBBTC"  
+		"openPrice" :  NumberString , // "99.00000000"  
+		"highPrice" :  NumberString , // "100.00000000"  
+		"lowPrice" :  NumberString , // "0.10000000"  
+		"lastPrice" :  NumberString , // "4.00000200"  
+		"volume" :  NumberString , // "8913.30000000"  
+		"quoteVolume" :  NumberString , // "15.30000000"  
+		"openTime" :  number , // 1499783499040  
+		"closeTime" :  number , // 1499869899040  
+		"firstId" :  number , // 28385  
+		"lastId" :  number , // 28460  
+		"count" :  number , // 76 
+		
+		},
+	| {
+		"symbol" :  string , // "LTCBTC"  
+		"openPrice" :  NumberString , // "0.07000000"  
+		"highPrice" :  NumberString , // "0.07000000"  
+		"lowPrice" :  NumberString , // "0.07000000"  
+		"lastPrice" :  NumberString , // "0.07000000"  
+		"volume" :  NumberString , // "11.00000000"  
+		"quoteVolume" :  NumberString , // "0.77000000"  
+		"openTime" :  number , // 1656908192899  
+		"closeTime" :  number , // 1656994592899  
+		"firstId" :  number , // 0  
+		"lastId" :  number , // 10  
+		"count" :  number , // 11 
+		
+		}
+	
+	]
+	
+}
 
 //https://binance-docs.github.io/apidocs/spot/en#symbol-price-ticker
 
@@ -4399,8 +4516,8 @@ SymbolPriceTicker = () => {
 	"price" :  NumberString , // "4.00000200" 
 	
 	}
-		|
-		[{
+	| [
+	 | {
 		"symbol" :  string , // "LTCBTC"  
 		"price" :  NumberString , // "4.00000200" 
 		
@@ -4441,8 +4558,8 @@ SymbolOrderBookTicker = () => {
 	"askQty" :  NumberString , // "9.00000000" 
 	
 	}
-		|
-	[ {
+	| [
+	 | {
 		"symbol" :  string , // "LTCBTC"  
 		"bidPrice" :  NumberString , // "4.00000000"  
 		"bidQty" :  NumberString , // "431.00000000"  
@@ -4465,155 +4582,155 @@ SymbolOrderBookTicker = () => {
 
 //https://binance-docs.github.io/apidocs/spot/en#rolling-window-price-change-statistics
 
-// Rollingwindowpricechangestatistics = () => {
-// 	const name = "Rolling window price change statistics"
-// 	const nameType = ""
-// 	const wight = [{
-// 			name : "IP",
-// 		}
-// 	]
-// 	const address = {
-// 		type : "GET",
-// 		url : "/api/v3/ticker",
-// 	}
-// 	// Name Type Mandatory Description
-// 	type params = {
-// 		symbol : undefined
-// 		symbols : undefined
-// 		// Defaults to 
-// 		windowSize? : ENUM
-// 		// Supported values: 
-// 		type? : ENUM
-// 	}
-// 	type req = {
-// 	"symbol" :  string , // "BNBBTC"  
-// 	"priceChange" :  NumberString , // "-8.00000000"  // Absolute price change
-//	 
-// 	"priceChangePercent" :  NumberString , // "-88.889"  // Relative price change in percent
-//	 
-// 	"weightedAvgPrice" :  NumberString , // "2.60427807"  // QuoteVolume / Volume
-//	 
-// 	"openPrice" :  NumberString , // "9.00000000"  
-// 	"highPrice" :  NumberString , // "9.00000000"  
-// 	"lowPrice" :  NumberString , // "1.00000000"  
-// 	"lastPrice" :  NumberString , // "1.00000000"  
-// 	"volume" :  NumberString , // "187.00000000"  
-// 	"quoteVolume" :  NumberString , // "487.00000000"  // Sum of (price * volume) for all trades
-//	 
-// 	"openTime" :  number , // 1641859200000  // Open time for ticker window
-//	 
-// 	"closeTime" :  number , // 1642031999999  // Current Time of the Request
-//	 
-// 	"firstId" :  number , // 0  // Trade IDs
-//	 
-// 	"lastId" :  number , // 60  
-// 	"count" :  number , // 61 // Number of trades in the interval 
-//	
-// 	}
-// 		|
-// 		[{
-// 		"symbol" :  string , // "BTCUSDT"  
-// 		"priceChange" :  NumberString , // "-154.13000000"  // Absolute price change
-//	 
-// 		"priceChangePercent" :  NumberString , // "-0.740"  // Relative price change in percent
-//	 
-// 		"weightedAvgPrice" :  NumberString , // "20677.46305250"  // QuoteVolume / Volume
-//	 
-// 		"openPrice" :  NumberString , // "20825.27000000"  
-// 		"highPrice" :  NumberString , // "20972.46000000"  
-// 		"lowPrice" :  NumberString , // "20327.92000000"  
-// 		"lastPrice" :  NumberString , // "20671.14000000"  
-// 		"volume" :  NumberString , // "72.65112300"  
-// 		"quoteVolume" :  NumberString , // "1502240.91155513"  // Sum of (price * volume) for all trades
-//	 
-// 		"openTime" :  number , // 1655432400000  // Open time for ticker window
-//	 
-// 		"closeTime" :  number , // 1655446835460  // Close time for ticker window
-//	 
-// 		"firstId" :  number , // 11147809  // Trade IDs
-//	 
-// 		"lastId" :  number , // 11149775  
-// 		"count" :  number , // 1967 // Number of trades in the interval 
-//		
-// 		},
-// 	| {
-// 		"symbol" :  string , // "BNBBTC"  
-// 		"priceChange" :  NumberString , // "0.00008530"  
-// 		"priceChangePercent" :  NumberString , // "0.823"  
-// 		"weightedAvgPrice" :  NumberString , // "0.01043129"  
-// 		"openPrice" :  NumberString , // "0.01036170"  
-// 		"highPrice" :  NumberString , // "0.01049850"  
-// 		"lowPrice" :  NumberString , // "0.01033870"  
-// 		"lastPrice" :  NumberString , // "0.01044700"  
-// 		"volume" :  NumberString , // "166.67000000"  
-// 		"quoteVolume" :  NumberString , // "1.73858301"  
-// 		"openTime" :  number , // 1655432400000  
-// 		"closeTime" :  number , // 1655446835460  
-// 		"firstId" :  number , // 2351674  
-// 		"lastId" :  number , // 2352034  
-// 		"count" :  number , // 361 
-//		
-// 		}
-//	
-// 	]
-// 	| {
-// 	"symbol" :  string , // "LTCBTC"  
-// 	"openPrice" :  NumberString , // "0.10000000"  
-// 	"highPrice" :  NumberString , // "2.00000000"  
-// 	"lowPrice" :  NumberString , // "0.10000000"  
-// 	"lastPrice" :  NumberString , // "2.00000000"  
-// 	"volume" :  NumberString , // "39.00000000"  
-// 	"quoteVolume" :  NumberString , // "13.40000000"  // Sum of (price * volume) for all trades
-//	 
-// 	"openTime" :  number , // 1656986580000  // Open time for ticker window
-//	 
-// 	"closeTime" :  number , // 1657001016795  // Close time for ticker window
-//	 
-// 	"firstId" :  number , // 0  // Trade IDs
-//	 
-// 	"lastId" :  number , // 34  
-// 	"count" :  number , // 35 // Number of trades in the interval 
-//	
-// 	}
-// 	[
-// 	 | {
-// 		"symbol" :  string , // "BNBBTC"  
-// 		"openPrice" :  NumberString , // "0.10000000"  
-// 		"highPrice" :  NumberString , // "2.00000000"  
-// 		"lowPrice" :  NumberString , // "0.10000000"  
-// 		"lastPrice" :  NumberString , // "2.00000000"  
-// 		"volume" :  NumberString , // "39.00000000"  
-// 		"quoteVolume" :  NumberString , // "13.40000000"  // Sum of (price * volume) for all trades
-//	 
-// 		"openTime" :  number , // 1656986880000  // Open time for ticker window
-//	 
-// 		"closeTime" :  number , // 1657001297799  // Close time for ticker window
-//	 
-// 		"firstId" :  number , // 0  // Trade IDs
-//	 
-// 		"lastId" :  number , // 34  
-// 		"count" :  number , // 35 // Number of trades in the interval 
-//		
-// 		},
-// 	| {
-// 		"symbol" :  string , // "LTCBTC"  
-// 		"openPrice" :  NumberString , // "0.07000000"  
-// 		"highPrice" :  NumberString , // "0.07000000"  
-// 		"lowPrice" :  NumberString , // "0.07000000"  
-// 		"lastPrice" :  NumberString , // "0.07000000"  
-// 		"volume" :  NumberString , // "33.00000000"  
-// 		"quoteVolume" :  NumberString , // "2.31000000"  
-// 		"openTime" :  number , // 1656986880000  
-// 		"closeTime" :  number , // 1657001297799  
-// 		"firstId" :  number , // 0  
-// 		"lastId" :  number , // 32  
-// 		"count" :  number , // 33 
-//		
-// 		}
-//	
-// 	]
-//	
-// }
+Rollingwindowpricechangestatistics = () => {
+	const name = "Rolling window price change statistics"
+	const nameType = ""
+	const wight = [{
+			name : "IP",
+		}
+	]
+	const address = {
+		type : "GET",
+		url : "/api/v3/ticker",
+	}
+	// Name Type Mandatory Description
+	type params = {
+		symbol : undefined
+		symbols : undefined
+		// Defaults to 
+		windowSize? : ENUM_windowSize
+		// Supported values: 
+		type? : ENUM_type
+	}
+	type req = {
+	"symbol" :  string , // "BNBBTC"  
+	"priceChange" :  NumberString , // "-8.00000000"  // Absolute price change
+	 
+	"priceChangePercent" :  NumberString , // "-88.889"  // Relative price change in percent
+	 
+	"weightedAvgPrice" :  NumberString , // "2.60427807"  // QuoteVolume / Volume
+	 
+	"openPrice" :  NumberString , // "9.00000000"  
+	"highPrice" :  NumberString , // "9.00000000"  
+	"lowPrice" :  NumberString , // "1.00000000"  
+	"lastPrice" :  NumberString , // "1.00000000"  
+	"volume" :  NumberString , // "187.00000000"  
+	"quoteVolume" :  NumberString , // "487.00000000"  // Sum of (price * volume) for all trades
+	 
+	"openTime" :  number , // 1641859200000  // Open time for ticker window
+	 
+	"closeTime" :  number , // 1642031999999  // Current Time of the Request
+	 
+	"firstId" :  number , // 0  // Trade IDs
+	 
+	"lastId" :  number , // 60  
+	"count" :  number , // 61 // Number of trades in the interval 
+	
+	}
+	| [
+	 | {
+		"symbol" :  string , // "BTCUSDT"  
+		"priceChange" :  NumberString , // "-154.13000000"  // Absolute price change
+	 
+		"priceChangePercent" :  NumberString , // "-0.740"  // Relative price change in percent
+	 
+		"weightedAvgPrice" :  NumberString , // "20677.46305250"  // QuoteVolume / Volume
+	 
+		"openPrice" :  NumberString , // "20825.27000000"  
+		"highPrice" :  NumberString , // "20972.46000000"  
+		"lowPrice" :  NumberString , // "20327.92000000"  
+		"lastPrice" :  NumberString , // "20671.14000000"  
+		"volume" :  NumberString , // "72.65112300"  
+		"quoteVolume" :  NumberString , // "1502240.91155513"  // Sum of (price * volume) for all trades
+	 
+		"openTime" :  number , // 1655432400000  // Open time for ticker window
+	 
+		"closeTime" :  number , // 1655446835460  // Close time for ticker window
+	 
+		"firstId" :  number , // 11147809  // Trade IDs
+	 
+		"lastId" :  number , // 11149775  
+		"count" :  number , // 1967 // Number of trades in the interval 
+		
+		},
+	| {
+		"symbol" :  string , // "BNBBTC"  
+		"priceChange" :  NumberString , // "0.00008530"  
+		"priceChangePercent" :  NumberString , // "0.823"  
+		"weightedAvgPrice" :  NumberString , // "0.01043129"  
+		"openPrice" :  NumberString , // "0.01036170"  
+		"highPrice" :  NumberString , // "0.01049850"  
+		"lowPrice" :  NumberString , // "0.01033870"  
+		"lastPrice" :  NumberString , // "0.01044700"  
+		"volume" :  NumberString , // "166.67000000"  
+		"quoteVolume" :  NumberString , // "1.73858301"  
+		"openTime" :  number , // 1655432400000  
+		"closeTime" :  number , // 1655446835460  
+		"firstId" :  number , // 2351674  
+		"lastId" :  number , // 2352034  
+		"count" :  number , // 361 
+		
+		}
+	
+	]
+	| {
+	"symbol" :  string , // "LTCBTC"  
+	"openPrice" :  NumberString , // "0.10000000"  
+	"highPrice" :  NumberString , // "2.00000000"  
+	"lowPrice" :  NumberString , // "0.10000000"  
+	"lastPrice" :  NumberString , // "2.00000000"  
+	"volume" :  NumberString , // "39.00000000"  
+	"quoteVolume" :  NumberString , // "13.40000000"  // Sum of (price * volume) for all trades
+	 
+	"openTime" :  number , // 1656986580000  // Open time for ticker window
+	 
+	"closeTime" :  number , // 1657001016795  // Close time for ticker window
+	 
+	"firstId" :  number , // 0  // Trade IDs
+	 
+	"lastId" :  number , // 34  
+	"count" :  number , // 35 // Number of trades in the interval 
+	
+	}
+	| [
+	 | {
+		"symbol" :  string , // "BNBBTC"  
+		"openPrice" :  NumberString , // "0.10000000"  
+		"highPrice" :  NumberString , // "2.00000000"  
+		"lowPrice" :  NumberString , // "0.10000000"  
+		"lastPrice" :  NumberString , // "2.00000000"  
+		"volume" :  NumberString , // "39.00000000"  
+		"quoteVolume" :  NumberString , // "13.40000000"  // Sum of (price * volume) for all trades
+	 
+		"openTime" :  number , // 1656986880000  // Open time for ticker window
+	 
+		"closeTime" :  number , // 1657001297799  // Close time for ticker window
+	 
+		"firstId" :  number , // 0  // Trade IDs
+	 
+		"lastId" :  number , // 34  
+		"count" :  number , // 35 // Number of trades in the interval 
+		
+		},
+	| {
+		"symbol" :  string , // "LTCBTC"  
+		"openPrice" :  NumberString , // "0.07000000"  
+		"highPrice" :  NumberString , // "0.07000000"  
+		"lowPrice" :  NumberString , // "0.07000000"  
+		"lastPrice" :  NumberString , // "0.07000000"  
+		"volume" :  NumberString , // "33.00000000"  
+		"quoteVolume" :  NumberString , // "2.31000000"  
+		"openTime" :  number , // 1656986880000  
+		"closeTime" :  number , // 1657001297799  
+		"firstId" :  number , // 0  
+		"lastId" :  number , // 32  
+		"count" :  number , // 33 
+		
+		}
+	
+	]
+	
+}
 
 //https://binance-docs.github.io/apidocs/spot/en#live-subscribing-unsubscribing-to-streams
 
@@ -5022,8 +5139,8 @@ PartialBookDepthStreams = () => {
 
 //https://binance-docs.github.io/apidocs/spot/en#diff-depth-stream
 
-Diff.DepthStream = () => {
-	const name = "Diff. Depth Stream"
+Diff_DepthStream = () => {
+	const name = "Diff_ Depth Stream"
 	const nameType = ""
 	const wight = []
 	type req = {
@@ -5122,9 +5239,9 @@ NewOrder = () => {
 	// Name Type Mandatory Description
 	type params = {
 		symbol : STRING
-		side : ENUM
-		type : ENUM
-		timeInForce? : ENUM
+		side : ENUM_side
+		type : ENUM_type
+		timeInForce? : ENUM_timeInForce
 		quantity? : DECIMAL
 		quoteOrderQty? : DECIMAL
 		price? : DECIMAL
@@ -5140,9 +5257,9 @@ NewOrder = () => {
 		// Used with 
 		icebergQty? : DECIMAL
 		// Set the response JSON. 
-		newOrderRespType? : ENUM
+		newOrderRespType? : ENUM_newOrderRespType
 		// The allowed enums is dependent on what is configured on the symbol. The possible supported values are 
-		selfTradePreventionMode? : ENUM
+		selfTradePreventionMode? : ENUM_selfTradePreventionMode
 		// The value cannot be greater than 
 		recvWindow? : LONG
 		timestamp : LONG
@@ -5262,7 +5379,7 @@ CancelOrder = () => {
 		// Used to uniquely identify this cancel. Automatically generated by default.
 		newClientOrderId? : STRING
 		// Supported values: 
-		cancelRestrictions? : ENUM
+		cancelRestrictions? : ENUM_cancelRestrictions
 		// The value cannot be greater than 
 		recvWindow? : LONG
 		timestamp : LONG
@@ -5366,7 +5483,7 @@ CancelallOpenOrdersonaSymbol = () => {
 				}
 			
 			],
-		"orderReports" : [		
+		"orderReports" : | [		
 	 | {
 				"symbol" :  string , // "BTCUSDT"  
 				"origClientOrderId" :  string , // "CwOOIPHSmYywx6jZX77TdL"  
@@ -5481,11 +5598,11 @@ CancelanExistingOrderandSendaNewOrder = () => {
 	// Name Type Mandatory Description
 	type params = {
 		symbol : STRING
-		side : ENUM
-		type : ENUM
+		side : ENUM_side
+		type : ENUM_type
 		// The allowed values are: 
-		cancelReplaceMode : ENUM
-		timeInForce? : ENUM
+		cancelReplaceMode : ENUM_cancelReplaceMode
+		timeInForce? : ENUM_timeInForce
 		quantity? : DECIMAL
 		quoteOrderQty? : DECIMAL
 		price? : DECIMAL
@@ -5504,11 +5621,11 @@ CancelanExistingOrderandSendaNewOrder = () => {
 		trailingDelta? : LONG
 		icebergQty? : DECIMAL
 		// Allowed values: 
-		newOrderRespType? : ENUM
+		newOrderRespType? : ENUM_newOrderRespType
 		// The allowed enums is dependent on what is configured on the symbol. The possible supported values are 
-		selfTradePreventionMode? : ENUM
+		selfTradePreventionMode? : ENUM_selfTradePreventionMode
 		// Supported values: 
-		cancelRestrictions? : ENUM
+		cancelRestrictions? : ENUM_cancelRestrictions
 		// The value cannot be greater than 
 		recvWindow? : LONG
 		timestamp : LONG
@@ -5780,7 +5897,7 @@ NewOCO = () => {
 		symbol : STRING
 		// A unique Id for the entire orderList
 		listClientOrderId? : STRING
-		side : ENUM
+		side : ENUM_side
 		quantity : DECIMAL
 		// A unique Id for the limit order
 		limitClientOrderId? : STRING
@@ -5800,11 +5917,11 @@ NewOCO = () => {
 		stopLimitPrice? : DECIMAL
 		stopIcebergQty? : DECIMAL
 		// Valid values are 
-		stopLimitTimeInForce? : ENUM
+		stopLimitTimeInForce? : ENUM_stopLimitTimeInForce
 		// Set the response JSON.
-		newOrderRespType? : ENUM
+		newOrderRespType? : ENUM_newOrderRespType
 		// The allowed enums is dependent on what is configured on the symbol. The possible supported values are 
-		selfTradePreventionMode? : ENUM
+		selfTradePreventionMode? : ENUM_selfTradePreventionMode
 		// The value cannot be greater than 
 		recvWindow? : LONG
 		timestamp : LONG
@@ -5832,7 +5949,7 @@ NewOCO = () => {
 			}
 		
 		],
-	"orderReports" : [	
+	"orderReports" : | [	
 	 | {
 			"symbol" :  string , // "LTCBTC"  
 			"orderId" :  number , // 2  
@@ -5923,7 +6040,7 @@ CancelOCO = () => {
 			}
 		
 		],
-	"orderReports" : [	
+	"orderReports" : | [	
 	 | {
 			"symbol" :  string , // "LTCBTC"  
 			"origClientOrderId" :  string , // "pO9ufTiFGg3nw2fOdgeOXa"  
@@ -6209,7 +6326,7 @@ AccountInformation = () => {
 			}
 		
 		],
-	"permissions" : [	
+	"permissions" : | [	
 	  string , // "SPOT"	
 	 
 		]
@@ -6705,8 +6822,8 @@ MarginAccountNewOrder = () => {
 		// for isolated margin or not, &quot;TRUE&quot;, &quot;FALSE&quot;，default &quot;FALSE&quot;
 		isIsolated? : STRING
 		// BUY
-		side : ENUM
-		type : ENUM
+		side : ENUM_side
+		type : ENUM_type
 		quantity? : DECIMAL
 		quoteOrderQty? : DECIMAL
 		price? : DECIMAL
@@ -6717,11 +6834,11 @@ MarginAccountNewOrder = () => {
 		// Used with 
 		icebergQty? : DECIMAL
 		// Set the response JSON. ACK, RESULT, or FULL; MARKET and LIMIT order types default to FULL, all other orders default to ACK.
-		newOrderRespType? : ENUM
+		newOrderRespType? : ENUM_newOrderRespType
 		// NO_SIDE_EFFECT, MARGIN_BUY, AUTO_REPAY; default NO_SIDE_EFFECT.
-		sideEffectType? : ENUM
+		sideEffectType? : ENUM_sideEffectType
 		// GTC,IOC,FOK
-		timeInForce? : ENUM
+		timeInForce? : ENUM_timeInForce
 		// The value cannot be greater than 
 		recvWindow? : LONG
 		timestamp : LONG
@@ -6946,7 +7063,7 @@ MarginAccountCancelallOpenOrdersonaSymbol = () => {
 				}
 			
 			],
-		"orderReports" : [		
+		"orderReports" : | [		
 	 | {
 				"symbol" :  string , // "BTCUSDT"  
 				"origClientOrderId" :  string , // "CwOOIPHSmYywx6jZX77TdL"  
@@ -7212,7 +7329,7 @@ GetInterestHistory = () => {
 			"txId" :  number , // 1352286576452864727  
 			"interestAccuredTime" :  number , // 1672160400000  
 			"asset" :  string , // "USDT"  
-			"rawAsset" : string, // will not be returned for isolated margin            
+			"rawAsset" :  string ,// will not be returned for isolated margin
 			"principal" :  NumberString , // "45.3313"  
 			"interest" :  NumberString , // "0.00024995"  
 			"interestRate" :  NumberString , // "0.00013233"  
@@ -7568,7 +7685,7 @@ MarginAccountNewOCO = () => {
 		isIsolated? : STRING
 		// A unique Id for the entire orderList
 		listClientOrderId? : STRING
-		side : ENUM
+		side : ENUM_side
 		quantity : DECIMAL
 		// A unique Id for the limit order
 		limitClientOrderId? : STRING
@@ -7581,11 +7698,11 @@ MarginAccountNewOCO = () => {
 		stopLimitPrice? : DECIMAL
 		stopIcebergQty? : DECIMAL
 		// Valid values are 
-		stopLimitTimeInForce? : ENUM
+		stopLimitTimeInForce? : ENUM_stopLimitTimeInForce
 		// Set the response JSON.
-		newOrderRespType? : ENUM
+		newOrderRespType? : ENUM_newOrderRespType
 		// NO_SIDE_EFFECT, MARGIN_BUY, AUTO_REPAY; default NO_SIDE_EFFECT.
-		sideEffectType? : ENUM
+		sideEffectType? : ENUM_sideEffectType
 		// The value cannot be greater than 
 		recvWindow? : LONG
 		timestamp : LONG
@@ -7619,7 +7736,7 @@ MarginAccountNewOCO = () => {
 			}
 		
 		],
-	"orderReports" : [	
+	"orderReports" : | [	
 	 | {
 			"symbol" :  string , // "LTCBTC"  
 			"orderId" :  number , // 2  
@@ -7714,7 +7831,7 @@ MarginAccountCancelOCO = () => {
 			}
 		
 		],
-	"orderReports" : [	
+	"orderReports" : | [	
 	 | {
 			"symbol" :  string , // "LTCBTC"  
 			"origClientOrderId" :  string , // "pO9ufTiFGg3nw2fOdgeOXa"  
@@ -8829,9 +8946,9 @@ MarginDustlog = () => {
 		]
 	
 	}
+	 
 	
 }
-	 
 
 //https://binance-docs.github.io/apidocs/spot/en#cross-margin-collateral-ratio-market_data
 
@@ -8870,7 +8987,7 @@ Crossmargincollateralratio = () => {
 			}
 		
 		],
-	"assetNames" : [	
+	"assetNames" : | [	
 	  string , // "BNX"	
 	 
 		]
@@ -8885,7 +9002,7 @@ Crossmargincollateralratio = () => {
 			}
 		
 		],
-	"assetNames" : [	
+	"assetNames" : | [	
 	  string , // "BTC" 
 	 	
 	  string , // "BUSD" 
@@ -9074,7 +9191,7 @@ LISTENKEY = () => {
 
 //https://binance-docs.github.io/apidocs/spot/en#listen-key-margin
 
-LISTENKEY = () => {
+LISTENKEY2 = () => {
 	const name = "LISTEN KEY (MARGIN)"
 	const nameType = "MARGIN"
 	const wight = [{
@@ -9099,7 +9216,7 @@ LISTENKEY = () => {
 
 //https://binance-docs.github.io/apidocs/spot/en#listen-key-isolated-margin
 
-LISTENKEY = () => {
+LISTENKEY22 = () => {
 	const name = "LISTEN KEY (ISOLATED MARGIN)"
 	const nameType = "ISOLATED MARGIN"
 	const wight = [{
@@ -9117,8 +9234,8 @@ LISTENKEY = () => {
 
 //https://binance-docs.github.io/apidocs/spot/en#payload-account-update
 
-PayloadAccountUpdate = () => {
-	const name = "Payload Account Update"
+Payload_AccountUpdate = () => {
+	const name = "Payload_ Account Update"
 	const nameType = ""
 	const wight = []
 	type req = {
@@ -9148,8 +9265,8 @@ PayloadAccountUpdate = () => {
 
 //https://binance-docs.github.io/apidocs/spot/en#payload-balance-update
 
-PayloadBalanceUpdate = () => {
-	const name = "Payload Balance Update"
+Payload_BalanceUpdate = () => {
+	const name = "Payload_ Balance Update"
 	const nameType = ""
 	const wight = []
 	type req = {
@@ -9169,8 +9286,8 @@ PayloadBalanceUpdate = () => {
 
 //https://binance-docs.github.io/apidocs/spot/en#payload-order-update
 
-PayloadOrderUpdate = () => {
-	const name = "Payload Order Update"
+Payload_OrderUpdate = () => {
+	const name = "Payload_ Order Update"
 	const nameType = ""
 	const wight = []
 	type req = {
@@ -9306,7 +9423,7 @@ GetFlexibleProductList = () => {
 	// Name Type Mandatory Description
 	type params = {
 		// &quot;ALL&quot;, &quot;SUBSCRIBABLE&quot;, &quot;UNSUBSCRIBABLE&quot;; Default: &quot;ALL&quot;
-		status? : ENUM
+		status? : ENUM_status
 		asset? : STRING
 		// &quot;ALL&quot;, &quot;TRUE&quot;; Default: &quot;ALL&quot;
 		featured? : STRING
@@ -9444,7 +9561,7 @@ GetLeftDailyRedemptionQuotaofFlexibleProduct = () => {
 	type params = {
 		productId : STRING
 		// &quot;FAST&quot;, &quot;NORMAL&quot;
-		type : ENUM
+		type : ENUM_type
 		// The value cannot be greater than 
 		recvWindow? : LONG
 		timestamp : LONG
@@ -9479,7 +9596,7 @@ RedeemFlexibleProduct = () => {
 		productId : STRING
 		amount : DECIMAL
 		// &quot;FAST&quot;
-		type : ENUM
+		type : ENUM_type
 		// The value cannot be greater than 
 		recvWindow? : LONG
 		timestamp : LONG
@@ -9560,13 +9677,13 @@ GetFixedandActivityProjectList = () => {
 	type params = {
 		asset? : STRING
 		// &quot;ACTIVITY&quot;, &quot;CUSTOMIZED_FIXED&quot;
-		type : ENUM
+		type : ENUM_type
 		// &quot;ALL&quot;, &quot;SUBSCRIBABLE&quot;, &quot;UNSUBSCRIBABLE&quot;; default &quot;ALL&quot;
-		status? : ENUM
+		status? : ENUM_status
 		// default &quot;true&quot;
 		isSortAsc? : BOOLEAN
 		// &quot;START_TIME&quot;, &quot;LOT_SIZE&quot;, &quot;INTEREST_RATE&quot;, &quot;DURATION&quot;; default &quot;START_TIME&quot;
-		sortBy? : ENUM
+		sortBy? : ENUM_sortBy
 		// Currently querying page. Start from 1. Default:1
 		current? : LONG
 		// Default:10, Max:100
@@ -9650,7 +9767,7 @@ GetFixedActivityProjectPosition = () => {
 		asset? : STRING
 		projectId? : STRING
 		// &quot;HOLDING&quot;, &quot;REDEEMED&quot;
-		status? : ENUM
+		status? : ENUM_status
 		// The value cannot be greater than 
 		recvWindow? : LONG
 		timestamp : LONG
@@ -9749,7 +9866,7 @@ GetPurchaseRecord = () => {
 	// Name Type Mandatory Description
 	type params = {
 		// &quot;DAILY&quot; for flexible, &quot;ACTIVITY&quot; for activity, &quot;CUSTOMIZED_FIXED&quot; for fixed
-		lendingType : ENUM
+		lendingType : ENUM_lendingType
 		asset? : STRING
 		startTime? : LONG
 		endTime? : LONG
@@ -9773,9 +9890,9 @@ GetPurchaseRecord = () => {
 	
 	}
 	
-	]|
-	[
-	  {
+	]
+	| [
+	 | {
 	"amount" :  NumberString , // "100.00000000"  
 	"asset" :  string , // "USDT"  
 	"createTime" :  number , // 1575018453000  
@@ -9809,7 +9926,7 @@ GetRedemptionRecord = () => {
 	// Name Type Mandatory Description
 	type params = {
 		// &quot;DAILY&quot; for flexible, &quot;ACTIVITY&quot; for activity, &quot;CUSTOMIZED_FIXED&quot; for fixed
-		lendingType : ENUM
+		lendingType : ENUM_lendingType
 		asset? : STRING
 		startTime? : LONG
 		endTime? : LONG
@@ -9834,9 +9951,9 @@ GetRedemptionRecord = () => {
 	
 	}
 	
-	] |
-	[
-	 {
+	]
+	| [
+	 | {
 	"amount" :  NumberString , // "0.07070000"  
 	"asset" :  string , // "USDT"  
 	"createTime" :  number , // 1566200161000  
@@ -9855,7 +9972,7 @@ GetRedemptionRecord = () => {
 
 //https://binance-docs.github.io/apidocs/spot/en#get-interest-history-user_data-2
 
-GetInterestHistory = () => {
+GetInterestHistory2 = () => {
 	const name = "Get Interest History (USER_DATA)"
 	const nameType = "USER_DATA"
 	const wight = [{
@@ -9871,7 +9988,7 @@ GetInterestHistory = () => {
 	// Name Type Mandatory Description
 	type params = {
 		// &quot;DAILY&quot; for flexible, &quot;ACTIVITY&quot; for activity, &quot;CUSTOMIZED_FIXED&quot; for fixed
-		lendingType : ENUM
+		lendingType : ENUM_lendingType
 		asset? : STRING
 		startTime? : LONG
 		endTime? : LONG
@@ -9957,7 +10074,7 @@ GetStakingProductList = () => {
 	// Name Type Mandatory Description
 	type params = {
 		// &quot;STAKING&quot; for Locked Staking, &quot;F_DEFI&quot; for flexible DeFi Staking, &quot;L_DEFI&quot; for locked DeFi Staking
-		product : ENUM
+		product : ENUM_product
 		asset? : STRING
 		// Currently querying page. Start from 1. Default:1
 		current? : LONG
@@ -10029,7 +10146,7 @@ PurchaseStakingProduct = () => {
 	// Name Type Mandatory Description
 	type params = {
 		// &quot;STAKING&quot; for Locked Staking, &quot;F_DEFI&quot; for flexible DeFi Staking, &quot;L_DEFI&quot; for locked DeFi Staking
-		product : ENUM
+		product : ENUM_product
 		productId : STRING
 		amount : DECIMAL
 		// true or false, default false. Active if product is &quot;STAKING&quot; or &quot;L_DEFI&quot;
@@ -10063,7 +10180,7 @@ RedeemStakingProduct = () => {
 	// Name Type Mandatory Description
 	type params = {
 		// &quot;STAKING&quot; for Locked Staking, &quot;F_DEFI&quot; for flexible DeFi Staking, &quot;L_DEFI&quot; for locked DeFi Staking
-		product : ENUM
+		product : ENUM_product
 		// &quot;1234&quot;, Mandatory if product is &quot;STAKING&quot; or &quot;L_DEFI&quot;
 		positionId? : STRING
 		productId : STRING
@@ -10097,7 +10214,7 @@ GetStakingProductPosition = () => {
 	// Name Type Mandatory Description
 	type params = {
 		// &quot;STAKING&quot; for Locked Staking, &quot;F_DEFI&quot; for flexible DeFi Staking, &quot;L_DEFI&quot; for locked DeFi Staking
-		product : ENUM
+		product : ENUM_product
 		productId? : STRING
 		asset? : STRING
 		// Currently querying the page. Start from 1. Default:1
@@ -10154,7 +10271,7 @@ GetStakingProductPosition = () => {
 	 
 	"canRedeemEarly" :  boolean , // true  //When it is true, early redemption can be operated 
 	 
-	"renewable": boolean,  //When it is true, auto staking can be operated
+	"renewable": true ,  //When it is true, auto staking can be operated 
 	"type" :  string , // "AUTO"  //Order type is auto-staking or normal
 	 
 	"status" :  string , // "HOLDING" 
@@ -10183,9 +10300,9 @@ GetStakingHistory = () => {
 	// Name Type Mandatory Description
 	type params = {
 		// &quot;STAKING&quot; for Locked Staking, &quot;F_DEFI&quot; for flexible DeFi Staking, &quot;L_DEFI&quot; for locked DeFi Staking
-		product : ENUM
+		product : ENUM_product
 		// &quot;SUBSCRIPTION&quot;, &quot;REDEMPTION&quot;, &quot;INTEREST&quot;
-		txnType : ENUM
+		txnType : ENUM_txnType
 		asset? : STRING
 		startTime? : LONG
 		endTime? : LONG
@@ -10235,7 +10352,7 @@ SetAutoStaking = () => {
 	// Name Type Mandatory Description
 	type params = {
 		// &quot;STAKING&quot; for Locked Staking,  &quot;L_DEFI&quot; for locked DeFi Staking
-		product : ENUM
+		product : ENUM_product
 		positionId : STRING
 		// true or false
 		renewable : STRING
@@ -10267,7 +10384,7 @@ GetPersonalLeftQuotaofStakingProduct = () => {
 	// Name Type Mandatory Description
 	type params = {
 		// &quot;STAKING&quot; for Locked Staking, &quot;F_DEFI&quot; for flexible DeFi Staking, &quot;L_DEFI&quot; for locked DeFi Staking
-		product : ENUM
+		product : ENUM_product
 		productId : STRING
 		recvWindow? : LONG
 		timestamp : LONG
@@ -10631,54 +10748,54 @@ HashrateResaleList = () => {
 
 //https://binance-docs.github.io/apidocs/spot/en#hashrate-resale-detail-user_data
 
-// HashrateResaleDetail = () => {
-// 	const name = "Hashrate Resale Detail (USER_DATA)"
-// 	const nameType = "USER_DATA"
-// 	const wight = [{
-// 			name : "IP",
-// 			data : 5,
-// 		}
-// 	]
-// 	type req = {
-// 	"code" :  number , // 0
-// 	"msg" :  NumberString , // ""
-// 	"data" : {
-// 	"profitTransferDetails" :  number , // [{
-// 	"poolUsername" :  string , // "test4001"  // Transfer out of sub-account
-//
-// 	"toPoolUsername" :  string , // "pop"  // Transfer into subaccount
-//
-// 	"algoName" :  string , // "sha256"  // Transfer algorithm
-//
-// 	"hashRate" :  number , // 200000000000  // Transferred Hashrate quantity
-//
-// 	"day" :  number , // 20201213  // Transfer date
-//
-// 	"amount" :  number , // 0.2256872  // Transferred income
-//
-// 	"coinName" :  string , // "BTC" // Coin Name
-//
-// 	}|
-// 	 {
-// 	"poolUsername" :  string , // "test4001"
-// 	"toPoolUsername" :  string , // "pop"
-// 	"algoName" :  string , // "sha256"
-// 	"hashRate" :  number , // 200000000000
-// 	"day" :  number , // 20201213
-// 	"amount" :  number , // 0.2256872
-// 	"coinName" :  string , // "BTC"
-//
-// 	}
-//
-// 	],
-// 	"totalNum" :  number , // 8
-// 	"pageSize" :  number , // 200
-//
-// 	}
-//
-// 	}
-//
-// }
+HashrateResaleDetail = () => {
+	const name = "Hashrate Resale Detail (USER_DATA)"
+	const nameType = "USER_DATA"
+	const wight = [{
+			name : "IP",
+			data : 5,
+		}
+	]
+	// type req = {
+	// "code" :  number , // 0  
+	// "msg" :  NumberString , // ""  
+	// "data" : {
+	// "profitTransferDetails" :  number , // [{ 
+	// "poolUsername" :  string , // "test4001"  // Transfer out of sub-account
+	// 
+	// "toPoolUsername" :  string , // "pop"  // Transfer into subaccount
+	// 
+	// "algoName" :  string , // "sha256"  // Transfer algorithm
+	// 
+	// "hashRate" :  number , // 200000000000  // Transferred Hashrate quantity
+	// 
+	// "day" :  number , // 20201213  // Transfer date
+	// 
+	// "amount" :  number , // 0.2256872  // Transferred income
+	// 
+	// "coinName" :  string , // "BTC" // Coin Name 
+	//
+	// }
+	// | {
+	// "poolUsername" :  string , // "test4001"  
+	// "toPoolUsername" :  string , // "pop"  
+	// "algoName" :  string , // "sha256"  
+	// "hashRate" :  number , // 200000000000  
+	// "day" :  number , // 20201213  
+	// "amount" :  number , // 0.2256872  
+	// "coinName" :  string , // "BTC" 
+	//
+	// }
+	//
+	// ],
+	// "totalNum" :  number , // 8  
+	// "pageSize" :  number , // 200 
+	//
+	// }
+	//
+	// }
+	
+}
 
 //https://binance-docs.github.io/apidocs/spot/en#hashrate-resale-request-user_data
 
@@ -10747,7 +10864,7 @@ StatisticList = () => {
 	"BCH" :  NumberString , // "106.61586001" 
 	
 	},
-	"profitYesterday" :{
+	"profitYesterday"   :{
 	 //  Yesterday's earnings 
 	"BTC" :  NumberString , // "0.00314332"  
 	"BSV" :  NumberString , // "56.17055953"  
@@ -11242,13 +11359,13 @@ VolumeParticipation = () => {
 		// Trading symbol eg. BTCUSDT
 		symbol : STRING
 		// Trading side ( BUY or SELL )
-		side : ENUM
+		side : ENUM_side
 		// Default 
-		positionSide? : ENUM
+		positionSide? : ENUM_positionSide
 		// Quantity of base asset; The notional (
 		quantity : DECIMAL
 		// Represent the relative speed of the current execution; ENUM: LOW, MEDIUM, HIGH
-		urgency : ENUM
+		urgency : ENUM_urgency
 		// A unique id among Algo orders (length should be 32 characters)， If it is not sent, we will give default value
 		clientAlgoId? : STRING
 		// &quot;true&quot; or &quot;false&quot;. Default &quot;false&quot;; Cannot be sent in Hedge Mode; Cannot be sent when you open a position
@@ -11288,9 +11405,9 @@ TimeWeightedAveragePrice = () => {
 		// Trading symbol eg. BTCUSDT
 		symbol : STRING
 		// Trading side ( BUY or SELL )
-		side : ENUM
+		side : ENUM_side
 		// Default 
-		positionSide? : ENUM
+		positionSide? : ENUM_positionSide
 		// Quantity of base asset; The notional (
 		quantity : DECIMAL
 		// Duration for TWAP orders in seconds. [300, 86400];Less than 5min =&gt; defaults to 5 min; Greater than 24h =&gt; defaults to 24h
@@ -11412,7 +11529,7 @@ QueryHistoricalAlgoOrders = () => {
 		// Trading symbol eg. BTCUSDT
 		symbol? : STRING
 		// BUY or SELL
-		side? : ENUM
+		side? : ENUM_side
 		// in milliseconds  eg.1641522717552
 		startTime? : LONG
 		// in milliseconds  eg.1641522526562
@@ -11500,9 +11617,9 @@ QuerySubOrders = () => {
 	}
 	
 	]
-
+	
 	}
-
+	
 }
 
 //https://binance-docs.github.io/apidocs/spot/en#time-weighted-average-price-twap-new-order-trade-2
@@ -11525,7 +11642,7 @@ TimeWeightedAveragePrice2 = () => {
 		// Trading symbol eg. BTCUSDT
 		symbol : STRING
 		// Trading side ( BUY or SELL )
-		side : ENUM
+		side : ENUM_side
 		// Quantity of base asset; The notional (quantity * last price(base asset)) must be more than the equivalent of 1,000 USDT and less than the equivalent of 100,000 USDT
 		quantity : DECIMAL
 		// Duration for TWAP orders in seconds. [300, 86400]
@@ -11644,7 +11761,7 @@ QueryHistoricalAlgoOrders2 = () => {
 		// Trading symbol eg. BTCUSDT
 		symbol? : STRING
 		// BUY or SELL
-		side? : ENUM
+		side? : ENUM_side
 		// in milliseconds  eg.1641522717552
 		startTime? : LONG
 		// in milliseconds  eg.1641522526562
@@ -12513,7 +12630,7 @@ GetLiquidityOperationRecord = () => {
 	type params = {
 		operationId? : LONG
 		poolId? : LONG
-		operation? : ENUM
+		operation? : ENUM_operation
 		startTime? : LONG
 		endTime? : LONG
 		// default 3, max 100
@@ -12679,25 +12796,25 @@ GetPoolConfigure = () => {
 	"poolNmae" :  string , // "BUSD/USDT"  
 	"updateTime" :  number , // 1565769342148  
 	"liquidity" : {
-	"constantA" :  number , // 2000  //"NA" if pool is an innovation pool
-	 
-	"minRedeemShare" :  number , // 0.1  
-	"slippageTolerance" :  number , // 0.2 //The swap proceeds only when the slippage is within the set range 
-	
-	},
+		"constantA" :  number , // 2000  //"NA" if pool is an innovation pool
+		 
+		"minRedeemShare" :  number , // 0.1  
+		"slippageTolerance" :  number , // 0.2 //The swap proceeds only when the slippage is within the set range 
+		
+		},
 	"assetConfigure"  :{
-	"BUSD" : {
-	"minAdd" :  number , // 10  
-	"maxAdd" :  number , // 20  
-	"minSwap" :  number , // 10  
-	"maxSwap" :  number , // 30 
+		"BUSD" : {
+		"minAdd" :  number , // 10  
+		"maxAdd" :  number , // 20  
+		"minSwap" :  number , // 10  
+		"maxSwap" :  number , // 30 
 	
 	},
 	"USDT" : | {
-	"minAdd" :  number , // 10  
-	"maxAdd" :  number , // 20  
-	"minSwap" :  number , // 10  
-	"maxSwap" :  number , // 30 
+		"minAdd" :  number , // 10  
+		"maxAdd" :  number , // 20  
+		"minSwap" :  number , // 10  
+		"maxSwap" :  number , // 30 
 	
 	}
 	
@@ -12822,13 +12939,13 @@ GetUnclaimedRewardsRecord = () => {
 	"USDT" :  number , // 0.00000002 
 	
 	},
-	"details"  :{
+	"details"   :{
 	"BNB/USDT" :{
 	"BUSD" :  number , // 100000315.79  
 	"USDT" :  number , // 0.00000002 
 	
 	},
-	"BNB/BTC"   :{
+	"BNB/BTC"  :{
 	"BNB" :  number , // 0.00000001 
 	
 	}
@@ -12908,6 +13025,40 @@ GetClaimedHistory = () => {
 	}
 	
 	]
+	
+}
+
+//https://binance-docs.github.io/apidocs/spot/en#websocket-pool-price-streams
+
+WebsocketPoolpriceStreams = () => {
+	const name = "Websocket Pool price Streams"
+	const nameType = ""
+	const wight = []
+	type req = {
+	"quoteAsset" :  string , // "BTC"  
+	"quoteSize" :  NumberString , // "15.57778974"  
+	"baseAsset" :  string , // "DYDX"  
+	"baseSize" :  NumberString , // "212296.96891500"  
+	"poolId" :  number , // 121  
+	"poolName" :  string , // "DYDX/BTC"  
+	"marginPrice" :  NumberString , // "0.00007338"  
+	"timestamp" :  number , // 1685413319098 
+	
+	}
+	| {
+	"type" :  string , // "COMMAND"  
+	"data" :  string , // "SUCCESS"  
+	"subType" :  string , // "SUBSCRIBE"  
+	"code" :  NumberString , // "00000000" 
+	
+	}
+	| {
+	"type" :  string , // "COMMAND"  
+	"data" :  string , // "SUCCESS"  
+	"subType" :  string , // "UNSUBSCRIBE"  
+	"code" :  NumberString , // "00000000" 
+	
+	}
 	
 }
 
@@ -13252,9 +13403,9 @@ CheckLockedValueofVIPCollateralAccount = () => {
 	
 	}
 	
-	]|
-	[
-	  {
+	] 
+	| [
+	   {
 	"collateralAccountId" :  NumberString , // "23456789"  
 	"collateralCoin" :  string , // "BNB,BTC,ETH"  
 	"collateralValue" :  NumberString , // "25000.238752" // locked collateral value shown in USD value 
@@ -13568,7 +13719,7 @@ AdjustLTVCryptoLoanAdjustLTV = () => {
 		orderId : LONG
 		amount : DECIMAL
 		// &quot;ADDITIONAL&quot;, &quot;REDUCED&quot;
-		direction : ENUM
+		direction : ENUM_direction
 		recvWindow? : LONG
 		timestamp : LONG
 	}
@@ -13879,7 +14030,7 @@ GetPayTradeHistory = () => {
 		}
 	
 	],
-	"payerInfo"   :{
+	"payerInfo"  :{
 	"name" :  string , // "Jack"  //nickname or merchant name
 	 
 	"type" :  string , // "USER"  //account type，USER for personal，MERCHANT for merchant
@@ -13889,7 +14040,7 @@ GetPayTradeHistory = () => {
 	"accountId" :  NumberString , // "67736251" //binance pay id 
 	
 	},
-	"receiverInfo"   :{
+	"receiverInfo"  :{
 	"name" :  string , // "Alan"  //nickname or merchant name
 	 
 	"type" :  string , // "MERCHANT"  //account type，USER for personal，MERCHANT for merchant
@@ -14028,9 +14179,9 @@ Sendquoterequest = () => {
 		// When specified, it is the amount you will be credited after the conversion
 		toAmount : DECIMAL
 		// SPOT or FUNDING. Default is SPOT
-		walletType? : ENUM
+		walletType? : ENUM_walletType
 		// 10s, 30s, 1m, 2m, default 10s
-		validTime? : ENUM
+		validTime? : ENUM_validTime
 		// The value cannot be greater than 60000
 		recvWindow? : LONG
 		timestamp : LONG
@@ -14576,7 +14727,6 @@ RedeemaBinanceGiftCard = () => {
 		code : STRING
 		// Each external unique ID represents a unique user on the partner platform. The function helps you to identify the redemption behavior of different users, such as redemption frequency and amount. It also helps risk and limit control of a single account, such as daily limit on redemption volume, frequency, and incorrect number of entries. This will also prevent a single user account reach the partner&#39;s daily redemption limits. We strongly recommend you to use this feature and transfer us the User ID of your users if you have different users redeeming Binance Gift Cards on your platform. To protect user data privacy, you may choose to transfer the user id in any desired format (max. 400 characters).
 		externalUid? : STRING
-		 : 
 		recvWindow? : LONG
 		timestamp : LONG
 	}
@@ -14710,112 +14860,112 @@ FetchTokenLimit = () => {
 }
 
 //https://binance-docs.github.io/apidocs/spot/en#10xx-general-server-or-network-issues
-
-10xxGeneralServerorNetworkissues = () => {
-	const name = "10xx - General Server or Network issues"
-	const nameType = ""
-	const wight = []
-	type req = {}
-}
-
-//https://binance-docs.github.io/apidocs/spot/en#11xx-2xxx-request-issues
-
-11xx2xxxRequestissues = () => {
-	const name = "11xx - 2xxx Request issues"
-	const nameType = ""
-	const wight = []
-	type req = {}
-}
-
-//https://binance-docs.github.io/apidocs/spot/en#3xxx-5xxx-sapi-specific-issues
-
-3xxx5xxxSAPIspecificissues = () => {
-	const name = "3xxx-5xxx SAPI-specific issues"
-	const nameType = ""
-	const wight = []
-	type req = {}
-}
-
-//https://binance-docs.github.io/apidocs/spot/en#6xxx-savings-issues
-
-6XXXSavingsIssues = () => {
-	const name = "6XXX - Savings Issues"
-	const nameType = ""
-	const wight = []
-	type req = {}
-}
-
-//https://binance-docs.github.io/apidocs/spot/en#70xx-futures
-
-70xxFutures = () => {
-	const name = "70xx - Futures"
-	const nameType = ""
-	const wight = []
-	type req = {}
-}
-
-//https://binance-docs.github.io/apidocs/spot/en#20xxx-futures-spot-algo
-
-20xxxFuturesSpotAlgo = () => {
-	const name = "20xxx - Futures/Spot Algo"
-	const nameType = ""
-	const wight = []
-	type req = {}
-}
-
-//https://binance-docs.github.io/apidocs/spot/en#filter-failures
-
-Filterfailures = () => {
-	const name = "Filter failures"
-	const nameType = ""
-	const wight = []
-	type req = {}
-}
-
-//https://binance-docs.github.io/apidocs/spot/en#10xxx-crypto-loans
-
-10xxxCryptoLoans = () => {
-	const name = "10xxx - Crypto Loans"
-	const nameType = ""
-	const wight = []
-	type req = {}
-}
-
-//https://binance-docs.github.io/apidocs/spot/en#13xxx-blvt
-
-13xxxBLVT = () => {
-	const name = "13xxx - BLVT"
-	const nameType = ""
-	const wight = []
-	type req = {}
-}
-
-//https://binance-docs.github.io/apidocs/spot/en#12xxx-liquid-swap
-
-12xxxLiquidSwap = () => {
-	const name = "12xxx - Liquid Swap"
-	const nameType = ""
-	const wight = []
-	type req = {}
-}
-
-//https://binance-docs.github.io/apidocs/spot/en#18xxx-binance-code
-
-18xxxBinanceCode = () => {
-	const name = "18xxx - Binance Code"
-	const nameType = ""
-	const wight = []
-	type req = {}
-}
-
-//https://binance-docs.github.io/apidocs/spot/en#21xxx-portfolio-margin-account
-
-21xxxPortfolioMarginAccount = () => {
-	const name = "21xxx - Portfolio Margin Account"
-	const nameType = ""
-	const wight = []
-	type req = {}
-}
+//
+// 10xxGeneralServerorNetworkissues = () => {
+// 	const name = "10xx - General Server or Network issues"
+// 	const nameType = ""
+// 	const wight = []
+// 	type req = {}
+// }
+//
+// //https://binance-docs.github.io/apidocs/spot/en#11xx-2xxx-request-issues
+//
+// 11xx2xxxRequestissues = () => {
+// 	const name = "11xx - 2xxx Request issues"
+// 	const nameType = ""
+// 	const wight = []
+// 	type req = {}
+// }
+//
+// //https://binance-docs.github.io/apidocs/spot/en#3xxx-5xxx-sapi-specific-issues
+//
+// 3xxx5xxxSAPIspecificissues = () => {
+// 	const name = "3xxx-5xxx SAPI-specific issues"
+// 	const nameType = ""
+// 	const wight = []
+// 	type req = {}
+// }
+//
+// //https://binance-docs.github.io/apidocs/spot/en#6xxx-savings-issues
+//
+// 6XXXSavingsIssues = () => {
+// 	const name = "6XXX - Savings Issues"
+// 	const nameType = ""
+// 	const wight = []
+// 	type req = {}
+// }
+//
+// //https://binance-docs.github.io/apidocs/spot/en#70xx-futures
+//
+// 70xxFutures = () => {
+// 	const name = "70xx - Futures"
+// 	const nameType = ""
+// 	const wight = []
+// 	type req = {}
+// }
+//
+// //https://binance-docs.github.io/apidocs/spot/en#20xxx-futures-spot-algo
+//
+// 20xxxFuturesSpotAlgo = () => {
+// 	const name = "20xxx - Futures/Spot Algo"
+// 	const nameType = ""
+// 	const wight = []
+// 	type req = {}
+// }
+//
+// //https://binance-docs.github.io/apidocs/spot/en#filter-failures
+//
+// Filterfailures = () => {
+// 	const name = "Filter failures"
+// 	const nameType = ""
+// 	const wight = []
+// 	type req = {}
+// }
+//
+// //https://binance-docs.github.io/apidocs/spot/en#10xxx-crypto-loans
+//
+// 10xxxCryptoLoans = () => {
+// 	const name = "10xxx - Crypto Loans"
+// 	const nameType = ""
+// 	const wight = []
+// 	type req = {}
+// }
+//
+// //https://binance-docs.github.io/apidocs/spot/en#13xxx-blvt
+//
+// 13xxxBLVT = () => {
+// 	const name = "13xxx - BLVT"
+// 	const nameType = ""
+// 	const wight = []
+// 	type req = {}
+// }
+//
+// //https://binance-docs.github.io/apidocs/spot/en#12xxx-liquid-swap
+//
+// 12xxxLiquidSwap = () => {
+// 	const name = "12xxx - Liquid Swap"
+// 	const nameType = ""
+// 	const wight = []
+// 	type req = {}
+// }
+//
+// //https://binance-docs.github.io/apidocs/spot/en#18xxx-binance-code
+//
+// 18xxxBinanceCode = () => {
+// 	const name = "18xxx - Binance Code"
+// 	const nameType = ""
+// 	const wight = []
+// 	type req = {}
+// }
+//
+// //https://binance-docs.github.io/apidocs/spot/en#21xxx-portfolio-margin-account
+//
+// 21xxxPortfolioMarginAccount = () => {
+// 	const name = "21xxx - Portfolio Margin Account"
+// 	const nameType = ""
+// 	const wight = []
+// 	type req = {}
+// }
 
 //https://binance-docs.github.io/apidocs/spot/en#order-rejection-issues
 

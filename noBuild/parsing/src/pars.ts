@@ -332,6 +332,9 @@ async function start() {
 
                 }
                 if (data == "[" || data == ":[") {
+                    if (tLvl.helper == 2) {
+                        data =  "| " + data
+                    }
                     lvlType = -1
                 }
                 specSum++
@@ -539,7 +542,11 @@ async function start() {
             const {arrParams} = e.params
             for (const ps of arrParams) {
                 if (ps[3]?.length) st+="\t// " + ps[3] +"\n"
-                if (ps) st+=`\t${ ps[0] }${ ps[2] == "NO" ? "?" : "" } : ${ ps[1] }\n`
+                let param = ps[1]
+                if (param == "ENUM") {
+                    param = ps[1] + "_" + ps[0]
+                }
+                if (ps) st+=`\t${ ps[0] }${ ps[2] == "NO" ? "?" : "" } : ${ param }\n`
             }
             st+="}"
         }
@@ -622,7 +629,7 @@ ${str}
     /*<p><strong>Weight(UID):</strong> 1
 <strong>Weight(IP):</strong> 1</p>*/
 
-    fs.writeFileSync('proba745.ts', def+rq);
+    fs.writeFileSync('binanceSpootAll.ts', def+rq);
 
     console.log(req)
     // await req2.json()
