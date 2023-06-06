@@ -52,8 +52,8 @@ export function LoadQuoteBase<Bar> (setting: tBinanceLoadBase<Bar>, data?: { fet
 
     async function waitLimit() {
         FuncTimeWait.add({type: keyName, weight: 1})
-        const t1 = FuncTimeWait.byWeight(keyName, setting.maxLoadBars) - (Date.now() - time)
-        if (t1 > 0 ) await sleepAsync(t1)
+        const t1 = FuncTimeWait.byWeight(keyName, setting.maxLoadBars) - (Date.now() - time) -1
+        if (t1 > 0 ) await sleepAsync(t1 )
     }
 
     const mapTimeToName = new Map(intervalToName.map((e)=>[e.time.sec, e]))
@@ -118,14 +118,16 @@ export function LoadQuoteBase<Bar> (setting: tBinanceLoadBase<Bar>, data?: { fet
 
         const resulI = await Promise.allSettled(map)
         const result: Bar[] = []
-        resulI.forEach((e,i)=>{
-            if (e.status == "fulfilled") result.unshift(...e.value)
-        })
-        //
-        // for (let i = resulI.length - 1; i >= 0; i--) {
-        //     const el = resulI[i]
-        //     if (el.status == "fulfilled") result.push(...el.value)
-        // }
+        // resulI.forEach((e,i)=>{
+        //     if (e.status == "fulfilled") result.unshift(...e.value)
+        //     if (e.status == "rejected") console.error(e.reason)
+        // })
+
+        for (let i = resulI.length - 1; i >= 0; i--) {
+            const el = resulI[i]
+            if (el.status == "fulfilled") result.push(...el.value)
+            if (el.status == "rejected") console.error(el.reason)
+        }
 
         return result
     }}
