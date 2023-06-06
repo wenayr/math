@@ -43,7 +43,7 @@ type tBinanceLoadBase<Bar> = {
 
 
 // Обертка для создания запросов котировок по времени и лимиту
-export function LoadQuoteBase2<Bar> (setting: tBinanceLoadBase<Bar>, data?: { fetch?: tFetch3 }){
+export function LoadQuoteBase<Bar> (setting: tBinanceLoadBase<Bar>, data?: { fetch?: tFetch3 }){
     const {base,maxLoadBars,countConnect,intervalToName} = setting
     const maxLoadBars2 = setting.maxLoadBars2 ?? maxLoadBars
     const startMap = new Map<string, Date>()

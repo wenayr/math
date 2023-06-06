@@ -25,6 +25,7 @@ export async function fffff3(data:File) {
     const dataJson = XLSX.utils.sheet_to_json(worksheet);
 
     console.log(3333, dataJson)
+
     const docDefinition = {
         content: [
             { text: 'Excel to PDF', style: 'header' },
@@ -33,8 +34,8 @@ export async function fffff3(data:File) {
                 table: {
                     headerRows: 1,
                     body: [
-                        Object.keys(dataJson[0]).map(key => ({ text: key })),
-                        ...dataJson.map(obj => Object.values(obj))
+                        // Object.keys(dataJson[0]).map(key => ({ text: key })),
+                        // ...dataJson.map(obj => Object.values(obj))
                     ]
                 }
             }
@@ -49,7 +50,7 @@ export async function fffff3(data:File) {
 
     console.log(4444)
 // Создание и отображение PDF документа
-    pdfMake.createPdf(docDefinition).download("232.pdf");
+//     pdfMake.createPdf(docDefinition).download("232.pdf");
 
     console.log("final")
 
