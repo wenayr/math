@@ -43,7 +43,7 @@ type tBinanceLoadBase<Bar> = {
 
 
 // Обертка для создания запросов котировок по времени и лимиту
-export function LoadQuoteBase<Bar> (setting: tBinanceLoadBase<Bar>, data?: { fetch?: tFetch3 }){
+export function LoadQuoteBase<Bar> (setting: tBinanceLoadBase<Bar>, data?: { fetch?: tFetch3, error?: boolean }){
     const {base,maxLoadBars,countConnect,intervalToName} = setting
     const maxLoadBars2 = setting.maxLoadBars2 ?? maxLoadBars
     const startMap = new Map<string, Date>()
@@ -126,7 +126,10 @@ export function LoadQuoteBase<Bar> (setting: tBinanceLoadBase<Bar>, data?: { fet
         for (let i = resulI.length - 1; i >= 0; i--) {
             const el = resulI[i]
             if (el.status == "fulfilled") result.push(...el.value)
-            if (el.status == "rejected") console.error(el.reason)
+            if (el.status == "rejected") {
+                console.error(el.reason)
+                if (data?.error === true) throw el.reason
+            }
         }
 
         return result
