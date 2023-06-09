@@ -18,6 +18,9 @@ class Other extends React.Component<any, any>{
     render() {
         return <div style={{width: 500, height:500, background:'rgb(212,77,77)'}}
                     onClick={async ()=>{
+                        miniApi.api.log(true)
+                        console.log(miniApi.api.promiseTotal());
+                        console.log(miniApi.api.callbackTotal());
                         console.log("click");
                         const bud = await miniApi.func.sayHi()
                         console.log(bud)

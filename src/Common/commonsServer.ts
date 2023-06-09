@@ -122,7 +122,10 @@ export function funcForWebSocket<T>(data: screenerSoc<tSocketData <tRequestScree
         const freeNums: number[] = []
         let [total, _poz] = [0,0]
         return {
-            get next(){
+            log(){
+                console.log({freeNums,total,_poz});
+            },
+            next(){
                 return _poz > 0 ? freeNums[--_poz] : freeNums[_poz++] = ++total
             },
             numsSet(num: number){
@@ -167,7 +170,9 @@ export function funcForWebSocket<T>(data: screenerSoc<tSocketData <tRequestScree
             }
         }
     })
+    let status = false
     const api: screenerSocApi<T> = {
+        log(_status: boolean){status = _status},
         promiseTotal: () => map.size,
         callbackTotal: () => callbackMany.size,
         promiseDeleteAll: (reject = true) => {
@@ -192,23 +197,26 @@ export function funcForWebSocket<T>(data: screenerSoc<tSocketData <tRequestScree
             })
         },
     }
-    let status = false
     return {
-        log(_status: boolean){status = _status},
         api,
         send: (data, wait?: boolean, callbacksId?: tFunc[]) => new Promise((resolve, reject) => {
-            const send: tSocketData <tRequestScreenerT<T>> = {mapId: free.next, data, wait: wait, callbacksId: <number[]>[]}
+            const send: tSocketData <tRequestScreenerT<T>> = {mapId: free.next(), data, wait: wait, callbacksId: <number[]>[]}
 
             for (const el of callbacksId ?? []) {
-                const id = free.next
+                const id = free.next()
                 send.callbacksId?.push(id)
-                if (status) console.log("ключ стрмиа ", id, " ", send);
+                if (status) {
+                    console.log("ключ стрмиа ", id, " ", send);
+                }
                 callbackMany.set(id, el );
             }
 
             if (wait !== false) map.set(send.mapId, {resolve, reject});
 
-            if (status) console.log("ключ сокета ", send.mapId, " ", send);
+            if (status) {
+                free.log()
+                console.log("ключ сокета ", send.mapId, " ", send);
+            }
 
             if (callbackMany.size > 5) console.log("callbackMany.size = ", callbackMany.size)
             if (map.size > 5) console.log("map.size = ", map.size)
@@ -257,10 +265,10 @@ type tFunc = (a:any)=>any
 export type screenerSoc2<T> = {
     send: (data: tRequestScreenerT<T>, wait?: boolean, callbacksId?: tFunc[])=>Promise<any>,
     api: screenerSocApi<T>,
-    log: (status: boolean) => void
 }
 
 export type screenerSocApi<T> = {
+    log: (status: boolean) => void,
     promiseTotal: () => number,
     callbackTotal: () => number,
     promiseDeleteAll: (reject: boolean) => void,

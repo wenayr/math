@@ -20,7 +20,7 @@
     "ws": "^8.13.0",
     "express": "^4.17.1",
     "ts-node": "^10.9.1",
-    "wenay-common": "^1.0.56"
+    "wenay-common": "^1.0.59"
   },
   "devDependencies": {
     "@types/dotenv": "^8.2.0",
