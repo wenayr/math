@@ -126,7 +126,7 @@ export function funcForWebSocket<T>(data: screenerSoc<tSocketData <tRequestScree
                 console.log({freeNums,total,_poz});
             },
             next(){
-                return _poz > 0 ? freeNums[--_poz] : freeNums[_poz++] = ++total
+                return _poz > 0 ? freeNums[--_poz] : ++total
             },
             numsSet(num: number){
                 freeNums[_poz++] = num
@@ -165,7 +165,13 @@ export function funcForWebSocket<T>(data: screenerSoc<tSocketData <tRequestScree
                 const buf = callbackMany.get(data.mapId)
                 // @ts-ignore
                 // надо придумать команду стоп
-                if (data.data == "___STOP") callbackMany.delete(data.mapId)
+                if (data.data == "___STOP") {
+
+                    // @ts-ignore
+                    callbackMany.delete(data.mapId);
+                    // @ts-ignore
+                    free.numsSet(data.mapId);
+                }
                 buf?.(data.data)
             }
         }
