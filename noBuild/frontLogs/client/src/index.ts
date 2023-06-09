@@ -12,7 +12,7 @@ window.onload = function() {
 
     test()
 
-    funcTestLoad()
+    // funcTestLoad()
 
 }
 

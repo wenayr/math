@@ -1,14 +1,14 @@
 import {createRoot} from "react-dom/client";
 import * as React from 'react';
 import {miniApi} from "../connect/io";
-import {FrontExcelToPDF} from "../exselToPDF/frontExcelToPDF";
+// import {FrontExcelToPDF} from "../exselToPDF/frontExcelToPDF";
 
 
 class GeneralReact extends React.Component<any, any>{
     render() {
         return <div style={{width: "100%", height:"100%"}} >
             <Other/>
-            <FrontExcelToPDF/>
+            {/*<FrontExcelToPDF/>*/}
         </div>
     }
 }
@@ -22,15 +22,25 @@ class Other extends React.Component<any, any>{
                         const bud = await miniApi.func.sayHi()
                         console.log(bud)
                         //
-                        console.log(await miniApi.func.sum(5,7))
+                        // console.log(await miniApi.func.sum(5,7))
                         console.log(await miniApi.func.pow({x2:3,x1:3}))
+                        console.log("!!!!! 0 ")
                         // console.log(await miniApi.test2.sayHi4())
                         console.log(await miniApi.func.sayHi2())
+                        console.log("!!!!! 1 ")
                         console.log(await miniApi.func.sayHi())
-                        console.log(await miniApi.space.sayHi4())
+                        console.log("!!!!! 2 ")
+                        // console.log(await miniApi.space.sayHi4())
+                        console.log("!!!!! 3 ")
 
                         // @ts-ignore
-                        console.log(await miniApi.func.sayHi4())
+                        // console.log(await miniApi.func.sayHi4())
+
+                        console.log("!!!!! 222 ")
+
+                        console.log(await miniApi.func.sayHi44({x2: 23, x1: 23}, async (sum: any)=>{
+                            console.log("sumFFFF ", sum)
+                        }))
                         //
                         // console.log("click Final");
                     }}

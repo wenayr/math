@@ -1,18 +1,10 @@
 
-
-// export const  screenerServer = new ScreenerRun()
-
-
-
-// export type tKeyScreener = keyof IScreenerRun
-
-
 import {sleepAsync} from "./Common";
-import {OmitTypes} from "./BaseTypes";
 
 export type tRequestScreenerT<T> = {
     key: keyof T,
-    request: any
+    callbacksId?: string[],
+    request: any[]
 }
 // export type tRequestScreener = {
 //     key: tKeyScreener,
@@ -26,14 +18,40 @@ export type tRequestScreenerT<T> = {
  *  пока не думал как решить =)
  * */
 export function funcPromiseServer<T extends object>(data: screenerSoc<tSocketData <tRequestScreenerT<T>>>, obj: T){
+    const buf = data;
     data.api({
         onMessage: async (datum)=>{
-            const {key,request} = datum.data
+            const {key,request, callbacksId} = datum.data!
             const buf = obj[key]
-            if (!buf) return //throw "такого метода нет"
+            if (!buf) return ;//throw "такого метода нет"
             if (typeof buf == "function") {
+                const {callbacksId} = datum
+                if (callbacksId) {
+                    const arr = callbacksId.map((e)=>{
+                        return (d : any) => {
+                            try {
+                                data.sendMessage({mapId: e, data: d ?? undefined})
+                            } catch (e) {
+                                console.log("errrrr  !!!!!!", e);
+                            }
+                        }
+                    })
+                    let r = 0
+                    request.forEach((e,i)=>{
+                        if (e == "___FUNC") {
+                            request[i] = arr[r++]
+                        }
+                    })
+                }
+
                 const a = await (async ()=>buf(...request))()
-                data.sendMessage({mapId: datum.mapId, data: a??undefined})
+                    .catch((e)=>{
+                        data.sendMessage({mapId: datum.mapId, error: e})
+                        throw e
+                    })
+                // если ожидание отключено то ждеть не надо, не путать с функцией клбэка
+                if (datum.wait!==false) data.sendMessage({mapId: datum.mapId, data: a??undefined})
+
             }
             else throw "это не функция"
         }
@@ -81,7 +99,7 @@ export function funcPromiseServerPost<T extends object>(data: screenerPost<tRequ
 }
 
 
-type tSocketData<T> = {mapId: number, data: T}
+type tSocketData<T> = ({data: T, error?: undefined} | {error: any, data?: undefined}) & {mapId: number, wait?: boolean, callbacksId?: number[]}
 type screenerSoc<T> = {
     sendMessage: (data: T)=>void,
     api: (data: {onMessage: (data: T) => void|Promise<void> })=>void
@@ -97,56 +115,100 @@ type screenerPost<T> = {
 export function funcForWebSocket<T>(data: screenerSoc<tSocketData <tRequestScreenerT<T>>>): screenerSoc2<T> {
     // const sendMessage = (datum: tSocketData <tRequestScreenerT<T>>) => data.sendMessage(JSON.stringify(datum))
 
-    const sendMessage = (datum: tSocketData <tRequestScreenerT<T>>) => data.sendMessage(datum)
+    const sendMessage = data.sendMessage // (datum: tSocketData <tRequestScreenerT<T>>) => data.sendMessage(datum)
 
-    let total = 0
 
-    const map = new Map<number, (data: tRequestScreenerT<T>|undefined)=> void >()
-
-    const long = async (send: tSocketData<tRequestScreenerT<T>>, time: Date) => {
-        // подозрительно долгий ответ на запрос
-        await sleepAsync(5000);
-        if (map.has(send.mapId)) {
-            console.warn("подозрительно долгий ответ на запрос ", send.data)
-            if (Date.now() - time.valueOf()> 1000 * 60 * 5) {
-                console.error("прошло 5 минут, наверное пора упасть", send.data);
-                map.get(send.mapId)?.(undefined)
-                map.delete(send.mapId);
-                return;
+    const free = (()=>{
+        const freeNums: number[] = []
+        let [total, _poz] = [0,0]
+        return {
+            get next(){
+                return _poz > 0 ? freeNums[--_poz] : freeNums[_poz++] = ++total
+            },
+            numsSet(num: number){
+                freeNums[_poz++] = num
             }
-            long(send, time)
-        } else return;
-    }
+        }
+    })()
+
+    const map = new Map<number, {resolve: tFunc, reject: tFunc}>()//new Map<number, (data: tRequestScreenerT<T>|undefined)=> void >()
+    const callbackMany = new Map<number, tFunc>()// new Map<number, (data: tRequestScreenerT<T>|undefined)=> void >()
+
+    // const long = async (send: tSocketData<tRequestScreenerT<T>>, time: Date) => {
+    //     // подозрительно долгий ответ на запрос
+    //     await sleepAsync(5000);
+    //     if (map.has(send.mapId)) {
+    //         console.warn("подозрительно долгий ответ на запрос ", send.data)
+    //         if (Date.now() - time.valueOf()> 1000 * 60 * 5) {
+    //             console.error("прошло 5 минут, наверное пора упасть", send.data);
+    //             map.get(send.mapId)?.(undefined)
+    //             map.delete(send.mapId);
+    //             return;
+    //         }
+    //         long(send, time)
+    //     } else return;
+    // }
 
     data.api({
         onMessage: (data)=>{
-            console.log("onMessage ", data)
             if (map.has(data.mapId)) {
                 const buf = map.get(data.mapId)
                 map.delete(data.mapId)
-                // console.log(buf)
+                free.numsSet(data.mapId)
+                if (data.error) buf?.reject(data.error)
+                else buf?.resolve(data.data)
+            }
+            else if (callbackMany.has(data.mapId)) {
+                const buf = callbackMany.get(data.mapId)
+                // @ts-ignore
+                // надо придумать команду стоп
+                if (data.data == "___STOP") callbackMany.delete(data.mapId)
                 buf?.(data.data)
             }
         }
     })
+    const api: screenerSocApi<T> = {
+        promiseTotal: () => map.size,
+        callbackTotal: () => callbackMany.size,
+        promiseDeleteAll: (reject = true) => {
+            const arr = [...map.values()]
+            const arrKey = [...map.keys()] as unknown as string[]
+            map.clear()
+            arrKey.forEach(e=> free.numsSet( +e))
+            arr.forEach((e) =>  reject ? e.reject("promiseDeleteAll") : e.resolve(undefined) )
+        },
+        callbackDeleteAll: () => {
+            const arr = [...callbackMany.keys()] as unknown as string[]
+            callbackMany.clear()
+            arr.forEach(e=>free.numsSet(+e))
+        },
+        callbackDelete: (func: tFunc) => {
+            // ))
+            callbackMany.forEach((e, key) => {
+                if (e == func) {
+                    callbackMany.delete(key);
+                    free.numsSet(+key)
+                }
+            })
+        },
+    }
     return {
-        send:(data, wait?: boolean) => new Promise((resolve, reject) => {
-            // console.log("wait ",wait, " ", wait!==false)
-            const send: tSocketData <tRequestScreenerT<T>> = {mapId: ++total, data}
-            if (wait!==false) {
-                map.set(send.mapId,
-                    (data) => {
-                        // console.log("data = ", data);
-                        if (data == undefined) reject()
-                        resolve(data)
-                    });
-                if (map.size > 0) console.log("map.size = ",map.size)
+        api,
+        send: (data, wait?: boolean, callbacksId?: tFunc[]) => new Promise((resolve, reject) => {
+            const send: tSocketData <tRequestScreenerT<T>> = {mapId: free.next, data, wait: wait, callbacksId: <number[]>[]}
+
+            for (const el of callbacksId ?? []) {
+                const id = free.next
+                send.callbacksId?.push(id)
+                callbackMany.set(id, el );
             }
 
-            // console.log("map ",map)
-            // if (wait!==false) long(send, new Date());
+            if (wait !== false) map.set(send.mapId, {resolve, reject});
+
+            if (callbackMany.size > 5) console.log("callbackMany.size = ", callbackMany.size)
+            if (map.size > 5) console.log("map.size = ", map.size)
+
             sendMessage(send);
-            //resolve(true)
         })
     }
 }
@@ -186,21 +248,48 @@ export function FFuncMyF<T extends  object>(object: T) {
         }
     }
 }
+type tFunc = (a:any)=>any
+export type screenerSoc2<T> = {
+    send: (data: tRequestScreenerT<T>, wait?: boolean, callbacksId?: tFunc[])=>Promise<any>,
+    api: screenerSocApi<T>
+}
 
-export type screenerSoc2<T> = {send: (data: tRequestScreenerT<T>, wait?: boolean)=>Promise<any>}
+export type screenerSocApi<T> = {
+    promiseTotal: () => number,
+    callbackTotal: () => number,
+    promiseDeleteAll: (reject: boolean) => void,
+    callbackDeleteAll: () => void,
+    callbackDelete: (func: tFunc) => void,
+}
 export type tMethodToPromise2<T extends object> = {[P in keyof T] : T[P] extends ((...args: infer Z)=> infer X)? (...args: Z)=>(X extends Promise<any>? X : Promise<X>) : Promise<T[P]>}
 // export type tMethodToPromise4<T extends object> = {[P in keyof T] : T[P] extends ((...args: any)=> any X <T[P]> extends }// T[P] extends ((...args: infer Z)=> infer X)? (...args: Z)=>(X extends Promise<any>? X : Promise<X>) : Promise<T[P]>}
 /**
  * обертка для класса - переводит класс в Promise<method> класс, также перехватывает все функции и желает свою обработку типа WebSocket или другое
  * */
-export function funcScreenerClient2<T extends object>(data: screenerSoc2<T>, callback?: boolean) {
+export function funcScreenerClient2<T extends object>(data: screenerSoc2<T>, wait?: boolean) {
     return new Proxy({} as unknown as tMethodToPromise2<T> , {
         get(target: tMethodToPromise2<T>, p: string | symbol, receiver: any): any {
             console.log(target)
             console.log(p)
             console.log(data)
             const key = String(p) as keyof T
-            return async (...argArray:any)=> data.send({key, request: argArray}, callback)
+            return async (...argArray:any[])=> {
+                const callback: {func: tFunc, poz: number}[] = []
+                const callback2: tFunc[] = []
+                argArray.forEach((el,i)=>{
+                    if (typeof el == "function") {
+                        callback.push({func: el, poz: i})
+                        callback2.push(el)
+                        argArray[i] = "___FUNC"
+                    }
+                })
+
+                return data.send({key, request: argArray}, wait, callback2)
+            }
+            // .catch((e)=>{
+            //     console.error("упали при отправке сообщения");
+            //     throw "упали при отправке сообщения"
+            // })
         }
     })
 }
@@ -266,12 +355,18 @@ export function CreatAPIFacadeClient<T extends object>({socketKey, socket} : {so
             })
         }
     })
-    const func = funcScreenerClient2<typeVoid2<T>>(tr)
+    const func = funcScreenerClient2<typeVoid2<T>>(tr) //satisfies tMethodToPromise2<typeVoid2<T>>
 
     //Не ждет ответа
     const space = funcScreenerClient2<typeNoVoid2<T>>(tr, false)
     return {
-        func, space
+        api: tr.api,
+        // типизацией убраны некоторые методы
+        func,
+        // типизацией убраны некоторые методы
+        space,
+        // все методы
+        all: func as tMethodToPromise2<T>
     }
 }
 
