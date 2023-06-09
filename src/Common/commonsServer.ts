@@ -192,7 +192,9 @@ export function funcForWebSocket<T>(data: screenerSoc<tSocketData <tRequestScree
             })
         },
     }
+    let status = false
     return {
+        log(_status: boolean){status = _status},
         api,
         send: (data, wait?: boolean, callbacksId?: tFunc[]) => new Promise((resolve, reject) => {
             const send: tSocketData <tRequestScreenerT<T>> = {mapId: free.next, data, wait: wait, callbacksId: <number[]>[]}
@@ -200,10 +202,13 @@ export function funcForWebSocket<T>(data: screenerSoc<tSocketData <tRequestScree
             for (const el of callbacksId ?? []) {
                 const id = free.next
                 send.callbacksId?.push(id)
+                if (status) console.log("ключ стрмиа ", id, " ", send);
                 callbackMany.set(id, el );
             }
 
             if (wait !== false) map.set(send.mapId, {resolve, reject});
+
+            if (status) console.log("ключ сокета ", send.mapId, " ", send);
 
             if (callbackMany.size > 5) console.log("callbackMany.size = ", callbackMany.size)
             if (map.size > 5) console.log("map.size = ", map.size)
@@ -251,7 +256,8 @@ export function FFuncMyF<T extends  object>(object: T) {
 type tFunc = (a:any)=>any
 export type screenerSoc2<T> = {
     send: (data: tRequestScreenerT<T>, wait?: boolean, callbacksId?: tFunc[])=>Promise<any>,
-    api: screenerSocApi<T>
+    api: screenerSocApi<T>,
+    log: (status: boolean) => void
 }
 
 export type screenerSocApi<T> = {
@@ -269,9 +275,6 @@ export type tMethodToPromise2<T extends object> = {[P in keyof T] : T[P] extends
 export function funcScreenerClient2<T extends object>(data: screenerSoc2<T>, wait?: boolean) {
     return new Proxy({} as unknown as tMethodToPromise2<T> , {
         get(target: tMethodToPromise2<T>, p: string | symbol, receiver: any): any {
-            console.log(target)
-            console.log(p)
-            console.log(data)
             const key = String(p) as keyof T
             return async (...argArray:any[])=> {
                 const callback: {func: tFunc, poz: number}[] = []
@@ -283,7 +286,6 @@ export function funcScreenerClient2<T extends object>(data: screenerSoc2<T>, wai
                         argArray[i] = "___FUNC"
                     }
                 })
-
                 return data.send({key, request: argArray}, wait, callback2)
             }
             // .catch((e)=>{
