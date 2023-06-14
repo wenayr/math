@@ -7,6 +7,7 @@ import {CreatAPIFacadeClient} from "wenay-common";
 export const miniApi = fConnect()
 
 export function fConnect() {
+
     const fullUrl = location.protocol + '//' + location.hostname + ':' + environment.port;
     // const socket = io();
     //
