@@ -29,25 +29,13 @@ export function initSocketIo(io : tIo) {
 
 
     io.sockets.on('connection', async function (socket) {
-        socket.emit('hi', {he:"hi"})
-
-
         socket.on('disconnect', async (reason) => {
                 socket.disconnect();
             })
-
-        socket.on('hi', ()=>{
-            socket.emit('hi', {he:"hiiii"})
-        })
-
         socket.on('*', (d)=>{
             console.log(d)
         })
-
-
-
         CreatAPIFacadeServer({object: FacadeApi, socketKey: socketKey, socket: socket})
-
     })
 
 

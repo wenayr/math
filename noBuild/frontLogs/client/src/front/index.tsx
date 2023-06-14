@@ -7,8 +7,7 @@ import {miniApi} from "../connect/io";
 class GeneralReact extends React.Component<any, any>{
     render() {
         return <div style={{width: "100%", height:"100%"}} >
-            <Other/>
-            {/*<FrontExcelToPDF/>*/}
+            {<Other/>}
         </div>
     }
 }

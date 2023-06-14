@@ -34,8 +34,8 @@ function f() {
     initSocketIo(io)
 
     app.use( cors({credentials: true, origin: true}) )
-    app.use( bodyParser.urlencoded({extended: true}) )
-    app.use( bodyParser.json() )
+        .use( bodyParser.urlencoded({extended: true}) )
+        .use( bodyParser.json() )
 
     // app.use('/api', apiRoutes)
 
