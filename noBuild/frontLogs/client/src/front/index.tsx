@@ -40,10 +40,13 @@ class Other extends React.Component<any, any>{
                         // console.log(await miniApi.func.sayHi4())
 
                         console.log("!!!!! 222 ")
-
-                        console.log(await miniApi.func.sayHi44({x2: 23, x1: 23}, async (sum: any)=>{
-                            console.log("sumFFFF ", sum)
-                        }))
+                        const func = (data: any)=>{
+                            console.log("sumFFFF ", data)
+                            if (data.end) {
+                                miniApi.api.callbackDelete(func)
+                            }
+                        }
+                        console.log(await miniApi.func.sayHi44({x2: 23, x1: 23}, func ))
                         //
                         // console.log("click Final");
                     }}

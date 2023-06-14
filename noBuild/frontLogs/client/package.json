@@ -8,7 +8,8 @@
     "buildWebpack": "webpack --mode production",
     "start": "react-app-rewired start",
     "buildSite": "react-app-rewired build",
-    "start_NoEslint": "set DISABLE_ESLINT_PLUGIN=true&& react-app-rewired start"
+    "start_NoEslint": "set DISABLE_ESLINT_PLUGIN=true&& react-app-rewired start",
+    "buildWin": "set \\\"GENERATE_SOURCEMAP=false\\\" &&  react-app-rewired build"
   },
   "dependencies": {
     "exceljs": "^4.3.0",

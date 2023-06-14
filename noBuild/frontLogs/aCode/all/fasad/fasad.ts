@@ -30,22 +30,18 @@ export class FasadOne {
 
     }
 
-    async sayHi44(data: {x1: number, x2: number}, callback: (sum: any) => void){
+    async sayHi44(data: {x1: number, x2:number}, callback: (data:{sum: any}|{end: true}) => void, col: ()=>void, num:number){
         console.log("fasad   !! 1")
         console.log(data)
-        callback(1000000);
+        callback({sum: 1000000});
         await sleepAsync(1000)
-        callback(2000000);
+        callback({sum: 1000000});
         await  sleepAsync(1000)
-        callback(2000000);
+        callback({sum: 1000000});
         await sleepAsync(1000)
-        callback({xx: 23});
+        callback({sum: 1000000});
 
         await sleepAsync(1000)
-
-        callback("___STOP");
-        await sleepAsync(1000)
-        callback(2000000);
 
     }
 }
