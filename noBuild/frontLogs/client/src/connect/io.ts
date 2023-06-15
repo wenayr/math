@@ -1,6 +1,6 @@
 import {io} from "socket.io-client";
 import {environment} from "../environments/environment";
-import {FasadOne} from "../../../aCode/all/fasad/fasad";
+import type {FasadOne} from "../../../server/src/all/fasad/fasad";
 import {CreatAPIFacadeClient} from "wenay-common";
 // import {CreatAPIFacadeClient, funcForWebSocket, funcScreenerClient2, typeNoVoid2, typeVoid2} from "wenay-common";
 

@@ -3,6 +3,11 @@
     "target": "esnext",
     "module": "ESNext",
     "moduleResolution": "node",
+
+    "verbatimModuleSyntax": true,
+//    "resolveJsonModule": true,
+//    "isolatedModules": true,
+
     "strictNullChecks": true,
     "noImplicitAny": true,
     "noImplicitThis": true,
@@ -15,8 +20,6 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
     "lib": [
@@ -27,13 +30,12 @@
     ]
   },
   "paths": {
+    "*": ["*", "../../**/*"]
       //"typescript": ["../node_modules/typescript"]
   },
   "include": [
     "src/index.ts",
     "src/**/*",
-    "../aCode/**/*",
-    "../../../src/Common/**/*"
   ],
   "exclude": [
     "node_modules",
