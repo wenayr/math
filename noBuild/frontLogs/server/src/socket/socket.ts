@@ -1,6 +1,6 @@
 import {tIo} from "../index";
-import {FasadOne} from "../../../aCode/all/fasad/fasad";
 import {CreatAPIFacadeServer} from "wenay-common";
+import {FasadOne} from "../all/fasad/fasad";
 
 export function initSocketIo(io : tIo) {
 
