@@ -15,8 +15,8 @@ export type tSymbolLoadInfo = { readonly symbol: tSymbol, readonly exchangeName?
 export type tInfoForLoadHistory = tSymbolLoadInfo & { time1: Date, time2: Date , right?:boolean}
 
 type tFetch3 = (input: RequestInfo | URL, init?: RequestInit | undefined) => Promise<Response>
-export type tFuncLoad = {fetch: tFetch3, baseURL: string, symbol: string, interval: string, startTime: Date, endTime?: Date, limit?: number, maxLoadBars: number}
-export type tLoadFist = {fetch: tFetch3, baseURL: string, symbol: string, interval: string}
+export type tFuncLoad = {fetch: tFetch3, baseURL: string, symbol: string, interval: string, intervalTF: TF, startTime: Date, endTime?: Date, limit?: number, maxLoadBars: number, waitLimit: (weight?: number) => Promise<void>}
+export type tLoadFist = {fetch: tFetch3, baseURL: string, symbol: string, interval: string, intervalTF: TF, waitLimit: (weight?: number) => Promise<void>}
 
 
 export type tSetHistoryData = CBar & {tf?: TF}
@@ -50,8 +50,8 @@ export function LoadQuoteBase<Bar> (setting: tBinanceLoadBase<Bar>, data?: { fet
     const keyName = setting.nameKey ?? "loadKey"
     const time = setting.time ?? 60000
 
-    async function waitLimit() {
-        FuncTimeWait.add({type: keyName, weight: 1})
+    async function waitLimit(weight = 1) {
+        FuncTimeWait.add({type: keyName, weight: weight})
         const t1 = FuncTimeWait.byWeight(keyName, setting.maxLoadBars) - (Date.now() - time) -1
         if (t1 > 0 ) await sleepAsync(t1 )
     }
@@ -71,7 +71,7 @@ export function LoadQuoteBase<Bar> (setting: tBinanceLoadBase<Bar>, data?: { fet
         let leftTime = startMap.get(nameForMap)
         if (!leftTime) {
             await waitLimit()
-            leftTime = await setting.funcFistTime({symbol: info.symbol, baseURL: base, interval: infoTF.name, fetch: _fetch}) as Date
+            leftTime = await setting.funcFistTime({symbol: info.symbol, baseURL: base, interval: infoTF.name, fetch: _fetch, intervalTF: info.tf, waitLimit}) as Date
             startMap.set(nameForMap, leftTime)
         }
         // если запрос превышает первую котировку слева, то сократим, запрос, до котировки
@@ -108,7 +108,9 @@ export function LoadQuoteBase<Bar> (setting: tBinanceLoadBase<Bar>, data?: { fet
                     interval:   infoTF.name,
                     startTime:  new Date(arr[i]),
                     endTime:    new Date(arr[i-1]),
-                    limit:  maxLoadBars
+                    limit:  maxLoadBars,
+                    intervalTF: info.tf,
+                    waitLimit
                 }
                 await waitLimit()
                 return setting.funcLoad(data)
