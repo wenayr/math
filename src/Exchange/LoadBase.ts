@@ -67,7 +67,7 @@ export function LoadQuoteBase<Bar> (setting: tBinanceLoadBase<Bar>, data?: { fet
         if (!infoTF) throw "нет такого таймфрейма";
 
         let lastTime: number
-        const nameForMap = info.exchangeName + infoTF.name
+        const nameForMap = info.exchangeName + info.symbol + infoTF.name
         let leftTime = startMap.get(nameForMap)
         if (!leftTime) {
             await waitLimit()
