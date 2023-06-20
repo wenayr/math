@@ -122,7 +122,7 @@ export function funcTimeW() {
                     break;
                 }
             }
-            if (i>100) arr.splice(0,i-100)
+            if (i>800) arr.splice(0,i-800)
             return result
         },
         byWeightTimeNow(type: tType, timeNow = Date.now(), weight = 50000) {
@@ -142,7 +142,7 @@ export function funcTimeW() {
                     break;
                 }
             }
-            if (i>100) arr.splice(0,i-100)
+            if (i>800) arr.splice(0,i-800)
             return result
         },
     }
