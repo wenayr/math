@@ -69,14 +69,25 @@ export function funcTimeW() {
             if (!dStatic[ type ]) return 0
             const [arr, timeStamp] = [ dStatic[ type ], Date.now() as tWeight]
 
-            // if (arr.length > 10) {
-            //     const res =  BSearch()
-            // }
-            // else {
-            //
-            // }
-
             let [sum, i] = [0, arr.length - 1];
+            for (; i >= 0; i--) {
+                const [_time, _weight]: tt1 = arr[i]
+                if (_time < timeStamp - ms) break
+                sum += _weight
+            }
+            arr.splice(0,i)
+            return sum
+        },
+        weightNow(type: tType, ms = 60*1000) {
+            if (!dStatic[ type ]) return 0
+            const [arr, timeStamp] = [ dStatic[ type ], Date.now() as tWeight]
+            let [sum, i] = [0, arr.length - 1];
+
+            for (; i >= 0; i--) {
+                if (arr[i][0] <= timeStamp) break
+            }
+
+
             for (; i >= 0; i--) {
                 const [_time, _weight]: tt1 = arr[i]
                 if (_time < timeStamp - ms) break
@@ -103,11 +114,36 @@ export function funcTimeW() {
             if (!dStatic[ type ]) return 0
             const [arr, timeStamp] = [ dStatic[ type ], Date.now()]
             let [sum, i] = [0, arr.length - 1];
+            let result =0
             for (; i >= 0; i--) {
                 sum += arr[i][1]
-                if (sum > weight) return arr[i + 1][0] ?? 0
+                if (sum > weight) {
+                    result = arr[i + 1][0] ?? 0
+                    break;
+                }
             }
-            return 0
+            if (i>100) arr.splice(0,i-100)
+            return result
+        },
+        byWeightTimeNow(type: tType, timeNow = Date.now(), weight = 50000) {
+            if (!dStatic[ type ]) return 0
+            const [arr, timeStamp] = [ dStatic[ type ], Date.now()]
+            let [sum, i] = [0, arr.length - 1];
+
+            for (; i >= 0; i--) {
+                if (arr[i][0] <= timeNow) break
+            }
+
+            let result =0
+            for (; i >= 0; i--) {
+                sum += arr[i][1]
+                if (sum > weight) {
+                    result = arr[i + 1][0] ?? 0
+                    break;
+                }
+            }
+            if (i>100) arr.splice(0,i-100)
+            return result
         },
     }
 }
