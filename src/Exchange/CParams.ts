@@ -554,7 +554,7 @@ export type SimpleParams<T=IParams> = ReadonlyFull<SimpleParamsMutable<T>>;
 export function GetSimpleParams<T extends ReadonlyFull<IParams>>(params : T) //: SimpleT<T>
     {
     //if (!params) return null;
-    let simpleParams = params as unknown instanceof Array ? [] :  {} as {[key : string] : any;};
+    let simpleParams = params as unknown as {[key : string] : any;}// instanceof Array ? [] :  {} as {[key : string] : any;};
     //function arrayFilter<T>(arr :T[], f) { return arr.filter()}
     for(let key in params) {
         const param : IParamReadonly = params[key];// as IParamReadonly;
