@@ -388,7 +388,7 @@ export function* iterateParams<TObj extends IParamsReadonly, TVal extends IParam
             if (typeof param=="object") {
                 const valKey= "value";
                 let value = (param as IParamBase)[valKey]; // .value;
-                if (typeof value=="object" && !isDate(value) && !Array.isArray(value))
+                if (typeof value=="object" && !isDate<any>(value) && !Array.isArray(value))
                     yield *iterateParams(value, keyPath.concat(valKey));
             }
         }
@@ -612,9 +612,9 @@ function convert_(valuesObj :{[key :string] :any}, srcObj : IParamsReadonly | re
             if (typeof srcval=="object") {
                 let srcvalue= srcval.value;
                 if (srcvalue==null) return srcval;
-                const resVal= {...srcval}; //, enabled: true};
+                const resVal= {...srcval}  as any; //, enabled: true};
                 if (srcvalue instanceof Date && (typeof val=="string" || val instanceof Date))
-                    resVal.value= new Date(val);
+                    resVal.value = new Date(val);
                 else
                 if (typeof srcvalue!=typeof val) return srcval;
                 else

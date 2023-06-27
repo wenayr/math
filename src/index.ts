@@ -48,6 +48,7 @@ export * as Color from "./Common/Color";
 export * as ListNodeAnd from "./Common/ListNodeAnd";
 export * as Math from "./Common/Math";
 export * as List from "./Common/List";
+export * as Params from "./Exchange/CParams";
 export * as LoadCandles from "./Exchange/ConnectData/Binance";
 
 import {CListNodeAnd} from "./Common/ListNodeAnd";
