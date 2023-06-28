@@ -382,27 +382,9 @@ export function BinanceSocketDCoinMAll(WebSocket: any) {
 }
 
 
-type tBinanceLoadBase = {
-    // адрес загрузки // http
-    base : string
-    // максимум загрузки баров за раз при первом запроса
-    maxLoadBars : number;
-    // максимум загрузки баров при докачке
-    maxLoadBars2? : number;
-    // максимальное количество запросов в пределах времени лимитов
-    countConnect : number;
-    // период сброса лимитов
-    time?: number,
-    // загрузка и сохранения баров
-    funcLoad: (data: tFuncLoad) => Promise<tSetHistoryData[]>,
-    // дата начала доступной истории
-    funcFistTime: (data: tLoadFist) => Promise<Date>,
-    // перевод timeframe в название интервалов
-    intervalToName: { time: TF, name: string }[]
-}
 
 type tMBar = tSetHistoryData
-const binanceFuncLoad = async ({symbol,interval,startTime,endTime,limit,baseURL,fetch}: tFuncLoad): Promise<tMBar[]> => {
+const binanceFuncLoad = async ({symbol,interval,startTime,endTime,limit,baseURL,fetch}: tFuncLoad<number>): Promise<tMBar[]> => {
     const _interval =   `&interval=${interval}`
     const _startTime =  `&startTime=${startTime.valueOf()}`
     const _endTime =    endTime?`&endTime=${endTime.valueOf()}`:``
@@ -445,7 +427,7 @@ const binanceInterval: { time: TF, name: string }[] = [
 
 
 
-export const BinanceLoadEasySpot = (data?: { fetch?: tFetch }) => LoadQuoteBase<tMBar>({
+export const BinanceLoadEasySpot = (data?: { fetch?: tFetch }) => LoadQuoteBase<tMBar, number>({
     base: 'https://api1.binance.com/api/v3/klines?',
     maxLoadBars2: 1000,
     countConnect: 1150,
@@ -486,7 +468,7 @@ export const MexcLoadEasyFuturesM = (data?: { fetch?: tFetch }) =>  LoadQuoteBas
     countConnect: 1150,
     maxLoadBars: 1000,
     time: 60000,
-    funcLoad: async ({symbol,interval,startTime,endTime,limit,baseURL,fetch}: tFuncLoad): Promise<tSetHistoryData[]> => {
+    funcLoad: async ({symbol,interval,startTime,endTime,limit,baseURL,fetch}: tFuncLoad<number>): Promise<tSetHistoryData[]> => {
         const _interval =   `&interval=${interval}`
         const _startTime =  `&startTime=${startTime.valueOf()}`
         const _endTime =    endTime?`&endTime=${endTime.valueOf()}`:``
@@ -515,7 +497,7 @@ export const GateIoLoadEasySpot = (data?: { fetch?: tFetch }) => LoadQuoteBase({
     countConnect: 500000,
     maxLoadBars: 500,
     time: 60000,
-    funcLoad: async ({symbol,interval,startTime,endTime,limit,baseURL,fetch}: tFuncLoad): Promise<tSetHistoryData[]> => {
+    funcLoad: async ({symbol,interval,startTime,endTime,limit,baseURL,fetch}: tFuncLoad<number>): Promise<tSetHistoryData[]> => {
         const _interval =   `&interval=${interval}`
         const _startTime =  `&startTime=${startTime.valueOf()}`
         const _endTime =    endTime?`&endTime=${endTime.valueOf()}`:``
@@ -548,7 +530,7 @@ export const USALoadEasyFuturesM = (data?: { fetch?: tFetch }) =>  LoadQuoteBase
     countConnect: 1,
     maxLoadBars: 10000,
     time: 300,
-    funcLoad: async ({symbol,interval,startTime,endTime:__endTime,limit,baseURL,fetch}: tFuncLoad): Promise<tSetHistoryData[]> => {
+    funcLoad: async ({symbol,interval,startTime,endTime:__endTime,limit,baseURL,fetch}: tFuncLoad<number>): Promise<tSetHistoryData[]> => {
         // end,limit,start,tf,fetch,symbol
         const maxBarTime = (Date.now() - 60*1000*16)
         const endTime = !__endTime || __endTime.valueOf() > maxBarTime ? new Date(maxBarTime) : __endTime

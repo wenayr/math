@@ -1,4 +1,4 @@
-import {sleepAsync} from "../Common/Common";
+import {isDate, sleepAsync} from "../Common/Common";
 import {TF} from "../Common/Time";
 import type {CBar} from "./Bars";
 import {FuncTimeWait} from "../Common/funcTimeWait";
@@ -15,24 +15,24 @@ export type tSymbolLoadInfo = { readonly symbol: tSymbol, readonly exchangeName?
 export type tInfoForLoadHistory = tSymbolLoadInfo & { time1: Date, time2: Date , right?:boolean}
 
 type tFetch3 = (input: RequestInfo | URL, init?: RequestInit | undefined) => Promise<Response>
-export type tFuncLoad = {fetch: tFetch3, baseURL: string, symbol: string, interval: string, intervalTF: TF, startTime: Date, endTime?: Date, limit?: number, maxLoadBars: number, waitLimit: (weight?: number) => Promise<void>}
+export type tFuncLoad<T extends (number| Date) > = {fetch: tFetch3, baseURL: string, symbol: string, interval: string, intervalTF: TF, startTime: Date, endTime?: Date, limit?: T , maxLoadBars: T, waitLimit: (weight?: number) => Promise<void>}
 export type tLoadFist = {fetch: tFetch3, baseURL: string, symbol: string, interval: string, intervalTF: TF, waitLimit: (weight?: number) => Promise<void>}
 
 
 export type tSetHistoryData = CBar & {tf?: TF}
-type tBinanceLoadBase<Bar> = {
+type tBinanceLoadBase<Bar, T extends (number| Date) > = {
     // адрес загрузки // http
     base : string
     // максимум загрузки баров за раз при первом запроса
-    maxLoadBars : number;
+    maxLoadBars : T;
     // максимум загрузки баров при докачке
-    maxLoadBars2? : number;
+    maxLoadBars2? : T//number|Date;
     // максимальное количество запросов в пределах времени лимитов
     countConnect : number;
     // период сброса лимитов
     time?: number,
     // загрузка и сохранения баров
-    funcLoad: (data: tFuncLoad) => Promise<Bar[]>,
+    funcLoad: (data: tFuncLoad<T>) => Promise<Bar[]>,
     // дата начала доступной истории
     funcFistTime: (data: tLoadFist) => Promise<Date>,
     // перевод timeframe в название интервалов
@@ -43,7 +43,7 @@ type tBinanceLoadBase<Bar> = {
 
 
 // Обертка для создания запросов котировок по времени и лимиту
-export function LoadQuoteBase<Bar> (setting: tBinanceLoadBase<Bar>, data?: { fetch?: tFetch3, error?: boolean }){
+export function LoadQuoteBase<Bar, T extends (number| Date)> (setting: tBinanceLoadBase<Bar, T> & {maxLoadBars : T}, data?: { fetch?: tFetch3, error?: boolean }){
     const {base,maxLoadBars,countConnect,intervalToName} = setting
     const maxLoadBars2 = setting.maxLoadBars2 ?? maxLoadBars
     const startMap = new Map<string, Date>()
@@ -88,25 +88,50 @@ export function LoadQuoteBase<Bar> (setting: tBinanceLoadBase<Bar>, data?: { fet
         const arr: number[] = []
         const interval = infoTF.time.valueOf()
         // это было на случай если в первом и втором шаге, доступно различное количество баров
-        const [step1, step2] = [maxLoadBars * interval, maxLoadBars2 * interval]
-        const [t1, t2] = info.right ? [time1, time2] : [time2, time1]
+        const map: Promise <Bar[]>[]= []
+        if (maxLoadBars instanceof Date) {
+            const [step1//, step2
+            ] = [
+                 maxLoadBars.valueOf()
+                // maxLoadBars2 instanceof Date ? maxLoadBars2.valueOf(): maxLoadBars2 * interval
+            ]
+            const [t1, t2] = info.right ? [time1, time2] : [time2, time1]
 
-        arr.push(lastTime = t1)
-        let bars = (t1 - t2) / interval
-        if (bars<=maxLoadBars) arr.push(t2)
-        else {
-            bars -= maxLoadBars
-            arr.push(lastTime = lastTime - step1)
-            for (; bars>0; bars-=maxLoadBars2) arr.push(lastTime = lastTime - step2)
-            if (bars<0) arr.push(t2)
+            arr.push(lastTime = t1)
+            let barsTime = (t1 - t2)
+            if (barsTime <= maxLoadBars.valueOf()) arr.push(t2)
+            else {
+                barsTime -= maxLoadBars.valueOf()
+                arr.push(lastTime = lastTime - step1)
+                for (; barsTime>0; barsTime -= maxLoadBars.valueOf()) arr.push(lastTime = lastTime - step1)
+                if (barsTime<0) arr.push(t2)
+            }
+        }
+        else if (maxLoadBars instanceof Number) {
+
+            const [step1 //, step2
+            ] = [
+                <number>maxLoadBars * interval,
+                // maxLoadBars2 instanceof Date ? maxLoadBars2.valueOf(): maxLoadBars2 * interval
+            ]
+            const [t1, t2] = info.right ? [time1, time2] : [time2, time1]
+
+            arr.push(lastTime = t1)
+            let bars = (t1 - t2) / interval
+            if (bars <= <number>maxLoadBars) arr.push(t2)
+            else {
+                bars -= <number>maxLoadBars
+                arr.push(lastTime = lastTime - step1)
+                for (; bars>0; bars -= <number>maxLoadBars) arr.push(lastTime = lastTime - step1)
+                if (bars<0) arr.push(t2)
+            }
         }
 
-        const map: Promise <Bar[]>[]= []
 
         for (let i = 1; i < arr.length; i++) {
             if (arr[i].valueOf() >= arr[i-1].valueOf()) continue;
             map.push((async ()=>{
-                const data: tFuncLoad = {
+                const data: tFuncLoad<T> = {
                     maxLoadBars:    maxLoadBars,
                     fetch:      _fetch,
                     baseURL:    base,
@@ -114,7 +139,7 @@ export function LoadQuoteBase<Bar> (setting: tBinanceLoadBase<Bar>, data?: { fet
                     interval:   infoTF.name,
                     startTime:  new Date(arr[i]),
                     endTime:    new Date(arr[i-1]),
-                    limit:  maxLoadBars,
+                    limit:      maxLoadBars,
                     intervalTF: info.tf,
                     waitLimit
                 }
