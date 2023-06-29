@@ -85,6 +85,7 @@ export function LoadQuoteBase<Bar, T extends (number| Date)> (setting: tBinanceL
         const [time1, time2] = [Math.max(info.time1.valueOf(), leftTime.valueOf()), info.time2.valueOf()]
         if (time2 <= time1) {return []}
 
+        const [t1, t2] = info.right ? [time1, time2] : [time2, time1]
         const arr: number[] = []
         const interval = infoTF.time.valueOf()
         // это было на случай если в первом и втором шаге, доступно различное количество баров
@@ -95,7 +96,6 @@ export function LoadQuoteBase<Bar, T extends (number| Date)> (setting: tBinanceL
                  maxLoadBars.valueOf()
                 // maxLoadBars2 instanceof Date ? maxLoadBars2.valueOf(): maxLoadBars2 * interval
             ]
-            const [t1, t2] = info.right ? [time1, time2] : [time2, time1]
 
             arr.push(lastTime = t1)
             let barsTime = (t1 - t2)
@@ -107,22 +107,20 @@ export function LoadQuoteBase<Bar, T extends (number| Date)> (setting: tBinanceL
                 if (barsTime<0) arr.push(t2)
             }
         }
-        else if (maxLoadBars instanceof Number) {
-
+        else if (typeof maxLoadBars == "number") {
             const [step1 //, step2
             ] = [
-                <number>maxLoadBars * interval,
+                maxLoadBars * interval,
                 // maxLoadBars2 instanceof Date ? maxLoadBars2.valueOf(): maxLoadBars2 * interval
             ]
-            const [t1, t2] = info.right ? [time1, time2] : [time2, time1]
 
             arr.push(lastTime = t1)
             let bars = (t1 - t2) / interval
-            if (bars <= <number>maxLoadBars) arr.push(t2)
+            if (bars <= maxLoadBars) arr.push(t2)
             else {
-                bars -= <number>maxLoadBars
+                bars -= maxLoadBars
                 arr.push(lastTime = lastTime - step1)
-                for (; bars>0; bars -= <number>maxLoadBars) arr.push(lastTime = lastTime - step1)
+                for (; bars>0; bars -= maxLoadBars) arr.push(lastTime = lastTime - step1)
                 if (bars<0) arr.push(t2)
             }
         }
@@ -167,3 +165,35 @@ export function LoadQuoteBase<Bar, T extends (number| Date)> (setting: tBinanceL
 
         return result
     }}
+
+// test()
+async function test() {
+    const arr:{time: number, price: number}[] = []
+    for (let i = 0; i < 10000; i++) {
+        arr[i] = {time: Date.now() - i * TF.H1.msec, price: i}
+    }
+    let ress: Date[] = []
+    const tt =LoadQuoteBase({
+        base: "",
+        countConnect: 2,
+        funcFistTime: async ({})=> {
+            const time = new Date(arr.at(-1)!.time)
+            console.log("funcFistTime: ", time)
+            return time
+        },
+        nameKey: "cd",
+        maxLoadBars: 100,
+        time: 50,
+        intervalToName: [{name:"1", time:TF.H1}],
+        funcLoad:  (data) => {
+            ress.push(data.startTime)
+            ress.push(data.endTime!)
+            return (async ()=>[5])()
+            // return []
+        }
+    })
+    const res = await tt({symbol:"s", time2: new Date(), tf: TF.H1, time1: new Date(2015)})
+    ress.sort((a,b)=> a.valueOf() - b.valueOf())
+    console.log(ress)
+    console.log(res)
+}
