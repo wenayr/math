@@ -30,7 +30,6 @@
     "node-fetch": "^3.3.1",
     "npm": "^9.6.7",
     "ts-node": "^10.9.1",
-    "wenay-common": "^1.0.69",
     "xmlhttprequest": "^1.8.0"
   },
   "devDependencies": {
