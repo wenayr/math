@@ -143,12 +143,12 @@ export function LoadQuoteBase<Bar extends {time?: number} | {time?: Date} | obje
                     waitLimit
                 }
                 await waitLimit()
-                const res = await setting.funcLoad(data)
+                let res = await setting.funcLoad(data)
                 if (res.length && (res[0] as {time?: number| Date}).time && (other?.reverseControl !== false)) {
                     let t1: number, t2: number
                     if (typeof (res[0] as {time?: number| Date}).time =="object") [t1,t2] = [(res[0] as {time: Date}).time.valueOf(), (res.at(-1) as {time: Date})!.time?.valueOf()!]
                     else [t1,t2] = [(res[0] as {time: number}).time, (res.at(-1) as {time: number})!.time! as number]
-                    if (t1 > t2) res.reverse()
+                    if (t1 > t2) res = res.reverse()
                 }
                 return res
             })())
