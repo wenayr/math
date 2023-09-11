@@ -29,9 +29,9 @@ async function Test2() {
         console.log("vs")
         console.log(barsReq5)
 
-        const result = barsReq.map((e,i)=> e[0]==barsReq5[i][0] && e[1]==barsReq5[i][1] && e[2]==barsReq5[i][2])
-
-        console.log(result)
+        // const result = barsReq.map((e,i)=> e[0]==barsReq5[i][0] && e[1]==barsReq5[i][1] && e[2]==barsReq5[i][2])
+        //
+        // console.log(result)
 
     } catch (e) {
         console.error(e)

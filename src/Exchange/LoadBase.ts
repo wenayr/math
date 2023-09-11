@@ -15,35 +15,35 @@ export type tSymbolLoadInfo = { readonly symbol: tSymbol, readonly exchangeName?
 export type tInfoForLoadHistory = tSymbolLoadInfo & { time1: Date, time2: Date , right?:boolean}
 
 type tFetch3 = (input: RequestInfo | URL, init?: RequestInit | undefined) => Promise<Response>
-export type tFuncLoad<T extends (number| Date) > = {fetch: tFetch3, baseURL: string, symbol: string, interval: string, intervalTF: TF, startTime: Date, endTime?: Date, limit?: T , maxLoadBars: T, waitLimit: (weight?: number) => Promise<void>}
-export type tLoadFist = {fetch: tFetch3, baseURL: string, symbol: string, interval: string, intervalTF: TF, waitLimit: (weight?: number) => Promise<void>}
+export type tFuncLoad<maxLoadBarType extends (number| Date), IntervalNameT extends (number| string) > = {fetch: tFetch3, baseURL: string, symbol: string, interval: IntervalNameT, intervalTF: TF, startTime: Date, endTime?: Date, limit?: maxLoadBarType , maxLoadBars: maxLoadBarType, waitLimit: (weight?: number) => Promise<void>}
+export type tLoadFist<IntervalNameT extends (number| string)> = {fetch: tFetch3, baseURL: string, symbol: string, interval: IntervalNameT, intervalTF: TF, waitLimit: (weight?: number) => Promise<void>}
 
 
 export type tSetHistoryData = CBar & {tf?: TF}
-type tBinanceLoadBase<Bar, T extends (number| Date) > = {
+type tBinanceLoadBase<Bar, maxLoadBarType extends (number| Date), IntervalNameT extends (number| string) > = {
     // адрес загрузки // http
     base : string
     // максимум загрузки баров за раз при первом запроса
-    maxLoadBars : T;
+    maxLoadBars : maxLoadBarType;
     // максимум загрузки баров при докачке
-    maxLoadBars2? : T//number|Date;
+    maxLoadBars2? : maxLoadBarType//number|Date;
     // максимальное количество запросов в пределах времени лимитов
     countConnect : number;
     // период сброса лимитов
     time?: number,
     // загрузка и сохранения баров
-    funcLoad: (data: tFuncLoad<T>) => Promise<Bar[]>,
+    funcLoad: (data: tFuncLoad<maxLoadBarType,IntervalNameT>) => Promise<Bar[]>,
     // дата начала доступной истории
-    funcFistTime: (data: tLoadFist) => Promise<Date>,
+    funcFistTime: (data: tLoadFist<IntervalNameT>) => Promise<Date>,
     // перевод timeframe в название интервалов
-    intervalToName: { time: TF, name: string }[],
+    intervalToName: { time: TF, name: IntervalNameT }[],
     // имя ключа, к которому будет применяться данный веся
     nameKey?: string
 }
 
 
 // Обертка для создания запросов котировок по времени и лимиту
-export function LoadQuoteBase<Bar extends {time: number}|{time: Date}, T extends (number| Date)> (setting: tBinanceLoadBase<Bar, T> & {maxLoadBars : T}, data?: { fetch?: tFetch3, error?: boolean, reverseControl?: boolean }){
+export function LoadQuoteBase<Bar extends {time: number}|{time: Date},T extends (number| Date), T2 extends (number| string) > (setting: tBinanceLoadBase<Bar, T, T2> & {maxLoadBars : T}, data?: { fetch?: tFetch3, error?: boolean, reverseControl?: boolean }){
     const {base,maxLoadBars,countConnect,intervalToName} = setting
     const maxLoadBars2 = setting.maxLoadBars2 ?? maxLoadBars
     const startMap = new Map<string, Date>()
@@ -130,7 +130,7 @@ export function LoadQuoteBase<Bar extends {time: number}|{time: Date}, T extends
         for (let i = 1; i < arr.length; i++) {
             if (arr[i].valueOf() >= arr[i-1].valueOf()) continue;
             map.push((async ()=>{
-                const data: tFuncLoad<T> = {
+                const data: tFuncLoad<T, T2> = {
                     maxLoadBars:    maxLoadBars,
                     fetch:      _fetch,
                     baseURL:    base,
