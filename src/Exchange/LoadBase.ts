@@ -38,12 +38,14 @@ type tBinanceLoadBase<Bar extends {time?: number} | {time?: Date} | object, maxL
     // перевод timeframe в название интервалов
     intervalToName: { time: TF, name: IntervalNameT }[],
     // имя ключа, к которому будет применяться данный веся
-    nameKey?: string
+    nameKey?: string,
+    // контроль верного порядка времени, авто переворот при необходимости
+    controlTimeToNumber?: (bar: Bar) => number
 }
 
 
 // Обертка для создания запросов котировок по времени и лимиту
-export function LoadQuoteBase<Bar extends {time?: number} | {time?: Date} | object, T extends (number| Date), T2 extends (number| string) > (setting: tBinanceLoadBase<Bar, T, T2> & {maxLoadBars : T}, data?: { fetch?: tFetch3, error?: boolean, reverseControlOff?: boolean }){
+export function LoadQuoteBase<Bar extends object, T extends (number| Date), T2 extends (number| string) > (setting: tBinanceLoadBase<Bar, T, T2> & {maxLoadBars : T}, data?: { fetch?: tFetch3, error?: boolean}){
     const {base,maxLoadBars,countConnect,intervalToName} = setting
     const maxLoadBars2 = setting.maxLoadBars2 ?? maxLoadBars
     const startMap = new Map<string, Date>()
@@ -51,17 +53,7 @@ export function LoadQuoteBase<Bar extends {time?: number} | {time?: Date} | obje
     const time = setting.time ?? 60000
     const other = data
 
-    const getDataEl = (a: any) => {
-        if (typeof a == "object") {
-            if (a.time) {
-                if (typeof a.time == "number") return a
-                if (a.time instanceof Date) {
-                    return a.time.valueOf()
-                }
-            }
-        }
-        return undefined
-    }
+    const getDataEl = (a: Bar) => setting.controlTimeToNumber?.(a)
 
     async function waitLimit(weight = 1) {
         //await sleepAsync(0)
@@ -156,12 +148,12 @@ export function LoadQuoteBase<Bar extends {time?: number} | {time?: Date} | obje
                 }
                 await waitLimit()
                 let res = await setting.funcLoad(data)
-                if (res.length && (res[0] as {time?: number| Date}).time && (other?.reverseControlOff != true)) {
-                    let t1: number, t2: number
-                    t1 = getDataEl(res[0])
-                    t2 = getDataEl(res.at(-1))
+                if (setting.controlTimeToNumber && res.length) {
+                    let [t1, t2] = [
+                        getDataEl(res[0]),
+                        getDataEl(res.at(-1)!)
+                    ]
                     if (t1 && t2 && t1 > t2) {
-                        console.log("correct reverse history time, auto revers ruing, pls use revers in funcLoad")
                         res = res.reverse()
                     }
                 }
