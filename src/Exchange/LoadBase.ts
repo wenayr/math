@@ -20,7 +20,7 @@ export type tLoadFist<IntervalNameT extends (number| string)> = {fetch: tFetch3,
 
 
 export type tSetHistoryData = CBar & {tf?: TF}
-type tBinanceLoadBase<Bar, maxLoadBarType extends (number| Date), IntervalNameT extends (number| string) > = {
+type tBinanceLoadBase<Bar extends {time?: number} | {time?: Date} | object, maxLoadBarType extends (number| Date), IntervalNameT extends (number| string) > = {
     // адрес загрузки // http
     base : string
     // максимум загрузки баров за раз при первом запроса
@@ -43,7 +43,7 @@ type tBinanceLoadBase<Bar, maxLoadBarType extends (number| Date), IntervalNameT 
 
 
 // Обертка для создания запросов котировок по времени и лимиту
-export function LoadQuoteBase<Bar extends {time: number}|{time: Date},T extends (number| Date), T2 extends (number| string) > (setting: tBinanceLoadBase<Bar, T, T2> & {maxLoadBars : T}, data?: { fetch?: tFetch3, error?: boolean, reverseControl?: boolean }){
+export function LoadQuoteBase<Bar extends {time?: number} | {time?: Date} | object, T extends (number| Date), T2 extends (number| string) > (setting: tBinanceLoadBase<Bar, T, T2> & {maxLoadBars : T}, data?: { fetch?: tFetch3, error?: boolean, reverseControl?: boolean }){
     const {base,maxLoadBars,countConnect,intervalToName} = setting
     const maxLoadBars2 = setting.maxLoadBars2 ?? maxLoadBars
     const startMap = new Map<string, Date>()
@@ -144,10 +144,10 @@ export function LoadQuoteBase<Bar extends {time: number}|{time: Date},T extends 
                 }
                 await waitLimit()
                 const res = await setting.funcLoad(data)
-                if (res.length && res[0].time && (other?.reverseControl !== false)) {
+                if (res.length && (res[0] as {time?: number| Date}).time && (other?.reverseControl !== false)) {
                     let t1: number, t2: number
-                    if (typeof res[0].time =="object") [t1,t2] = [res[0].time.valueOf(), res.at(-1)!.time.valueOf()!]
-                    else [t1,t2] = [res[0].time, res.at(-1)!.time! as number]
+                    if (typeof (res[0] as {time?: number| Date}).time =="object") [t1,t2] = [(res[0] as {time: Date}).time.valueOf(), (res.at(-1) as {time: Date})!.time?.valueOf()!]
+                    else [t1,t2] = [(res[0] as {time: number}).time, (res.at(-1) as {time: number})!.time! as number]
                     if (t1 > t2) res.reverse()
                 }
                 return res
