@@ -43,12 +43,13 @@ type tBinanceLoadBase<Bar, T extends (number| Date) > = {
 
 
 // Обертка для создания запросов котировок по времени и лимиту
-export function LoadQuoteBase<Bar, T extends (number| Date)> (setting: tBinanceLoadBase<Bar, T> & {maxLoadBars : T}, data?: { fetch?: tFetch3, error?: boolean }){
+export function LoadQuoteBase<Bar extends {time: number}|{time: Date}, T extends (number| Date)> (setting: tBinanceLoadBase<Bar, T> & {maxLoadBars : T}, data?: { fetch?: tFetch3, error?: boolean, reverseControl?: boolean }){
     const {base,maxLoadBars,countConnect,intervalToName} = setting
     const maxLoadBars2 = setting.maxLoadBars2 ?? maxLoadBars
     const startMap = new Map<string, Date>()
     const keyName = setting.nameKey ?? "loadKey"
     const time = setting.time ?? 60000
+    const other = data
 
     async function waitLimit(weight = 1) {
         //await sleepAsync(0)
@@ -65,7 +66,7 @@ export function LoadQuoteBase<Bar, T extends (number| Date)> (setting: tBinanceL
     const mapTimeToName = new Map(intervalToName.map((e)=>[e.time.sec, e]))
 
     // @ts-ignore
-    const _fetch = data?.fetch??fetch
+    const _fetch = other?.fetch??fetch
 
     return async (info: tInfoForLoadHistory ) : Promise<Bar[]>  => {   //
         const infoTF = mapTimeToName.get(info.tf.sec)
@@ -142,7 +143,14 @@ export function LoadQuoteBase<Bar, T extends (number| Date)> (setting: tBinanceL
                     waitLimit
                 }
                 await waitLimit()
-                return setting.funcLoad(data)
+                const res = await setting.funcLoad(data)
+                if (res.length && res[0].time && (other?.reverseControl !== false)) {
+                    let t1: number, t2: number
+                    if (typeof res[0].time =="object") [t1,t2] = [res[0].time.valueOf(), res.at(-1)!.time.valueOf()!]
+                    else [t1,t2] = [res[0].time, res.at(-1)!.time! as number]
+                    if (t1 > t2) res.reverse()
+                }
+                return res
             })())
 
         }
@@ -156,7 +164,9 @@ export function LoadQuoteBase<Bar, T extends (number| Date)> (setting: tBinanceL
 
         for (let i = resulI.length - 1; i >= 0; i--) {
             const el = resulI[i]
-            if (el.status == "fulfilled") result.push(...el.value)
+            if (el.status == "fulfilled") {
+                result.push(...el.value)
+            }
             if (el.status == "rejected") {
                 console.error(el.reason)
                 if (data?.error === true) throw el.reason
@@ -188,7 +198,7 @@ async function test() {
         funcLoad:  (data) => {
             ress.push(data.startTime)
             ress.push(data.endTime!)
-            return (async ()=>[5])()
+            return (async ()=>[{time: 5}])()
             // return []
         }
     })
