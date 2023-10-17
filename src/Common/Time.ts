@@ -1,5 +1,5 @@
 import { const_Date } from "./BaseTypes"
-import {CreateArrayProxy} from "./Common";
+import {CreateArrayProxy} from "./common";
 // import * as lib from "./Common";
 
 
@@ -7,21 +7,26 @@ function GetEnumKeys<TT extends {[key:string]:any}> (T :TT) : readonly (keyof ty
 
 //export * from "./Common";
 
+export type DateString= `${number}-${number}-${number}`;
+export type TimeStringHHMM = `${number}:${number}`;
+export type TimeStringHHMMSS = `${number}:${number}:${number}`;
+export type TimeStringHHMMSS_ms = `${number}:${number}:${number}.${number}`;
+       type TimeString_ = ` ${TimeStringHHMM|TimeStringHHMMSS|TimeStringHHMMSS_ms}`
+export type DateTimeString = `${DateString}${TimeString_|""}${"Z"|""}`;
 
+{
+    let t1 : DateTimeString = "2022-05-01";
+    let t2 : DateTimeString = "2022-05-01 01:01";
+    let t3 : DateTimeString = "2022-05-01 01:01:10";
+}
 //export type const_Date = Omit<Date, "setTime"|"setFullYear"|"setMonth"|"setDate"|"setHours"|"setMinutes"|"setSeconds"|"setMilliseconds"|"setUTCFullYear"|"setUTCMonth"|"setUTCDate"|"setUTCHours"|"setUTCMinutes"|"setUTCSeconds"|"setUTCMilliseconds">;
 
 type const_Date_ = const_Date;
 
-// export { const_Date_ as const_Date }
+// @ts-ignore
+//export { const_Date_ as const_Date }
 
-
-enum __E_TF {
-	S1=1,  S2, S3, S4, S5, S6, S10, S12, S15, S20, S30,
-	M1, M2, M3, M4, M5, M6, M10, M12, M15, M20, M30,
-	H1,H2,H3,H4,H6,H8,H12,
-	D1,
-	W1
-};
+export {const_Date};
 
 export const H1_S = 3600;
 export const D1_S = 3600*24;
@@ -32,7 +37,16 @@ export const D1_MS= D1_S * 1000;
 export const H1_MS= H1_S * 1000;
 export const M1_MS= 60 * 1000;
 
-const __Tf_S= [0, 1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30,  60, 120, 180, 240, 300, 360, 600, 720, 900, 1200, 1800,  H1_S, H1_S*2, H1_S*3, H1_S*4, H1_S*6, H1_S*8, H1_S*12, D1_S ,W1_S];
+enum __E_TF {
+	S1=1,  S2, S3, S4, S5, S6, S10, S12, S15, S20, S30,
+	M1, M2, M3, M4, M5, M6, M10, M12, M15, M20, M30,
+	H1,H2,H3,H4,H6,H8,H12,
+	D1,
+	W1, MN1, MN2, MN3, MN4, MN6, Y1
+};
+
+
+const __Tf_S= [0, 1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30,  60, 120, 180, 240, 300, 360, 600, 720, 900, 1200, 1800,  H1_S, 2*H1_S, 3*H1_S, 4*H1_S, 6*H1_S, 8*H1_S, 12*H1_S, D1_S, W1_S, 30*D1_S, 60*D1_S, 90*D1_S, 120*D1_S, 180*D1_S, 365*D1_S];
 
 //function PeriodSeconds(tf : TF) { return __Tf_S[tf.index]; }
 
@@ -74,7 +88,9 @@ export class TIME_UNIT {
 	static readonly Minute : TIME_UNIT= new TIME_UNIT(60*1000, "minute", "M");
 	static readonly Hour : TIME_UNIT= new TIME_UNIT(H1_S*1000, "hour", "H");
 	static readonly Day : TIME_UNIT= new TIME_UNIT(D1_S*1000, "day", "D");
-	static readonly Week : TIME_UNIT= new TIME_UNIT(D1_S*1000*7, "week", "W");
+	static readonly Week : TIME_UNIT= new TIME_UNIT(7*D1_S*1000, "week", "W");
+	static readonly Month : TIME_UNIT= new TIME_UNIT(30*D1_S*1000, "month", "MN");
+	static readonly Year : TIME_UNIT= new TIME_UNIT(365*D1_S*1000, "year", "Y")
 	readonly [key : number] : void;
 	//static readonly all : readonly TIME_UNIT[] = []
 }
@@ -116,13 +132,24 @@ export class TF implements IPeriod
 
 	toString() { return this.name; }
 
-	private constructor(sec : number, name : string) {
-		this.sec= sec;  this.name=name;
-		this.msec= sec*1000;
-		this.index= __Tf_S.indexOf(sec) as TFIndex;
-		this.unit= sec%D1_S==0 ?  TIME_UNIT.Day :   sec%H1_S==0 ?  TIME_UNIT.Hour :  sec%60==0 ?  TIME_UNIT.Minute  : TIME_UNIT.Second;
-		this.unitCount= sec / this.unit.sec;
+    private constructor(unit :TIME_UNIT, unitCount :number, index: TFIndex, msec? :number, name? :string) {
+        this.unit= unit;
+        this.unitCount= unitCount;
+        this.msec = msec ?? unit.msec * unitCount;
+        this.sec= Math.floor(this.msec / 1000);
+        this.index= index;
+        this.name= name ?? (unit.sign + unitCount);
 	}
+
+    private static constructFromSec(sec : number, name? : string) {
+        let msec= sec*1000;
+        let index= __Tf_S.indexOf(sec) as TFIndex;
+        let units= [TIME_UNIT.Year, TIME_UNIT.Month, TIME_UNIT.Week, TIME_UNIT.Day, TIME_UNIT.Hour, TIME_UNIT.Minute, TIME_UNIT.Second, TIME_UNIT.MSecond];
+        let unit= units.find((u)=> Math.floor(sec % u.sec)==0)!;
+        let unitCount= Math.floor(sec / unit.sec);
+        return new TF(unit, unitCount, index, msec, name);
+    }
+
 	// Получение таймфрейма по имени, иначе null
 	static get<T extends string>(name : T) : TF|(T extends __E_TF_KEY ? never : null) {
 		let key= __E_TF[name as __E_TF_KEY];  if (key) return this.all[key];  return null as (T extends __E_TF_KEY ? never : null);
@@ -135,12 +162,15 @@ export class TF implements IPeriod
 	// Получение таймфрейма из секунд
 	static fromSec(value : number) : TF|null { return this._mapBySec[value]; }
 
+	static createCustomFromSec(sec : number) { return TF.constructFromSec(sec); }
+	static createCustom(unit :TIME_UNIT, unitCount :number) { return new TF(unit, unitCount, -1 as TFIndex); }
+
 	//static fromValue(value : )
 
 	static readonly all : readonly TF[] = function() {
 		let i=1;
 		let arr : TF[]= [];
-		for(let key of GetEnumKeys(__E_TF)) { arr[__E_TF[key]]= new TF(__Tf_S[i], key);  i++; }
+		for(let key of GetEnumKeys(__E_TF)) { arr[__E_TF[key]]= TF.constructFromSec(__Tf_S[i], key);  i++; }
 		return arr;
 	}();
 
@@ -181,6 +211,12 @@ export class TF implements IPeriod
 	static readonly H12 : TF = TF.get("H12");
 	static readonly D1 : TF = TF.get("D1");
 	static readonly W1 : TF = TF.get("W1");
+	static readonly MN1 : TF = TF.get("MN1");
+	static readonly MN2 : TF = TF.get("MN2");
+	static readonly MN3 : TF = TF.get("MN3");
+	static readonly MN4 : TF = TF.get("MN4");
+	static readonly MN6 : TF = TF.get("MN4");
+	static readonly Y1 : TF = TF.get("Y1");
 
 	/*
 	private static __create = function() {
@@ -288,51 +324,61 @@ export class Period implements IPeriod //, MMM
 
 	getStartTime(currentTime :const_Date) { return Period.StartTime(this.tf, currentTime); }
 
-	static StartTimeForIndex(tf : TF,  index : number) {
-		let tfmsec=Period.Seconds(tf)*1000;
-		if (tf==TF.W1) {
-			return new MyDate(index * W1_MS - this.getW1Shift_ms());
-		}
-		return new MyDate(index*tfmsec);
-	}
 
 	private static getW1Shift_ms() {
 		const day0= new Date(0).getUTCDay();
 		const tshift= D1_MS * Math.trunc((day0+6)%7);
 		return tshift;
 	}
+    static W1Shift_ms = this.getW1Shift_ms();
 
-	// private static getParamsForTF(tf :TF) : { shift_ms :number, period_ms :number} {
-	// 	if (tf==TF.W1) {
-	// 		const day0= new Date(0).getDay();
-	// 		const shift_ms= D1_MS * Math.trunc((day0+6)%7);
-	// 		return { shift_ms, period_ms : W1_MS }
-	// 	}
-	// 	return { shift_ms: 0, period_ms : }
-	// }
+    //private
+    static year0= new Date(0).getUTCFullYear(); //1970
+
 
 	static IndexFromTime(tf :TF, time :const_Date) {
-		if (tf==TF.W1) {
-			return Math.floor((time.valueOf() + Period.getW1Shift_ms()) / W1_MS);
+        const tf_msec= tf.msec; //Period.Seconds(tf)*1000;
+		if (tf.unit==TIME_UNIT.Week) {
+			return Math.floor((time.valueOf() + Period.W1Shift_ms) / tf_msec);
 		}
-		const tfmsec= Period.Seconds(tf)*1000;
-		return Math.floor(time.valueOf()/tfmsec);
+        if (tf.unit==TIME_UNIT.Month) {
+            //console.log("!!!", time.getFullYear(), time.getMonth());
+            return Math.floor(((time.getFullYear() - Period.year0) * 12 + time.getMonth()) / tf.unitCount);
+        }
+        if (tf.unit==TIME_UNIT.Year) {
+            return time.getFullYear() - Period.year0;
+        }
+		return Math.floor(time.valueOf()/tf_msec);
 	}
+
+    static StartTimeForIndex(tf : TF,  index : number) {
+        const tf_msec = tf.msec; //Period.Seconds(tf)*1000;
+        if (tf.unit==TIME_UNIT.Week) {
+            return new MyDate(index * tf_msec - this.getW1Shift_ms());
+        }
+        if (tf.unit==TIME_UNIT.Month) {
+            return new MyDate(Period.year0 + Math.floor(index * tf.unitCount / 12), Math.floor(index * tf.unitCount % 12), 1);
+        }
+        if (tf.unit==TIME_UNIT.Year) return new MyDate(Period.year0+index, 0, 1);
+        return new MyDate(index * tf_msec);
+    }
 
 	static StartTime(tf : TF,  currentTime : const_Date, shiftPeriods=0) : MyDate {
-		if (tf==TF.W1) {
-			const tshift= Period.getW1Shift_ms();
-			return new MyDate(Math.floor((currentTime.valueOf() + tshift) / W1_MS + shiftPeriods) * W1_MS - tshift);
-		}
-		const tfmsec= Period.Seconds(tf)*1000;
-		return new MyDate(Math.floor(currentTime.valueOf()/tfmsec + shiftPeriods) * tfmsec);
+        let index= this.IndexFromTime(tf, currentTime) + shiftPeriods;
+        return this.StartTimeForIndex(tf, index);
 	}
 
-	static EndTime(tf : TF,  currentTime : const_Date) { return Period.StartTime(tf, currentTime, +1).ToShiftedMsTime(-1); }
+	static EndTime(tf : TF,  currentTime : const_Date) { return this.StartTime(tf, currentTime, +1).ToShiftedMsTime(-1); }
 }
 
 
 
+// console.log(Period.IndexFromTime(TF.MN3, new Date(0)));
+// console.log(Period.IndexFromTime(TF.MN3, new Date(1970,0,1)));
+// console.log(Period.IndexFromTime(TF.MN3, new Date(1970,0,30)));
+// console.log(Period.IndexFromTime(TF.MN3, new Date(1970,4,1)));
+// console.log(Period.IndexFromTime(TF.MN3, new Date(1971,0,1)));
+// console.log(Period.IndexFromTime(TF.MN3, new Date(1971,10,1)));
 
 function str2(n :number) { return n<=9 ? '0'+n : ''+n; }
 function str3(n :number) { return (n<=9 ? '00' : n<=99 ? '0' : '') +n; }

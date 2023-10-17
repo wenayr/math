@@ -1,20 +1,20 @@
+///?<reference path="./BaseTypes.d.ts" />
 
 //import 'source-map-support/register'
 //if (0) console.log();
 //import 'source-map-support/register.js';
 /*
-import sourceMapSupport from 'source-map-support'
-sourceMapSupport.install({
-	hookRequire: true,
-	//handleUncaughtExceptions: true
-	environment: 'node'
-});
+    import sourceMapSupport from 'source-map-support'
+    sourceMapSupport.install({
+        hookRequire: true,
+        //handleUncaughtExceptions: true
+        environment: 'node'
+    });
 */
 //declare function require(name: string);
 //require('source-map-support').install();
 //"module" : "ES6"
-//jjk
-//lkp
+
 //-r source-map-support/register
 //--loader ts-node/esm.mjs
 
@@ -26,8 +26,9 @@ sourceMapSupport.install({
 //SourceMapIndexGenerator.install();
 
 import {Immutable, KeysWithoutType, Mutable, MutableFull, PickTypes, ReadonlyFull} from "./BaseTypes";
-// import "./node_console"
-// import "./Time";
+
+import "./node_console"
+//import "./Time";
 
 export function GetEnumKeys<TT extends {[key:string]:any}> (T :TT) : readonly (keyof typeof T)[] { return Object.keys(T).filter(k => isNaN(k as any)); }
 
@@ -35,6 +36,7 @@ export function GetEnumKeys<TT extends {[key:string]:any}> (T :TT) : readonly (k
 //import type {ParsedUrlQuery, ParseOptions, StringifyOptions} from "./querystringMy";
 //import type {ByteStreamW} from "./ByteStream";
 //import type {const_Date} from "./Time";
+
 type const_Date= Omit<Date, "setTime"|"setFullYear"|"setMonth"|"setDate"|"setHours"|"setMinutes"|"setSeconds"|"setMilliseconds"|"setUTCFullYear"|"setUTCMonth"|"setUTCDate"|"setUTCHours"|"setUTCMinutes"|"setUTCSeconds"|"setUTCMilliseconds">;
 
 
@@ -42,8 +44,8 @@ type const_Date= Omit<Date, "setTime"|"setFullYear"|"setMonth"|"setDate"|"setHou
 //export function is_const_Date<T extends any & (const_Date extends T ? T : never)> (value :T) : value is const_Date { return value instanceof Date; }
 
 
-export function isDate<T> (value :T & (Extract<T,const_Date>))
-: value is Extract<T,const_Date>
+export function isDate<T> (value :T & (Extract<T,const_Date> extends never ? never :T))
+: value is Extract<typeof value,const_Date>
 {
     return value instanceof Date;
 }
@@ -52,13 +54,13 @@ export function isDate<T> (value :T & (Extract<T,const_Date>))
     let aaa! : number;//|const_Date;
     //is_const_Date(aaa);  // ошибка
 
-    // let bbb! : number|const_Date;
-    // if (isDate(bbb))
-    //     bbb.getDate();
-	//
-    // let ccc! : number|Date;
-    // if (isDate(ccc))
-    //     ccc.getDate();
+    let bbb! : number|const_Date;
+    if (isDate(bbb))
+        bbb.getDate();
+
+    let ccc! : number|Date;
+    if (isDate(ccc))
+        ccc.getDate();
 }
 
 
@@ -80,7 +82,8 @@ Object.prototype.valueOf= function(this) {
 
 //export type Mutable<T> = T extends object ? { -readonly [P in keyof T]: T[P]; } : T;
 
-// export type Mutable<T> = { -readonly [P in keyof T]: T[P]; };
+//export type Mutable<T> = { -readonly [P in keyof T]: T[P]; };
+export {Mutable}
 
 //export type MutableFull<T> = T extends Function ? T : { -readonly [P in keyof T] : MutableFull<T[P]> } //T[P] extends object ? ReadonlyFull<T[P]> : T[P] }
 
@@ -149,6 +152,59 @@ export function readonlyFull<T>(arg :T) { return arg as ReadonlyFull<T>; }
 
 
 
+
+// глубокое сравнение структур
+export function deepEqual<T extends { [key: string]: any }>(object1: T, object2: T) {//}, equalityComparer? :(a :any, b :any)=>boolean|undefined) {
+    if (object1==object2) return true;
+    // if (typeof object1!=typeof object2) return false;
+    // if (typeof object1!="object") return object1===object2;
+    // console.log(typeof object1, typeof object2,  object1!=null, object2!=null);
+    const keys1 = Object.keys(object1);
+    const keys2 = Object.keys(object2);
+
+    if (keys1.length != keys2.length) return false;
+
+    for (const key of keys1) {
+        const val1 = object1[key];
+        const val2 = object2[key];
+        if (val1===val2) continue;
+        // if (equalityComparer)
+        //     if (equalityComparer?.(val1, val2)==true) continue;
+        const areObjects = typeof(val1)=="object" && typeof(val2)=="object" && val1!=null && val2!=null;
+        //if (areObjects ? !deepEqual(val1, val2) : val1 !== val2)
+        if (!areObjects || !deepEqual(val1, val2))
+            return false;
+    }
+    return true;
+}
+
+// сравнение структур неглубокое
+export function shallowEqual<T extends { [key: string]: unknown }|undefined>(object1: T, object2: T) {
+	if (!object1 || !object2) return object1==object2;
+	const keys1 = Object.keys(object1);
+	const keys2 = Object.keys(object2);
+
+	if (keys1.length != keys2.length) {
+		return false;
+	}
+	for (const key of keys1) {
+		const val1 = object1[key];
+		const val2 = object2[key];
+		if (val1 !== val2)
+			return false;
+	}
+	return true;
+}
+
+// сравнение массивов неглубокое
+export function arrayShallowEqual<T extends unknown>(arr1 :readonly T[], arr2 :readonly T[]) : boolean
+{
+    if (arr1.length != arr2.length) return false;
+    return arr1.every((item,i) => arr2[i]==item);
+}
+
+
+
 export async function sleepAsync(msec :number=0) {
 	return new Promise((resolve, reject) => { setTimeout(resolve, msec); });
 }
@@ -157,27 +213,6 @@ export async function sleepAsync(msec :number=0) {
 export class CBase { readonly [key :number] : void; }//protected valueOf() { } }
 
 
-
-//export function dynamic_cast<T>(object, type?: {new(...args: any[]):T}, ) : T  { return (object instanceof new type)  ? (object as T)  : null; }
-
-
-
-
-export function GetEnumValues(T :{[key:string]:any}) : readonly any[] { let arr : any[] =[];  for(let k of Object.keys(T)) if (isNaN(k as any)) arr.push(T[k]);  return arr; }
-
-
-//function GetEnumValueToKeyMap(T) : readonly any[] { let arr : any[] =[];  for(let k of Object.keys(T)) return GetEnumKeys(T).map( (key)=> [T[key], key]); }
-/*
-enum E { A, B , C, D="VALUE"};
-
-if (0)
-	for(let a of GetEnumKeys(E))
-		console.log(a); //E[C]); //a," -> ",typeof E[a]);
-if (0)
-	for(let a of GetEnumValues(E))
-		console.log(a); //E[C]); //a," -> ",typeof E[a]);
-//function GetEnumKeys(type) { const keys = Object.keys(type).filter(k => typeof type[k as any] in {number:0,string:1});  return keys;  }
-*/
 
 export enum E_SORTMODE { DESCEND, ASCEND};
 
@@ -288,11 +323,11 @@ BSearch.LESS_OR_EQUAL= E_MATCH.LESS_OR_EQUAL;
 BSearch.GREAT_OR_EQUAL= E_MATCH.GREAT_OR_EQUAL;
 
 
-// найти элемент с ближайшим значением
+/** найти элемент с ближайшим значением*/
 export function BSearchNearest(array :ArrayLike<number>, searchValue :number, maxDelta? :number) : number;
-// найти элемент с ближайшим значением
+/** найти элемент с ближайшим значением*/
 export function BSearchNearest<T>(array :ArrayLike<T>, searchValue :number, arrayGetValue :(element :T)=>number, maxDelta? :number) : number;
-
+/** найти элемент с ближайшим значением*/
 export function BSearchNearest<T>(array :ArrayLike<T>, searchValue :number, getterOrDelta? : ((element :T)=>number)|number, maxDeltaOrNull? :number) {
     let [getter, maxDelta] = typeof getterOrDelta=="function" ? [getterOrDelta,maxDeltaOrNull] : [(elem :any)=>elem as number, getterOrDelta];
     return _BSearchNearest(array, searchValue, getter, maxDelta);
@@ -319,7 +354,8 @@ export function _BSearchNearest<T>(array :ArrayLike<T>, searchValue :number, arr
 
 //export function MathMin<T extends { valueOf() : number}> (a :T,  b :T)  { let x= a.valueOf(), y= b.valueOf();  return x }
 
-
+/** Нормализация точности числа
+*/
 export function NormalizeDouble(value :number, digits :number) { let factor= 10**digits;  return Math.round(value * factor)/factor; }
 
 function fabs(value : number) { return Math.abs(value); }
@@ -458,17 +494,23 @@ export function ArrayItemHandler<T extends {[key:number]:any}> (getter : (target
 	};
 }
 
+/** Создать прокси для доступа к массиву
+*/
 export function CreateArrayProxy<T extends {[key:number]:any}> (
     target :T,
     getter : (i :number)=> T[number],
     setter? : (i :number, value :T[number])=> void
 ) : T;
 
+/** Создать прокси для доступа к массиву
+*/
 export function CreateArrayProxy<T extends {[key:number]:any}, T2 extends {[key:number]:T[number]}> (
     target : T,
     srcArray : T2
 ) : T;
 
+/** Создать прокси для доступа к массиву
+*/
 export function CreateArrayProxy<T extends {[key:number]:any}, T2 extends {[key:number]:any}> (
     target :T,
     getterOrArray : T2 | ((i :number)=>T[number]),
@@ -479,18 +521,46 @@ export function CreateArrayProxy<T extends {[key:number]:any}, T2 extends {[key:
 }
 
 
-
-
-
+// {
+// let a : { [key :number] : any; } = {};
+//
+// a[100]= "a";
+// a[10]= "b";
+// a[-10]= "c";
+// a[-100]= "d";
+//
+// console.log(Object.keys(a));
+//
+// class C { a=10;  key() { return this.a; } }
+// let b = new C();
+// for(let k of Object.keys(b)) console.log(k)
+//
+// let c= new C;
+// c.a=20;
+// Object.assign(c, b);
+// //c.a=20;
+//
+// console.log("!!!",c.key());
+//
+// }
 
 //export function Min(...dates :Date[]) { return dates.length>=2 ? dates[0]<dates[1] ? dates[0] : dates[1]; }
 
 //type Keyable<T> = { valueOf():number; }; //constructor(key :number) : T;
 
 
+class __NumMap<T> {
+    [nkey:number] : T;
+    *keys()    { for(let keyStr of Object.keys(this)) { let key= Number(keyStr);  /*if (!isNaN(key))*/ yield key; }}
+    *values()  { for(let keyStr of Object.keys(this)) { /*let key= Number(keyStr);  if (!isNaN(key))*/ yield this[keyStr as any]; } }
+    *entries() { for(let keyStr of Object.keys(this)) { let key= Number(keyStr); /*if (!isNaN(key))*/ yield [key, this[keyStr as any]] as const; } }
+    clone()    { return Object.assign(new __NumMap, this); }
+    clear()    { for(let k of Object.keys(this)) delete this[k as any]; }
+}
+
 export class __MyMap<K extends {valueOf():number},  V>  //(K extends {valueOf():number} ? lib.CBase : lib.CBase)
 {
-	protected map : {[nkey:number] : {key:K, value:V}} = {}
+	protected map = new __NumMap<{key:K, value:V}>;
 	//protected pairs: {key:K, value:V}[];
 	protected keys? : readonly K[]|null;
 	protected values? : readonly V[]|null;
@@ -498,24 +568,25 @@ export class __MyMap<K extends {valueOf():number},  V>  //(K extends {valueOf():
 	protected createArrays() {
 		let thisKeys: K[] = this.keys = [];
 		let thisValues: V[] = this.values = [];
-		for (let key of Object.keys(this.map) as any)
-			if (!isNaN(Number(key))) {
-				let pair = this.map[key];
-				thisKeys.push(pair.key);
-				thisValues.push(pair.value);
-			}
+        for(let pair of this.map.values()) {
+            thisKeys.push(pair.key);
+            thisValues.push(pair.value);
+        }
 	}
-	protected OnModify(key :K) { }
-	public Set(key :K, value :V) :void  { this.map[key.valueOf()]= { key, value };  this.keys= null;  this.OnModify(key); }//this.pairs=null; }// this.keys= null;  this.values=null; }
+	protected OnModify?(key :K) { }
+	public Set(key :K, value :V) :void  { this.map[key.valueOf()]= { key, value };  this.keys= null;  this.OnModify?.(key); }//this.pairs=null; }// this.keys= null;  this.values=null; }
 	public Get(key :K) :V|undefined     { let pair = this.map[key.valueOf()];  return pair ? pair.value : undefined; }
 	public Contains(key :K) : boolean { return this.map[key.valueOf()]!=undefined; }
 	public TryAdd(key :K, value :V) : boolean { if (!this.Contains(key)) return false;  this.Set(key, value);  return true; }
 	public Add(key :K, value :V) : void { if (! this.TryAdd(key,value)) throw `Key ${key} is already exists for ${typeof value}`; }
-	public Remove(key :K)  { delete(this.map[key.valueOf()]);  this.keys= null;  this.OnModify(key); }
+	public Remove(key :K)  { delete(this.map[key.valueOf()]);  this.keys= null;  this.OnModify?.(key); }
+	public Clear()    { let pairs= this.OnModify ? this.map.values() : [];  this.map.clear();  this.keys=undefined;  this.values=undefined;  for(let p of pairs) this.OnModify!(p.key); }
 	public Count()    { return this.sortedKeys.length; }
 	get sortedKeys() :readonly K[]  { if (!this.keys) this.createArrays();  return this.keys!; }//{ this.keys=[]; for(let key in Object.keys(this.map)) if (!isNaN(key as any)) this.keys.push(this.strToKey(key));  return this.keys; }
 	//get sortedKeys() :K[] { if (!this.keys) this.keys= Object.keys(this.map).filter((key)=>!isNaN(key as any)) as any[];  return this.keys; }
 	get Values() :readonly V[]  { if (!this.keys) this.createArrays();  return this.values!; }//{ this.values=[];  for(let key of this.sortedKeys) this.values.push(this.map[key.valueOf()].value); }  return this.values; }
+
+    assign(other :__MyMap<K,V>) { this.map= other.map.clone();  this.keys= other.keys;  this.values= other.values; }
 }
 //-------------------------------
 
@@ -523,7 +594,7 @@ export class MyMap<K extends {valueOf():number},  V>  extends __MyMap<K, V> //(K
 {
 	readonly [key :number]: void;
 
-	Clone() { let newobj= new MyMap<K,V>();  newobj.map= {...this.map};  newobj.keys= this.keys;  newobj.values= this.values;  return newobj; }
+	Clone() { let newobj= new MyMap<K,V>();  newobj.assign(this);  return newobj; }
 }
 
 //------------------------
@@ -535,7 +606,7 @@ export class MyNumMap<VAL> extends __MyMap<number, VAL>
 		super();
 		return CreateArrayProxy(this, (i)=>this.Get(i), (key, value)=>this.Set(key, value ??(()=>{throw "undefined value"})())); //value!=undefined ? obj.Set(key,value) : obj.Remove(key));
 	}
-	Clone() { let newobj= new MyNumMap<VAL>();  newobj.map= {...this.map};  newobj.keys= this.keys;  newobj.values= this.values;  return newobj; }
+	Clone() { let newobj= new MyNumMap<VAL>();  newobj.assign(this);  return newobj; }
 
 	//static fromParsedJSON(data : ParsedUrlQueryInputMy) : MyNumMap<VAL> { let obj= new MyNumMap;   }
 }
@@ -607,22 +678,7 @@ export class ArraySet<TKey extends number|string> extends StructSet<readonly TKe
 {
 }
 
-/*
-let map : ArrayMap<number, string>= new ArrayMap;
 
-map.set([10,10], "fuck22");
-map.set([10,2], "fuck1");
-map.set([6,55], "fuck000");
-map.set([13,1], "fuck2");
-
-
-console.log(map.get([10,10]));
-console.log(map.get([10,2]));
-console.log(map.get([13,1]));
-console.log(map.get([10,1]));
-console.log(map.get([13,2]));
-alert("!");
-*/
 
 // export interface ISimpleMapString<TVal> {
 // 	[key : string] : TVal;
@@ -637,7 +693,6 @@ alert("!");
 // 	keys() { return Object.keys(this); }
 // 	values() { return Object.values(this); }
 // }
-
 
 
 //-----------------------------------
@@ -668,7 +723,7 @@ export class VirtualItems<T> implements IItems<T>
 
 	constructor(itemGetter: (i:number)=>T,  lengthGetter: ()=>number) {
 		this.getLength= lengthGetter;  this.getValue= itemGetter;
-		return CreateArrayProxy(this, this.getValue);
+		return CreateArrayProxy(this, itemGetter);
 	}
 }
 
@@ -869,8 +924,8 @@ export async function createCancellableTaskWrapper<T>(task :Promise<T>, isStoppe
 export class MyTimerInterval {
 	private _timer;
 	private _onstop;
-	constructor(period_ms :number,  onTimer: ()=>void,  onStop?: ()=>void) { this. _timer= setInterval(onTimer, period_ms);  this._onstop= onStop; }
-	stop() { clearInterval(this._timer);  if (this._onstop) this._onstop(); }
+	constructor(period_ms :number,  onTimer: ()=>void,  onStop?: ()=>void) { this._timer= setInterval(onTimer, period_ms);  this._onstop= onStop; }
+	stop() { clearInterval(this._timer);  this._onstop?.(); }
 }
 
 
@@ -944,52 +999,8 @@ export async function copyToClipboard(textToCopy: string) {
     }
 }
 
-
-
 //copyToClipboard("AAA");
-// глубокое сравнение структур
-export function deepEqual<T extends { [key: string]: any }>(object1: T, object2: T) {//}, equalityComparer? :(a :any, b :any)=>boolean|undefined) {
-    if (object1==object2) return true;
-    // if (typeof object1!=typeof object2) return false;
-    // if (typeof object1!="object") return object1===object2;
-    // console.log(typeof object1, typeof object2,  object1!=null, object2!=null);
-    const keys1 = Object.keys(object1);
-    const keys2 = Object.keys(object2);
 
-    if (keys1.length != keys2.length) {
-        return false;
-    }
-    for (const key of keys1) {
-        const val1 = object1[key];
-        const val2 = object2[key];
-        if (val1===val2) continue;
-        // if (equalityComparer)
-        //     if (equalityComparer?.(val1, val2)==true) continue;
-        const areObjects = typeof(val1)=="object" && typeof(val2)=="object" && val1!=null && val2!=null;
-        //if (areObjects ? !deepEqual(val1, val2) : val1 !== val2)
-        if (!areObjects || !deepEqual(val1, val2))
-            return false;
-    }
-    return true;
-}
-
-// сравнение структур
-export function shallowEqual<T extends { [key: string]: any }|undefined>(object1: T, object2: T) {
-	if (!object1 || !object2) return object1==object2;
-	const keys1 = Object.keys(object1);
-	const keys2 = Object.keys(object2);
-
-	if (keys1.length != keys2.length) {
-		return false;
-	}
-	for (const key of keys1) {
-		const val1 = object1[key];
-		const val2 = object2[key];
-		if (val1 !== val2)
-			return false;
-	}
-	return true;
-}
 
 
 

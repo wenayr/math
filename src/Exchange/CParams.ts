@@ -1,5 +1,5 @@
 import {const_Date} from "../Common/BaseTypes";
-import {deepCloneMutable, isDate} from "../Common/Common";
+import {deepCloneMutable, isDate} from "../Common/common";
 
 type Digit= 0|1|2|3|4|5|6|7|8|9;
 
@@ -35,9 +35,9 @@ export type DateTimeStr= `${Year}-${Month}-${Day} ${Hour}:${Minute}`;
 
 type DateTime = DateTimeStr | const_Date;
 
-
+{
 let ts : `${DateStr} ${TimeStr}` = "2025-06-01 16:25:25";
-
+}
 //[12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]) ([01][0-9]|2[0-3]):[0-5]\d:[0-5]\d
 
 // let rr :ReadonlyFull<DateTimeStr> = "" as DateTimeStr;
@@ -388,7 +388,7 @@ export function* iterateParams<TObj extends IParamsReadonly, TVal extends IParam
             if (typeof param=="object") {
                 const valKey= "value";
                 let value = (param as IParamBase)[valKey]; // .value;
-                if (typeof value=="object" && !isDate<any>(value) && !Array.isArray(value))
+                if (typeof value=="object" && !isDate(value) && !Array.isArray(value))
                     yield *iterateParams(value, keyPath.concat(valKey));
             }
         }
@@ -554,7 +554,8 @@ export type SimpleParams<T=IParams> = ReadonlyFull<SimpleParamsMutable<T>>;
 export function GetSimpleParams<T extends ReadonlyFull<IParams>>(params : T) //: SimpleT<T>
     {
     //if (!params) return null;
-    let simpleParams = params as unknown as {[key : string] : any;}// instanceof Array ? [] :  {} as {[key : string] : any;};
+    const simpleParamsBase= params instanceof Array ? [] : {};
+    let simpleParams = simpleParamsBase as  typeof simpleParamsBase & {[key : string] : any};
     //function arrayFilter<T>(arr :T[], f) { return arr.filter()}
     for(let key in params) {
         const param : IParamReadonly = params[key];// as IParamReadonly;
@@ -612,7 +613,7 @@ function convert_(valuesObj :{[key :string] :any}, srcObj : IParamsReadonly | re
             if (typeof srcval=="object") {
                 let srcvalue= srcval.value;
                 if (srcvalue==null) return srcval;
-                const resVal= {...srcval}  as any; //, enabled: true};
+                const resVal= {...srcval} as Mutable<typeof srcval>; //, enabled: true};
                 if (srcvalue instanceof Date && (typeof val=="string" || val instanceof Date))
                     resVal.value = new Date(val);
                 else

@@ -199,7 +199,7 @@ export class ByteStreamW
 //type ReaderFromBytes<T extends object|number|string|boolean> = { read(stream : ByteStreamR) : T; }
 //type ReaderFromBytes<T extends NonNullable<any>> = { read(stream : ByteStreamR) : T; }
 
-type ReaderFromBytes<T> = { read(stream : ByteStreamR|any) : T; }
+type ReaderFromBytes<T> = { read(stream : ByteStreamR) : T; }
 
 
 //type NullableNumericTypes= Nullable<NumericTypes>
@@ -304,7 +304,7 @@ class ByteStreamR_<throwable extends boolean>
 		) as (stream :ByteStreamR_<throwable>)=>tRes;
 	}
 
-	readNullable<T>(reader :ReaderFromBytes<NonNullable<T>>) { return this.readBool() ? reader.read(this) : null; }//  if (this.isThrowable) return f();  try() { return f() } catch(...) { } }
+	readNullable<T>(reader :ReaderFromBytes<NonNullable<T>>) { return this.readBool() ? reader.read(this as unknown as ByteStreamR) : null; }//  if (this.isThrowable) return f();  try() { return f() } catch(...) { } }
 
 	readArray<T>(func: (stream :ByteStreamR)=>NonNullable<T>) : T[];
 
@@ -325,13 +325,15 @@ class ByteStreamR_<throwable extends boolean>
 		//if (typeof arg=="function") return this._readArrayByFunc(arg);
 	}
 
-	protected _readArrayByFunc<T>(func: (stream :ByteStreamR|any)=>T) : T[]|null {
+	protected _readArrayByFunc<T>(func: (stream :ByteStreamR)=>T) : T[]|null {
 		let size= this.readUint32();  if (size==null) return null;
 		let array= new Array(size);  //let ddd= this;  func(this);
-		for(let i=0; i<size; i++) array[i]= func(this);
+		for(let i=0; i<size; i++)
+            //@ts-ignore
+            array[i]= func(this);
 		return array;
 	}
-
+    //@ts-ignore
 	protected _readArrayOfNumeric(type : NumericTypes)  {
 		if (type=="int8" || type=="uint8") {
 			let arrayClass= type=="int8" ? Int8Array : Uint8Array;
@@ -339,6 +341,7 @@ class ByteStreamR_<throwable extends boolean>
 			let bufpos= this._view.byteOffset + this._pos;
 			new arrayClass(this._view.buffer.slice(bufpos, bufpos+size!));
 		}
+        //@ts-ignore
 		return this._readArrayByFunc(this._getReadFuncForNumeric(type));
 	}
 

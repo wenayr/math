@@ -10,6 +10,7 @@
     "strictNullChecks": true,
     "noImplicitThis": true,
     "noImplicitAny": true,
+    "strict": true,
     "strictFunctionTypes": true,
     "strictPropertyInitialization": true,
     "noImplicitOverride": true,
@@ -17,11 +18,10 @@
     "forceConsistentCasingInFileNames": true,
     "declaration": true,
     "outDir": "./lib",
-    "strict": true,
     "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "lib": [
       "esnext",
-//      "dom"
     ],
     //    "outDir": "dist",
     "baseUrl": ".",
@@ -46,7 +46,7 @@
   ],
   "exclude": [
     "**/*.spec.ts",
-    "./srcLib/noBuild/**/*",
+    "./noBuild/**/*",
     "node_modules",
     "../node_modules",
   ],

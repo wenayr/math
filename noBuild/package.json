@@ -1,0 +1,14 @@
+{
+  "name": "no_build",
+  "scripts" : {
+    "install_noBuild" : "npm install"
+  },
+  "dependencies": {
+    "wenay-common": "^1.0.69",
+    "dotenv": "^8.2.0"
+  },
+  "devDependencies": {
+    "@types/dotenv": "^8.2.0",
+    "@types/validator": "^13.1.0"
+  }
+}

@@ -1,6 +1,6 @@
 //// /<reference no-default-lib="true"/>
-//// /<reference lib="esnext"/>
-//// /<reference types="node"/>
+///<reference lib="esnext"/>
+///<reference types="node"/>
 
 export {};
 
@@ -18,15 +18,17 @@ declare var window : unknown;
 //console.log("!!!!!",typeof self, typeof window);
 
 if (1)
-if (1 && typeof self != 'object' && typeof window!="object") { // если запущено на node.js
-
+if (typeof self != 'object' && typeof window!="object") { // если запущено на node.js
+    //module[`require`].bind('source-map-support')
+    let require : NodeJS.Require = eval('require'); // делаем такую хитрость, чтоб webpack не пытался скомпилировать этот модуль
     try {
         require('source-map-support').install();
         wrapCallSite = require('source-map-support').wrapCallSite; //.mapSourcePosition;
     }
-    catch {
-        //console.error("!!!!");
-    }
+     catch(e) {
+        console.warn(e);
+         //console.error("!!!!");
+     }
 
     for(let methodName of ['debug', 'log', 'warn', 'error'] as (keyof typeof console)[]) {
         const originalLoggingMethod = console[methodName] as typeof console.log; //any;

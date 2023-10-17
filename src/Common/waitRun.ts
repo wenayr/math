@@ -1,4 +1,4 @@
-import {sleepAsync} from "./Common";
+import {sleepAsync} from "./common";
 
 export function waitRun() {
     let lastTime: number = Date.now()

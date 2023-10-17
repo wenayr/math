@@ -1,6 +1,6 @@
 /// <reference lib="dom" />
-import {NormalizeDouble, MaxCommonDivisor,GetDblPrecision,GetDblPrecision2} from "./Common";
-import * as lib from "./Common"
+import {NormalizeDouble, MaxCommonDivisor,GetDblPrecision,GetDblPrecision2} from "./common";
+import * as lib from "./common"
 
 // задать автоматическое управление шагом для элемента input
 export function SetAutoStepForElement(element :HTMLInputElement, params :{minStep? :number|undefined, maxStep? :number} = { maxStep: 1})

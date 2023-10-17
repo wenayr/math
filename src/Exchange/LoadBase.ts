@@ -1,4 +1,4 @@
-import {isDate, sleepAsync} from "../Common/Common";
+import {isDate, sleepAsync} from "../Common/common";
 import {TF} from "../Common/Time";
 import type {CBar} from "./Bars";
 import {FuncTimeWait} from "../Common/funcTimeWait";

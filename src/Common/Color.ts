@@ -22,7 +22,7 @@ type HEXPair= `${HEXSymbol}${HEXSymbol}`;
 //type RgbString= `rgb(${number},${number},${number})` | `rgba(${number},${number},${number},${number})`;
 //type HexString = `#${HEXSymbol}${HEXSymbol}${HEXSymbol}${HEXSymbol}${HEXSymbol}${HEXSymbol}`;
 
-export type ColorString = `rgb(${number},${number},${number})` | `rgba(${number},${number},${number},${number})`; // | ;
+export type ColorString = `rgb(${number},${number},${number})` | `rgba(${number},${number},${number},${number})` | `#${string}`; // | ;
 
 export type ColorRGB = Readonly<{ red :number;  green :number;  blue :number; }>;
 

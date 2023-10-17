@@ -5,3 +5,4 @@
 /noBuild/frontLogs/server/.env
 /noBuild/frontLogs/server/dist/
 /noBuild/frontLogs/client/build/
+/dist/

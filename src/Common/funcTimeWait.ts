@@ -1,4 +1,4 @@
-import {BSearch} from "./Common";
+import {BSearch} from "./common";
 
 export type tApiKey = string
 type tType = 'UID' | 'IP' | tApiKey

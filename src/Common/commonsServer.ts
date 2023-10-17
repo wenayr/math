@@ -1,5 +1,5 @@
 
-import {sleepAsync} from "./Common";
+import {sleepAsync} from "./common";
 
 export type tRequestScreenerT<T> = {
     key: keyof T,
