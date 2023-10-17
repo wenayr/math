@@ -208,6 +208,8 @@ export function BSearch<T>(array :ArrayLike<T>,  arg2 :any,  arg3? :any, ...args
 }
 
 
+// Бинарный поиск по внешнему упорядоченному массиву BSearchAsync(length: number,  compareIndexToValue : (index: number)=>Promise<number>,  matchMode? :SearchMatchMode,  sortMode? :SortMode)
+export const BSearchAsync: typeof ___BSearchAsync = (...a) => ___BSearchAsync(...a)
 
 
 // Бинарный поиск  BSearchDefault(array, value, match, mode)
@@ -222,6 +224,34 @@ export function BSearchDefault<T extends {valueOf():number}> (array :ArrayLike<T
 function __BSearch<T,T2>(array :ArrayLike<T>,  value :T2,  comparer : (a:T, b:T2)=>number,  matchMode? :SearchMatchMode,  sortMode? :SortMode) : number
 {
 	return ___BSearch(array, (item)=>comparer(item, value), matchMode, sortMode);
+}
+
+// Бинарный асинхронный поиск по внешнему массиву данных  BSearch(array, value, comparer2, match, mode)
+//
+async function ___BSearchAsync<T>(length: number,  compareIndexToValue : (index: number)=>Promise<number>,  matchMode? :SearchMatchMode,  sortMode? :SortMode) : Promise<number>
+{
+	if (sortMode==undefined) sortMode= E_SORTMODE.ASCEND;
+	let k= (sortMode===E_SORTMODE.DESCEND || sortMode=="descend" ? -1 : sortMode===E_SORTMODE.ASCEND || sortMode=="ascend" ? 1 : (()=>{throw "wrong sortMode: "+JSON.stringify(sortMode)})());
+	let match= typeof matchMode !="string" ? matchMode : matchMode=="equal" ? E_MATCH.EQUAL : matchMode=="lessOrEqual" ? E_MATCH.LESS_OR_EQUAL : matchMode=="greatOrEqual" ? E_MATCH.GREAT_OR_EQUAL : (()=>{throw("wrong matchMode!")})();
+	let start = 0;
+	let count= length;
+	let end= start+count-1;
+	let left= start;
+	let right= end;
+	let i= left;
+	while (left<=right)
+	{
+		i= (left + right)>>1;
+		let cmp= await compareIndexToValue(i) * k;
+		if (cmp>0) { right=i-1;  continue; }
+		if (cmp<0) { left=i+1;  continue; }
+		return i;
+	}
+	//if (value==4)  console.log(match,"i="+i);
+	if (match==E_MATCH.LESS_OR_EQUAL)  { i=right;  if (i<start) i=-1; }   // if (i < start) i=-1; }
+	else if (match==E_MATCH.GREAT_OR_EQUAL) { i=left;  if (i>end) i=-1; }  //  if (i > end) i=-1; }
+	else i=-1;
+	return i;
 }
 
 // Бинарный поиск  BSearch(array, value, comparer2, match, mode)
