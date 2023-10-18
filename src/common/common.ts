@@ -27,7 +27,7 @@
 
 import {Immutable, KeysWithoutType, Mutable, MutableFull, PickTypes, ReadonlyFull} from "./BaseTypes";
 
-// import "./node_console"
+import "./node_console"
 //import "./Time";
 
 export function GetEnumKeys<TT extends {[key:string]:any}> (T :TT) : readonly (keyof typeof T)[] { return Object.keys(T).filter(k => isNaN(k as any)); }
@@ -958,24 +958,17 @@ export class Mutex {
 }
 
 
-//export type Readonly<T> = MyReadonly<T>
-
-
-
-
-// копирование в буфер обмена
 
 declare var navigator : any;
 declare var window : any;
 declare var document : any;
 
-
-
-
+/** Копирование в буфер обмена
+*/
 export async function copyToClipboard(textToCopy: string) {
 	const moduleName= 'child_process';
 	if (typeof window != "object")
-		return (await import(moduleName)).spawn('clip').stdin.end(textToCopy);
+		return (await import(/* webpackIgnore: true */ moduleName)).spawn('clip').stdin.end(textToCopy);
     // navigator clipboard api needs a secure context (https)
     if (navigator.clipboard && window.isSecureContext) {
         // navigator clipboard api method'
@@ -1000,7 +993,6 @@ export async function copyToClipboard(textToCopy: string) {
 }
 
 //copyToClipboard("AAA");
-
 
 
 
