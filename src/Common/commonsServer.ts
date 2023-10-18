@@ -46,8 +46,8 @@ export function funcPromiseServer<T extends object>(data: screenerSoc<tSocketDat
 
                 const a = await (async ()=>buf(...request))()
                     .catch((e)=>{
-                        data.sendMessage({mapId: datum.mapId, error: e})
-                        console.error({data: e, key: key, arguments: request})
+                        data.sendMessage({mapId: datum.mapId, error: {error: e, key: key, arguments: request}})
+                        console.error({error: e, key: key, arguments: request})
                         // myCatch?.({data: e, key: key, arguments: request})
                     })
                     .then(a=>{
