@@ -17,7 +17,7 @@ export type tRequestScreenerT<T> = {
  *  Есть риск одноименных методов в разных объектах
  *  пока не думал как решить =)
  * */
-export function funcPromiseServer<T extends object>(data: screenerSoc<tSocketData <tRequestScreenerT<T>>>, obj: T, myCatch?: (r: {data: string|any, key: keyof T, arguments: any[]}) => void){
+export function funcPromiseServer<T extends object>(data: screenerSoc<tSocketData <tRequestScreenerT<T>>>, obj: T){
     const buf = data;
     data.api({
         onMessage: async (datum)=>{
@@ -47,14 +47,22 @@ export function funcPromiseServer<T extends object>(data: screenerSoc<tSocketDat
                 const a = await (async ()=>buf(...request))()
                     .catch((e)=>{
                         data.sendMessage({mapId: datum.mapId, error: e})
+                        console.error({data: e, key: key, arguments: request})
                         // myCatch?.({data: e, key: key, arguments: request})
-                        throw {data: e, key: key, arguments: request}
+                    })
+                    .then(a=>{
+                        if (datum.wait!==false) data.sendMessage({mapId: datum.mapId, data: a??undefined})
                     })
                 // если ожидание отключено то ждеть не надо, не путать с функцией клбэка
-                if (datum.wait!==false) data.sendMessage({mapId: datum.mapId, data: a??undefined})
 
             }
-            else throw myCatch?.({data: "это не функция", key: key, arguments: request})
+            else {
+                data.sendMessage({
+                    mapId: datum.mapId,
+                    error: JSON.stringify({data: "это не функция", key: key, arguments: request})
+                })
+                console.error({data: "это не функция", key: key, arguments: request})
+            }
         }
     })
 }
@@ -390,15 +398,12 @@ export function CreatAPIFacadeClient<T extends object>({socketKey, socket} : {so
     }
 }
 
-export function CreatAPIFacadeServer<T extends object>({object, socket, socketKey, myCatch}: {socket: any, object: T, socketKey: string, myCatch?: (r: {data: string|any, key: keyof T, arguments: any[]}) => void}){
+export function CreatAPIFacadeServer<T extends object>({object, socket, socketKey}: {socket: any, object: T, socketKey: string}){
     // серверная часть (она же клиенская для выполнения подписок)
     funcPromiseServer({
             sendMessage: (data) => socket.emit(socketKey, data),
             api:(api) => {
-                socket.on(socketKey, (d: any)=> (async ()=>api.onMessage(d))()
-                    .catch((e: any)=>{
-                        myCatch?.(e)
-                    }))
+                socket.on(socketKey, (d: any)=> api.onMessage(d))
             }}
         ,object)
 

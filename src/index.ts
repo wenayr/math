@@ -26,7 +26,7 @@ export * from "./Common/ListNodeAnd";
 
 export * from "./Common/Math";
 
-export * from "./Common/node_console";
+// export * from "./Common/node_console";
 export * from "./Common/objectPath";
 
 export * from "./Common/waitRun";
