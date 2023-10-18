@@ -12,7 +12,8 @@
     "test": "",
     "_prepare" : "node copyCompiledFiles.mjs .\\dist  &&  cd dist  &&  npm pkg delete  scripts devDependencies private",
     "pack": "npm run _prepare  &&  npm pack .\\dist",
-    "publish": "npm run _prepare  &&  npm publish .\\dist"
+    "publish": "npm run _prepare  &&  npm publish .\\dist",
+    "publishTsc": "npm run build && npm run _prepare  &&  npm publish .\\dist"
   },
   "files": [
     "lib/**/*"
