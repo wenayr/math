@@ -20,7 +20,7 @@ declare var window : unknown;
 if (1)
 if (typeof self != 'object' && typeof window!="object") { // если запущено на node.js
     //module[`require`].bind('source-map-support')
-    let require : NodeJS.Require = eval('require'); // делаем такую хитрость, чтоб webpack не пытался скомпилировать этот модуль
+    // let require : NodeJS.Require = eval('require'); // делаем такую хитрость, чтоб webpack не пытался скомпилировать этот модуль
     try {
         require('source-map-support').install();
         wrapCallSite = require('source-map-support').wrapCallSite; //.mapSourcePosition;
