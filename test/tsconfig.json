@@ -1,0 +1,41 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "CommonJS",
+    //"module": "ESNext",
+    "moduleResolution": "node",
+    "noEmitOnError": true,
+    "removeComments": true,
+    "sourceMap": true,
+    "allowJs": true,
+    "strictNullChecks": true,
+    "noImplicitThis": true,
+    "noImplicitAny": true,
+    "strict": true,
+    "strictFunctionTypes": true,
+    "strictPropertyInitialization": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "forceConsistentCasingInFileNames": true,
+    //"declaration": true,
+    "outDir": "dist",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "lib": [
+      "esnext"
+    ],
+    "types" : ["node"],
+    "baseUrl": "./",
+    "paths": {
+    },
+  },
+  "include": [
+    //"*.ts"
+    "test.ts"
+  ],
+  "exclude": [
+    "./node_modules"
+  ],
+  "files": ["test2.ts"]
+}
+

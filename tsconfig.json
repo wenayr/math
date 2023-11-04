@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "CommonJS",
+    //"module": "ESNext",
     "moduleResolution": "node",
     "noEmitOnError": true,
     "removeComments": true,
@@ -20,25 +21,27 @@
     "outDir": "./lib",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
+    //"skipLibCheck": true,
     "lib": [
-      "esnext",
+      "esnext"
     ],
-    //    "outDir": "dist",
+    //"types" : ["node"],
     "baseUrl": ".",
     "paths": {
 //      "@wenay/server": ["./lib/srcServer/*"],
 //      "@wenay/Client": ["./lib/srcClient/*"],
 //      "@all/*": ["./lib/all/*"]
       "*": [
-        "node_modules/*",
+        "node_modules/*"
 //        "./src/types/*"
-      ]
+      ],
+      //"dom" : ["src/Common/dom"]
     }
   },
 
   "include": [
 //    "./srcLib/**/*"
-    "./src/**/*",
+    "./src/**/*"
 //    "./srcServer/**/*",
 //    "./srcClient/**/*",
 //    "./src/index.ts",
@@ -50,8 +53,9 @@
     "./noBuild/**/*",
     "node_modules",
     "../node_modules",
+    //"src/Common/dom"
   ],
-//  "references": [
+  //  "references": [
 //    {
 //      "path": "./srcServer",
 ////      "prepend": true
