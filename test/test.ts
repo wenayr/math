@@ -1,0 +1,13 @@
+
+//import "wenay-common/lib/Common/common";
+
+import * as lib from "wenay-common";
+
+lib.test();
+
+
+//const x = await Promise.resolve(42);
+//console.log(x);
+
+//console.log(lib.BSearch([10,20,30], 25));
+//import "axios"

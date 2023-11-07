@@ -33,6 +33,6 @@ import {CListNodeAnd} from "../../src/Common/ListNodeAnd";
 
 export function test() {
     const tt = new CListNodeAnd()
-    console.log("test");
+    console.log("test client");
     console.log("lalalal this is client")
 }

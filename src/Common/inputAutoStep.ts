@@ -1,6 +1,15 @@
-/// <reference lib="dom" />
-import {NormalizeDouble, MaxCommonDivisor,GetDblPrecision,GetDblPrecision2} from "./common";
-import * as lib from "./common"
+///??<reference lib="dom"/>
+//import {HTMLInputElement} from "dom"
+declare interface Event {}
+declare type HTMLInputElement = {
+    min: string, max: string, step :string, value :string, onchange :((ev :any)=>void)|null, onkeyup :((ev :any)=>void)|null, setAttribute(attr :string, val :string) :void,
+};
+
+//let aaa : HTMLInputElement = new globalThis.HTMLInputElement;
+
+
+import {NormalizeDouble, MaxCommonDivisor,GetDblPrecision, GetDblPrecision2} from "./common";
+//import * as lib from "./common"
 
 // задать автоматическое управление шагом для элемента input
 export function SetAutoStepForElement(element :HTMLInputElement, params :{minStep? :number|undefined, maxStep? :number} = { maxStep: 1})

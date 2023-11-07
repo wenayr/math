@@ -32,14 +32,18 @@ import "./node_console"
 
 export function GetEnumKeys<TT extends {[key:string]:any}> (T :TT) : readonly (keyof typeof T)[] { return Object.keys(T).filter(k => isNaN(k as any)); }
 
-//import {CandlestickSeriesApi} from "./fake";
 //import type {ParsedUrlQuery, ParseOptions, StringifyOptions} from "./querystringMy";
 //import type {ByteStreamW} from "./ByteStream";
 //import type {const_Date} from "./Time";
 
 type const_Date= Omit<Date, "setTime"|"setFullYear"|"setMonth"|"setDate"|"setHours"|"setMinutes"|"setSeconds"|"setMilliseconds"|"setUTCFullYear"|"setUTCMonth"|"setUTCDate"|"setUTCHours"|"setUTCMinutes"|"setUTCSeconds"|"setUTCMilliseconds">;
 
-
+// console.log(123)
+// new HTMLElement()
+// top;
+// global.name;
+// global.window
+// name;
 
 //export function is_const_Date<T extends any & (const_Date extends T ? T : never)> (value :T) : value is const_Date { return value instanceof Date; }
 
@@ -263,7 +267,7 @@ function __BSearch<T,T2>(array :ArrayLike<T>,  value :T2,  comparer : (a:T, b:T2
 
 // Бинарный асинхронный поиск по внешнему массиву данных  BSearch(array, value, comparer2, match, mode)
 //
-async function ___BSearchAsync<T>(length: number,  compareIndexToValue : (index: number)=>Promise<number>,  matchMode? :SearchMatchMode,  sortMode? :SortMode) : Promise<number>
+async function ___BSearchAsync(length: number,  compareIndexToValue : (index: number)=>Promise<number>,  matchMode? :SearchMatchMode,  sortMode? :SortMode) : Promise<number>
 {
 	if (sortMode==undefined) sortMode= E_SORTMODE.ASCEND;
 	let k= (sortMode===E_SORTMODE.DESCEND || sortMode=="descend" ? -1 : sortMode===E_SORTMODE.ASCEND || sortMode=="ascend" ? 1 : (()=>{throw "wrong sortMode: "+JSON.stringify(sortMode)})());
@@ -959,16 +963,17 @@ export class Mutex {
 
 
 
-declare var navigator : any;
-declare var window : any;
-declare var document : any;
+// declare var navigator : any;
+// declare var window : any;
+// declare var document : any;
 
 /** Копирование в буфер обмена
 */
-export async function copyToClipboard(textToCopy: string) {
-	const moduleName= 'child_process';
-	if (typeof window != "object")
-		return (await import(/* webpackIgnore: true */ moduleName)).spawn('clip').stdin.end(textToCopy);
+export async function copyToClipboard(textToCopy: string)
+{
+    let {navigator, window, document} = globalThis as any;
+	if (typeof window != "object") // node
+		return (await import(/* webpackIgnore: true */ 'child_process')).spawn('clip').stdin.end(textToCopy);
     // navigator clipboard api needs a secure context (https)
     if (navigator.clipboard && window.isSecureContext) {
         // navigator clipboard api method'
