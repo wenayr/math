@@ -8,9 +8,10 @@
     "installLink": "npm install",
     "installCopy": "del package-lock.json  &&  npm run _del_wenay &&  npm install --install-links",
     "_prepare": "IF not exist node_modules\\wenay-common (npm install)",
-    "test" : "npm run _prepare  &&  @echo run test  &&  tsc --incremental  &&  node --enable-source-maps dist/test.js  &&  @echo ok"
+    "test": "npm run _prepare  &&  @echo run test  &&  tsc --incremental  &&  node --enable-source-maps dist/test.js  &&  @echo ok"
   },
   "dependencies": {
+    "test": "file:",
     "wenay-common": "file:../dist"
   },
   "//dependencies": {
