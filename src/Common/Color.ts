@@ -34,16 +34,17 @@ export type Color = ColorString;
 
 export function rgb(red :number, green :number, blue :number) : ColorString { return `rgb(${red},${green},${blue})`; } // Генератор цветов
 
-
-export function* colorGenerator(): Generator<[number, number, number]> {
-    for (let step=127; step>=1; step/=2) {
-        let v=254/step;
+// min - минимальная яркость/диапазон
+// max - максимальная яркость/диапазон
+export function* colorGenerator(min= 0 , max= 254): Generator<[number, number, number]> {
+    for (let step= (max - min)/2; step>=1; step/=2) {
+        let v= (max - min)/step;
         for (let rStep=0, r=0; rStep<=v; rStep++, r+=step)
             for (let gStep=0, g=0; gStep<=v; gStep++, g+=step)
                 for (let bStep=0, b=0; bStep<=v; bStep++, b+=step) {
                     if (r%(step*2)==0 && g%(step*2)==0 && b%(step*2)==0)
                         continue;
-                    yield [Math.round(r), Math.round(g), Math.round(b)]
+                    yield [Math.round(r) + min, Math.round(g) + min, Math.round(b) + min]
                 }
     }
     yield [-1, -1, -1];
