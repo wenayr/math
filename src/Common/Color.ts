@@ -37,7 +37,7 @@ export function rgb(red :number, green :number, blue :number) : ColorString { re
 // min - минимальная яркость/диапазон
 // max - максимальная яркость/диапазон
 export function* colorGenerator(min= 0 , max= 254): Generator<[number, number, number]> {
-    for (let step= (max - min)/2; step>=1; step/=2) {
+    for (let step= Math.floor((max - min)/2); step>=1; step/=2) {
         let v= (max - min)/step;
         for (let rStep=0, r=0; rStep<=v; rStep++, r+=step)
             for (let gStep=0, g=0; gStep<=v; gStep++, g+=step)
