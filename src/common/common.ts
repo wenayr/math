@@ -73,8 +73,7 @@ if (0)
 Object.prototype.valueOf= function(this) {
 	//if (this.constructor.name=="CallSite") undefined as unknown as object;
 	console.error("function 'valueOf' is not defined in object",this.constructor.name,":",this);
-	console.trace();
-	throw("function 'valueOf' is not defined!!!");
+	throw new Error("function 'valueOf' is not defined!!!");
 }
 
 //delete Object.valueOf;
@@ -139,7 +138,7 @@ export function deepCloneMutable<T>(value :T) { return deepClone(value) as Mutab
 // Глубокое клонирование объекта
 
 export function deepCloneObject<T extends object>(object :T) {
-	if (object==undefined) throw "object is undefined!"; //return {};
+	if (object==undefined) throw new Error("object is undefined!"); //return {};
 	return deepClone(object);
 }
 
@@ -270,8 +269,8 @@ function __BSearch<T,T2>(array :ArrayLike<T>,  value :T2,  comparer : (a:T, b:T2
 async function ___BSearchAsync(length: number,  compareIndexToValue : (index: number)=>Promise<number>,  matchMode? :SearchMatchMode,  sortMode? :SortMode) : Promise<number>
 {
 	if (sortMode==undefined) sortMode= E_SORTMODE.ASCEND;
-	let k= (sortMode===E_SORTMODE.DESCEND || sortMode=="descend" ? -1 : sortMode===E_SORTMODE.ASCEND || sortMode=="ascend" ? 1 : (()=>{throw "wrong sortMode: "+JSON.stringify(sortMode)})());
-	let match= typeof matchMode !="string" ? matchMode : matchMode=="equal" ? E_MATCH.EQUAL : matchMode=="lessOrEqual" ? E_MATCH.LESS_OR_EQUAL : matchMode=="greatOrEqual" ? E_MATCH.GREAT_OR_EQUAL : (()=>{throw("wrong matchMode!")})();
+	let k= (sortMode===E_SORTMODE.DESCEND || sortMode=="descend" ? -1 : sortMode===E_SORTMODE.ASCEND || sortMode=="ascend" ? 1 : (()=>{throw new Error("wrong sortMode: "+JSON.stringify(sortMode))})());
+	let match= typeof matchMode !="string" ? matchMode : matchMode=="equal" ? E_MATCH.EQUAL : matchMode=="lessOrEqual" ? E_MATCH.LESS_OR_EQUAL : matchMode=="greatOrEqual" ? E_MATCH.GREAT_OR_EQUAL : (()=>{throw new Error("wrong matchMode!")})();
 	let start = 0;
 	let count= length;
 	let end= start+count-1;
@@ -286,22 +285,21 @@ async function ___BSearchAsync(length: number,  compareIndexToValue : (index: nu
 		if (cmp<0) { left=i+1;  continue; }
 		return i;
 	}
-	//if (value==4)  console.log(match,"i="+i);
 	if (match==E_MATCH.LESS_OR_EQUAL)  { i=right;  if (i<start) i=-1; }   // if (i < start) i=-1; }
 	else if (match==E_MATCH.GREAT_OR_EQUAL) { i=left;  if (i>end) i=-1; }  //  if (i > end) i=-1; }
 	else i=-1;
 	return i;
 }
 
-// Бинарный поиск  BSearch(array, value, comparer2, match, mode)
+// Бинарный синхронный поиск по внешнему массиву данных: BSearchIndex(length, comparer, match, sortMode)
 //
-function ___BSearch<T>(array :ArrayLike<T>,  compareItemToValue : (item:T)=>number,  matchMode? :SearchMatchMode,  sortMode? :SortMode) : number
+export function BSearchIndex(length: number,  compareIndex : (index: number)=>number, matchMode? :SearchMatchMode, sortMode? :SortMode) : number
 {
 	if (sortMode==undefined) sortMode= E_SORTMODE.ASCEND;
-	let k= (sortMode===E_SORTMODE.DESCEND || sortMode=="descend" ? -1 : sortMode===E_SORTMODE.ASCEND || sortMode=="ascend" ? 1 : (()=>{throw "wrong sortMode: "+JSON.stringify(sortMode)})());
-	let match= typeof matchMode !="string" ? matchMode : matchMode=="equal" ? E_MATCH.EQUAL : matchMode=="lessOrEqual" ? E_MATCH.LESS_OR_EQUAL : matchMode=="greatOrEqual" ? E_MATCH.GREAT_OR_EQUAL : (()=>{throw("wrong matchMode!")})();
+	let k= (sortMode===E_SORTMODE.DESCEND || sortMode=="descend" ? -1 : sortMode===E_SORTMODE.ASCEND || sortMode=="ascend" ? 1 : (()=>{throw new Error("wrong sortMode: "+JSON.stringify(sortMode))})());
+	let match= typeof matchMode !="string" ? matchMode : matchMode=="equal" ? E_MATCH.EQUAL : matchMode=="lessOrEqual" ? E_MATCH.LESS_OR_EQUAL : matchMode=="greatOrEqual" ? E_MATCH.GREAT_OR_EQUAL : (()=>{throw new Error("wrong matchMode!")})();
 	let start = 0;
-	let count= array.length;
+	let count= length;
 	let end= start+count-1;
 	let left= start;
 	let right= end;
@@ -309,18 +307,35 @@ function ___BSearch<T>(array :ArrayLike<T>,  compareItemToValue : (item:T)=>numb
 	while (left<=right)
 	{
 		i= (left + right)>>1;
-		let cmp= compareItemToValue(array[i]) * k;
+		let cmp= compareIndex(i) * k;
 		if (cmp>0) { right=i-1;  continue; }
 		if (cmp<0) { left=i+1;  continue; }
 		return i;
 	}
-	//if (value==4)  console.log(match,"i="+i);
 	if (match==E_MATCH.LESS_OR_EQUAL)  { i=right;  if (i<start) i=-1; }   // if (i < start) i=-1; }
 	else if (match==E_MATCH.GREAT_OR_EQUAL) { i=left;  if (i>end) i=-1; }  //  if (i > end) i=-1; }
 	else i=-1;
 	return i;
 }
 
+
+function ___BSearch<T>(array :ArrayLike<T>,  compareItemToValue : (item:T)=>number,  matchMode? :SearchMatchMode,  sortMode? :SortMode) : number
+{
+    return BSearchIndex(array.length, (i)=>compareItemToValue(array[i]), matchMode, sortMode);
+}
+
+/** Binary search of value in range (from, to) with precision (float number)
+*/
+export function BSearchValueInRange(from: number, to: number, precision : number, compare : (val: number)=>number, matchMode :SearchMatchMode) : number|null {
+    //if (from > 0) throw new Error(`BSearchVal: from > to : ${from} > ${to}`);
+    if (precision==0) throw new Error("precision=0");
+    let count= Math.round((to - from)/precision)+1;
+    const sortMode= count>=0 ? 1 : -1;
+    count= Math.abs(count);
+    let i= BSearchIndex(count, (index)=>compare(from + precision * index),  matchMode);
+    if (i==-1) return null;
+    return from + precision * i;
+}
 
 BSearch.EQUAL= E_MATCH.EQUAL;
 BSearch.LESS_OR_EQUAL= E_MATCH.LESS_OR_EQUAL;
@@ -388,7 +403,7 @@ function __GetMaxCommonDivisorInteger(a :number, b :number)    // a > b !!!
  */
 export function MaxCommonDivisor(a :number,  b :number,  digits :number=8)
 {
-	if (a==undefined || b==undefined) { console.trace(); throw("!!! Undefined value in MaxCommonDivisor"); }// console.trace(); }//  return undefined; }
+	if (a==undefined || b==undefined) { throw new Error("!!! Undefined value in MaxCommonDivisor"); }// console.trace(); }//  return undefined; }
 	a= fabs(a);  b= fabs(b);
 	if (Number.isInteger(a) && Number.isInteger(b))
 		if (a>b) return __GetMaxCommonDivisorInteger(a, b);
@@ -430,7 +445,7 @@ export function GetDblPrecision2(value :number, mindigits :number, maxdigits :nu
 		if (fabs(value-NormalizeDouble(value,d)) < epsilon) break;
 	}
 	//console.log(d);
-	if (d<0 || d>=100) throw("wrong digits:  value="+value+"  mindigits="+mindigits+"  maxdigits="+maxdigits);
+	if (d<0 || d>=100) throw new Error("wrong digits:  value="+value+"  mindigits="+mindigits+"  maxdigits="+maxdigits);
 	return d;
 };
 
@@ -582,7 +597,7 @@ export class __MyMap<K extends {valueOf():number},  V>  //(K extends {valueOf():
 	public Get(key :K) :V|undefined     { let pair = this.map[key.valueOf()];  return pair ? pair.value : undefined; }
 	public Contains(key :K) : boolean { return this.map[key.valueOf()]!=undefined; }
 	public TryAdd(key :K, value :V) : boolean { if (!this.Contains(key)) return false;  this.Set(key, value);  return true; }
-	public Add(key :K, value :V) : void { if (! this.TryAdd(key,value)) throw `Key ${key} is already exists for ${typeof value}`; }
+	public Add(key :K, value :V) : void { if (! this.TryAdd(key,value)) throw new Error(`Key ${key} is already exists for ${typeof value}`); }
 	public Remove(key :K)  { delete(this.map[key.valueOf()]);  this.keys= null;  this.OnModify?.(key); }
 	public Clear()    { let pairs= this.OnModify ? this.map.values() : [];  this.map.clear();  this.keys=undefined;  this.values=undefined;  for(let p of pairs) this.OnModify!(p.key); }
 	public Count()    { return this.sortedKeys.length; }
@@ -608,7 +623,7 @@ export class MyNumMap<VAL> extends __MyMap<number, VAL>
 	[key :number] : VAL|undefined;
 	constructor() {
 		super();
-		return CreateArrayProxy(this, (i)=>this.Get(i), (key, value)=>this.Set(key, value ??(()=>{throw "undefined value"})())); //value!=undefined ? obj.Set(key,value) : obj.Remove(key));
+		return CreateArrayProxy(this, (i)=>this.Get(i), (key, value)=>this.Set(key, value ??(()=>{throw new Error("undefined value")})())); //value!=undefined ? obj.Set(key,value) : obj.Remove(key));
 	}
 	Clone() { let newobj= new MyNumMap<VAL>();  newobj.assign(this);  return newobj; }
 
@@ -628,7 +643,7 @@ export class StructMap<TKey extends Required<TKey> & { [key:string]:number|strin
 
 	set(key :TKey, value :TResult) {
 		let items= key instanceof Array ? key : Object.values(key);
-		if (! items?.length) throw "passed empty object as key";
+		if (! items?.length) throw new Error("passed empty object as key");
 		let obj= this._data;
 		for(let i=0; i<items.length-1; i++) { //item of key) {
 			let item= items[i];
@@ -971,9 +986,10 @@ export class Mutex {
 */
 export async function copyToClipboard(textToCopy: string)
 {
-    let {navigator, window, document} = globalThis as any;
+    const {navigator, window, document} = globalThis as any;
+    const childProcessModule= 'child_process';
 	if (typeof window != "object") // node
-		return (await import(/* webpackIgnore: true */ 'child_process')).spawn('clip').stdin.end(textToCopy);
+		return (await import(/* webpackIgnore: true */ childProcessModule) as typeof import("child_process")).spawn('clip').stdin.end(textToCopy);
     // navigator clipboard api needs a secure context (https)
     if (navigator.clipboard && window.isSecureContext) {
         // navigator clipboard api method'
@@ -1086,7 +1102,7 @@ export class CCachedValue2<TKey extends [any, any], TVal> extends CCachedValueT<
 
 // проверяет, может ли объект приводиться к объекту типа T, проверяя наличие полей в массиве members
 
-export function isObjectCastableTo<T extends object>(object :object, members :readonly (keyof T)[]) : object is T {
+export function isObjectCastableTo<T extends object>(object :{}, members :readonly (keyof T)[]) : object is T {
     let keys= Object.keys(object);
     for(let m of members)
         if (! keys.includes(m as string)) return false;
