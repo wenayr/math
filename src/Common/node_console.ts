@@ -1,4 +1,3 @@
-///?<reference types="node"/>
 ///?<reference no-default-lib="true"/>
 ///?<reference lib="esnext"/>
 ///?<reference types="node"/>
@@ -29,11 +28,12 @@ if (1)
         let wrapCallSite : ((frame :CallSite)=>CallSite) | undefined; //  ((position :Position)=>Position) | undefined;
 
         //let inspector= await import(/* webpackIgnore: true */ 'inspector');
-        let inspector= require(/* webpackIgnore: true */ 'inspector');
+        function moduleName(name :string) { return name; } // дополнительная обёртка, чтобы webpack не выдавал ошибку в js файле, скомпилированном с удалением комментариев
+        let inspector= require(/* webpackIgnore: true */ moduleName('inspector')) as typeof import('inspector');
         if (inspector.url()!=undefined) return;  // запущено в дебаггере
         try {
             //let module= await import(/* webpackIgnore: true */ 'source-map-support');// as typeof import('source-map-support');
-            let module= require(/* webpackIgnore: true */ 'source-map-support');// as typeof import('source-map-support');
+            let module= require(/* webpackIgnore: true */ moduleName('source-map-support')) as typeof import('source-map-support');
             // для CommonJS надо будет ещё задать module.parser.javascript.commonjsMagicComments
             // require(/* webpackIgnore: true */ moduleName).install();
             module.install();
