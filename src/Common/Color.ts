@@ -50,6 +50,55 @@ export function* colorGenerator(min= 0 , max= 254): Generator<[number, number, n
     yield [-1, -1, -1];
 }
 
+// максимальный разбор оттенков в одном цветовом контрасте
+// min - контрастность, 0 - максимальное значение
+export function* colorGenerator2({min = 0, max = 0}: { min?: number, max?: number}): Generator<[number, number, number]> {
+    // startColor?: [r: number, g: number, b: number, number?] | ColorString,   , startColor:_clr
+    // const startColor = !_clr ? colorStringToRGBA("rgb(0,255,0)") :
+    //     typeof _clr == "object" ? _clr :  colorStringToRGBA(_clr)
+    // let [r,g,b] = startColor
+
+    function* _range(start = 0, end = 255){
+        const range = (end - start) * 5
+        for (let p = range; p > 1; p >>= 2)
+            for (let i = 1, step = p>>2; step * i < range; i++)
+                yield step * i
+    }
+
+    const d = max - min
+    let buf: [number, number, number] = [min, min, min]
+    const rangeGen = _range(min , max)
+    for (let num of rangeGen) {
+        const p = Math.round(num/d)
+        const r = num%d
+        if (p == 0) {
+            buf[0] = max
+            buf[1] = min + r
+        }
+        if (p == 1) {
+            buf[0] = max - r
+            buf[1] = max
+        }
+        if (p == 2) {
+            buf[1] = max
+            buf[2] = min + r
+        }
+        if (p == 3) {
+            buf[1] = max - r
+            buf[2] = max
+        }
+        if (p == 4) {
+            buf[2] = max
+            buf[0] = min + r
+        }
+        if (p == 5) {
+            buf[2] = max - r
+            buf[0] = max
+        }
+        yield buf
+    }
+    yield [-1, -1, -1];
+}
 
 //светлость оттенков
 export function colorGeneratorByCount(value=180, count=100, index=1) : ColorString {
