@@ -4182,7 +4182,7 @@ UpdateIPRestrictionforSubAccountAPIkey = {
 	
 }
 
-DepositAssetsIntoTheManagedSubaccount（ForInvestorMasterAccount） = {
+DepositAssetsIntoTheManagedSubaccountFMA = {
 	name: "Deposit Assets Into The Managed Sub-account（For Investor Master Account）"
 	nameType: ""
 	wight: [{
@@ -4208,7 +4208,7 @@ DepositAssetsIntoTheManagedSubaccount（ForInvestorMasterAccount） = {
 	
 }
 
-QueryManagedSubaccountAssetDetails（ForInvestorMasterAccount） = {
+QueryManagedSubaccountAssetDetailsFMA = {
 	name: "Query Managed Sub-account Asset Details（For Investor Master Account）"
 	nameType: ""
 	wight: [{
@@ -4264,7 +4264,7 @@ QueryManagedSubaccountAssetDetails（ForInvestorMasterAccount） = {
 	
 }
 
-WithdrawlAssetsFromTheManagedSubaccount（ForInvestorMasterAccount） = {
+WithdrawlAssetsFromTheManagedSubaccountFMA = {
 	name: "Withdrawl Assets From The Managed Sub-account（For Investor Master Account）"
 	nameType: ""
 	wight: [{
@@ -4291,7 +4291,7 @@ WithdrawlAssetsFromTheManagedSubaccount（ForInvestorMasterAccount） = {
 	
 }
 
-QueryManagedSubaccountSnapshot（ForInvestorMasterAccount） = {
+QueryManagedSubaccountSnapshotFMA = {
 	name: "Query Managed Sub-account Snapshot（For Investor Master Account）"
 	nameType: ""
 	wight: [{
@@ -4672,7 +4672,7 @@ QueryManagedSubAccountTransferLog = {
 	
 }
 
-QueryManagedSubaccountFuturesAssetDetails（ForInvestorMasterAccount） = {
+QueryManagedSubaccountFuturesAssetDetailsFMA = {
 	name: "Query Managed Sub-account Futures Asset Details（For Investor Master Account）(USER_DATA)"
 	nameType: "USER_DATA"
 	wight: [{
@@ -7365,8 +7365,8 @@ PartialBookDepthStreams = {
 	
 }
 
-Diff.DepthStream = {
-	name: "Diff. Depth Stream"
+DiffDepthStream = {
+	name: "Diff Depth Stream"
 	nameType: ""
 	wight: []
 	req = {
@@ -12931,8 +12931,8 @@ LISTENKEY = {
 	req = {}
 }
 
-Payload:AccountUpdate = {
-	name: "Payload: Account Update"
+PayloadAccountUpdate = {
+	name: "Payload Account Update"
 	nameType: ""
 	wight: []
 	req = {
@@ -12972,8 +12972,8 @@ Payload:AccountUpdate = {
 	
 }
 
-Payload:BalanceUpdate = {
-	name: "Payload: Balance Update"
+PayloadBalanceUpdate = {
+	name: "Payload Balance Update"
 	nameType: ""
 	wight: []
 	req = {
@@ -12998,8 +12998,8 @@ Payload:BalanceUpdate = {
 	
 }
 
-Payload:OrderUpdate = {
-	name: "Payload: Order Update"
+PayloadOrderUpdate = {
+	name: "Payload Order Update"
 	nameType: ""
 	wight: []
 	req = {

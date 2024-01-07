@@ -41,7 +41,7 @@ export class CBinanceAll {
 APIKeySetup = () => {
 	const name = "API Key Setup"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = {}
 }
 
@@ -50,7 +50,7 @@ APIKeySetup = () => {
 APIKeyRestrictions = () => {
 	const name = "API Key Restrictions"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = {}
 }
 
@@ -59,7 +59,7 @@ APIKeyRestrictions = () => {
 EnablingAccounts = () => {
 	const name = "Enabling Accounts"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = {}
 }
 
@@ -68,7 +68,7 @@ EnablingAccounts = () => {
 APILibrary = () => {
 	const name = "API Library"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = {}
 }
 
@@ -77,7 +77,7 @@ APILibrary = () => {
 ContactUs = () => {
 	const name = "Contact Us"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = {}
 }
 
@@ -86,7 +86,7 @@ ContactUs = () => {
 GeneralAPIInformation = () => {
 	const name = "General API Information"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = {
 		"code" :  number , // 1121  
 		"msg" :  string , // "Invalid symbol." 
@@ -100,8 +100,9 @@ GeneralAPIInformation = () => {
 LIMITS = () => {
 	const name = "LIMITS"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = {}
+	return () => ({}) as req
 }
 
 //https://binance-docs.github.io/apidocs/spot/en#data-sources
@@ -109,7 +110,7 @@ LIMITS = () => {
 DataSources = () => {
 	const name = "Data Sources"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = {}
 }
 
@@ -118,7 +119,7 @@ DataSources = () => {
 Endpointsecuritytype = () => {
 	const name = "Endpoint security type"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	// Security Type Description
 	// type params = {
 	// 	NONE : Endpoint can be accessed freely.
@@ -136,7 +137,7 @@ Endpointsecuritytype = () => {
 SIGNED = () => {
 	const name = "SIGNED (TRADE, USER_DATA, AND MARGIN)"
 	const nameType = "TRADE, USER_DATA, AND MARGIN"
-	const wight = []
+	const wight: any[] = []
 	type req = {
 		// process request 
 		
@@ -153,7 +154,7 @@ SIGNED = () => {
 PublicAPIDefinitions = () => {
 	const name = "Public API Definitions"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = {
 		"rateLimitType" :  string , // "REQUEST_WEIGHT"  
 		"interval" :  string , // "MINUTE"  
@@ -190,7 +191,7 @@ PublicAPIDefinitions = () => {
 Filters = () => {
 	const name = "Filters"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = {
 		"filterType" :  string , // "PRICE_FILTER"  
 		"minPrice" :  NumberString , // "0.00000100"  
@@ -4737,7 +4738,7 @@ Rollingwindowpricechangestatistics = () => {
 LiveSubscribingUnsubscribingtostreams = () => {
 	const name = "Live Subscribing/Unsubscribing to streams"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = {
 	"result" :  number , // null  
 	"id" :  number , // 1 
@@ -4775,7 +4776,7 @@ LiveSubscribingUnsubscribingtostreams = () => {
 AggregateTradeStreams = () => {
 	const name = "Aggregate Trade Streams"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = {
 	"e" :  string , // "aggTrade"  // Event type
 	 
@@ -4808,7 +4809,7 @@ AggregateTradeStreams = () => {
 TradeStreams = () => {
 	const name = "Trade Streams"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = {
 	"e" :  string , // "trade"  // Event type
 	 
@@ -4841,7 +4842,7 @@ TradeStreams = () => {
 KlineCandlestickStreams = () => {
 	const name = "Kline/Candlestick Streams"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = {
 	"e" :  string , // "kline"  // Event type
 	 
@@ -4895,7 +4896,7 @@ KlineCandlestickStreams = () => {
 IndividualSymbolMiniTickerStream = () => {
 	const name = "Individual Symbol Mini Ticker Stream"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = {
 	"e" :  string , // "24hrMiniTicker"  // Event type
 	 
@@ -4924,7 +4925,7 @@ IndividualSymbolMiniTickerStream = () => {
 AllMarketMiniTickersStream = () => {
 	const name = "All Market Mini Tickers Stream"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = [
 	 {
 		// Same as &lt;symbol&gt;@miniTicker payload 
@@ -4940,7 +4941,7 @@ AllMarketMiniTickersStream = () => {
 IndividualSymbolTickerStreams = () => {
 	const name = "Individual Symbol Ticker Streams"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = {
 	"e" :  string , // "24hrTicker"  // Event type
 	 
@@ -4997,7 +4998,7 @@ IndividualSymbolTickerStreams = () => {
 AllMarketTickersStream = () => {
 	const name = "All Market Tickers Stream"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = [
 	 {
 		// Same as &lt;symbol&gt;@ticker payload 
@@ -5013,7 +5014,7 @@ AllMarketTickersStream = () => {
 IndividualSymbolRollingWindowStatisticsStreams = () => {
 	const name = "Individual Symbol Rolling Window Statistics Streams"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = {
 	"e" :  string , // "1hTicker"  // Event type
 	 
@@ -5058,7 +5059,7 @@ IndividualSymbolRollingWindowStatisticsStreams = () => {
 AllMarketRollingWindowStatisticsStreams = () => {
 	const name = "All Market Rolling Window Statistics Streams"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = [
 	 {
 		// Same as &lt;symbol&gt;@ticker_&lt;window-size&gt; payload, 
@@ -5075,7 +5076,7 @@ AllMarketRollingWindowStatisticsStreams = () => {
 IndividualSymbolBookTickerStreams = () => {
 	const name = "Individual Symbol Book Ticker Streams"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = {
 	"u" :  number , // 400900217  // order book updateId
 	 
@@ -5098,7 +5099,7 @@ IndividualSymbolBookTickerStreams = () => {
 PartialBookDepthStreams = () => {
 	const name = "Partial Book Depth Streams"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = {
 	"lastUpdateId" :  number , // 160  // Last update ID
 	 
@@ -5142,7 +5143,7 @@ PartialBookDepthStreams = () => {
 Diff_DepthStream = () => {
 	const name = "Diff_ Depth Stream"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = {
 	"e" :  string , // "depthUpdate"  // Event type
 	 
@@ -5194,7 +5195,7 @@ Diff_DepthStream = () => {
 Howtomanagealocalorderbookcorrectly = () => {
 	const name = "How to manage a local order book correctly"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = {}
 }
 
@@ -8865,7 +8866,7 @@ QueryCurrentMarginOrderCountUsage = () => {
 MarginDustlog = () => {
 	const name = "Margin Dustlog (USER_DATA)"
 	const nameType = "USER_DATA"
-	const wight = []
+	const wight: any[] = []
 	const address = {
 		type : "GET",
 		url : "/sapi/v1/margin/dribblet",
@@ -9237,7 +9238,7 @@ LISTENKEY22 = () => {
 Payload_AccountUpdate = () => {
 	const name = "Payload_ Account Update"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = {
 	"e" :  string , // "outboundAccountPosition"  //Event type
 	 
@@ -9268,7 +9269,7 @@ Payload_AccountUpdate = () => {
 Payload_BalanceUpdate = () => {
 	const name = "Payload_ Balance Update"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = {
 	"e" :  string , // "balanceUpdate"  //Event Type
 	 
@@ -9289,7 +9290,7 @@ Payload_BalanceUpdate = () => {
 Payload_OrderUpdate = () => {
 	const name = "Payload_ Order Update"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = {
 	"e" :  string , // "executionReport"  // Event type
 	 
@@ -12174,7 +12175,7 @@ GetBLVTInfo = () => {
 HistoricalBLVTNAVKlineCandlestick = () => {
 	const name = "Historical BLVT NAV Kline/Candlestick"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = {}
 }
 
@@ -12371,7 +12372,7 @@ GetBLVTUserLimitInfo = () => {
 WebsocketBLVTInfoStreams = () => {
 	const name = "Websocket BLVT Info Streams"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = {
 	"e" :  string , // "nav"  // Event type
 	 
@@ -12409,7 +12410,7 @@ WebsocketBLVTInfoStreams = () => {
 WebsocketBLVTNAVKlineCandlestickStreams = () => {
 	const name = "Websocket BLVT NAV Kline/Candlestick Streams"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = {
 	"e" :  string , // "kline"  // Event name
 	 
@@ -13033,7 +13034,7 @@ GetClaimedHistory = () => {
 WebsocketPoolpriceStreams = () => {
 	const name = "Websocket Pool price Streams"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = {
 	"quoteAsset" :  string , // "BTC"  
 	"quoteSize" :  NumberString , // "15.57778974"  
@@ -13275,8 +13276,7 @@ GetVIPLoanOngoingOrders = () => {
 	"loanCoin" :  string , // "BUSD"  
 	"totalDebt" :  NumberString , // "10000"  
 	"residualInterest" :  NumberString , // "10.27687923"  
-	"collateralAccountId" :  NumberString , // "12345678"  
-	 "23456789"  
+	"collateralAccountId" :  NumberString , // "12345678"
 	"collateralCoin" :  string , // "BNB,BTC,ETH"  
 	"totalCollateralValueAfterHaircut" :  NumberString , // "25000.27565492"  
 	"lockedCollateralValue" :  NumberString , // "25000.27565492"  
@@ -14864,7 +14864,7 @@ FetchTokenLimit = () => {
 // 10xxGeneralServerorNetworkissues = () => {
 // 	const name = "10xx - General Server or Network issues"
 // 	const nameType = ""
-// 	const wight = []
+// 	const wight: any[] = []
 // 	type req = {}
 // }
 //
@@ -14873,7 +14873,7 @@ FetchTokenLimit = () => {
 // 11xx2xxxRequestissues = () => {
 // 	const name = "11xx - 2xxx Request issues"
 // 	const nameType = ""
-// 	const wight = []
+// 	const wight: any[] = []
 // 	type req = {}
 // }
 //
@@ -14882,7 +14882,7 @@ FetchTokenLimit = () => {
 // 3xxx5xxxSAPIspecificissues = () => {
 // 	const name = "3xxx-5xxx SAPI-specific issues"
 // 	const nameType = ""
-// 	const wight = []
+// 	const wight: any[] = []
 // 	type req = {}
 // }
 //
@@ -14891,7 +14891,7 @@ FetchTokenLimit = () => {
 // 6XXXSavingsIssues = () => {
 // 	const name = "6XXX - Savings Issues"
 // 	const nameType = ""
-// 	const wight = []
+// 	const wight: any[] = []
 // 	type req = {}
 // }
 //
@@ -14900,7 +14900,7 @@ FetchTokenLimit = () => {
 // 70xxFutures = () => {
 // 	const name = "70xx - Futures"
 // 	const nameType = ""
-// 	const wight = []
+// 	const wight: any[] = []
 // 	type req = {}
 // }
 //
@@ -14909,7 +14909,7 @@ FetchTokenLimit = () => {
 // 20xxxFuturesSpotAlgo = () => {
 // 	const name = "20xxx - Futures/Spot Algo"
 // 	const nameType = ""
-// 	const wight = []
+// 	const wight: any[] = []
 // 	type req = {}
 // }
 //
@@ -14918,7 +14918,7 @@ FetchTokenLimit = () => {
 // Filterfailures = () => {
 // 	const name = "Filter failures"
 // 	const nameType = ""
-// 	const wight = []
+// 	const wight: any[] = []
 // 	type req = {}
 // }
 //
@@ -14927,7 +14927,7 @@ FetchTokenLimit = () => {
 // 10xxxCryptoLoans = () => {
 // 	const name = "10xxx - Crypto Loans"
 // 	const nameType = ""
-// 	const wight = []
+// 	const wight: any[] = []
 // 	type req = {}
 // }
 //
@@ -14936,7 +14936,7 @@ FetchTokenLimit = () => {
 // 13xxxBLVT = () => {
 // 	const name = "13xxx - BLVT"
 // 	const nameType = ""
-// 	const wight = []
+// 	const wight: any[] = []
 // 	type req = {}
 // }
 //
@@ -14945,7 +14945,7 @@ FetchTokenLimit = () => {
 // 12xxxLiquidSwap = () => {
 // 	const name = "12xxx - Liquid Swap"
 // 	const nameType = ""
-// 	const wight = []
+// 	const wight: any[] = []
 // 	type req = {}
 // }
 //
@@ -14954,7 +14954,7 @@ FetchTokenLimit = () => {
 // 18xxxBinanceCode = () => {
 // 	const name = "18xxx - Binance Code"
 // 	const nameType = ""
-// 	const wight = []
+// 	const wight: any[] = []
 // 	type req = {}
 // }
 //
@@ -14963,7 +14963,7 @@ FetchTokenLimit = () => {
 // 21xxxPortfolioMarginAccount = () => {
 // 	const name = "21xxx - Portfolio Margin Account"
 // 	const nameType = ""
-// 	const wight = []
+// 	const wight: any[] = []
 // 	type req = {}
 // }
 
@@ -14972,7 +14972,7 @@ FetchTokenLimit = () => {
 OrderRejectionIssues = () => {
 	const name = "Order Rejection Issues"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = {}
 }
 
@@ -14981,7 +14981,7 @@ OrderRejectionIssues = () => {
 ErrorsregardingPOSTapiv3ordercancelReplace = () => {
 	const name = "Errors regarding POST /api/v3/order/cancelReplace"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = {}
 }
 
@@ -14990,9 +14990,9 @@ ErrorsregardingPOSTapiv3ordercancelReplace = () => {
 RequestParameters = () => {
 	const name = "Request Parameters"
 	const nameType = ""
-	const wight = []
+	const wight: any[] = []
 	type req = {}
 }
 
 
-}    
+}

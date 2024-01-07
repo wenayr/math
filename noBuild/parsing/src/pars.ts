@@ -82,8 +82,15 @@ function FParsingInputParameters(arrData: string[]) {
         if (buffer.nums < 0) return undefined;
 
         if (st.indexOf("<td>") >= 0) {
+            let sub = ""
+            if (st.indexOf("<code>") >= 0) {
+                const d = st.indexOf("<code>")
+                const v = st.slice(d + 4)
+                sub = getSubStringElBy(v,">","<" )
+            } else {
+                sub = getSubStringElBy(st,">","<" )
+            }
             // if (paramObj.index >= paramObj.max - 1) paramObj.index =0;
-            const sub = getSubStringElBy(st,">","<" )
             const a = data.arrParams[buffer.nums] = data.arrParams[buffer.nums] ?? []
             a[buffer.index] = sub
             buffer.index++
@@ -253,7 +260,11 @@ function fParsingReq() {
 start();
 
 async function start() {
-    const url = "https://binance-docs.github.io/apidocs/spot/en"
+    // const url = "https://binance-docs.github.io/apidocs/spot/en"
+    // const url = "https://binance-docs.github.io/apidocs/spot/en"
+    // const url = "https://binance-docs.github.io/apidocs/spot/en"
+    // const url = "https://binance-docs.github.io/apidocs/futures/en"
+    const url = "https://binance-docs.github.io/apidocs/delivery/en"
 
     const req =await axios.get(url)
     const data = req.data as string
@@ -579,10 +590,12 @@ async function start() {
             + tr( url2 )
             + tr( paramComment )
             + tr( st )
-            + "type req = " + (e.st?? "{}")
+            + "type req = " + (e.st?? "{}") + "|undefined \n"
+            + `return {${name ? " name,":""} ${wight ? " wight,":""} ${url2 ? " address,":""} typeParams: {} ${e.params?.arrParams.length ? " as params \n":""}, typeRes: {} as req\n}`
 
         bb = "\t" + bb.replaceAll("\n","\n\t")
 
+        if (!e.st) return ""
         return tr(www) + `\n${nameFunc} = () => {\n`
             + bb
             + `\n}\n\n`
@@ -629,7 +642,7 @@ ${str}
     /*<p><strong>Weight(UID):</strong> 1
 <strong>Weight(IP):</strong> 1</p>*/
 
-    fs.writeFileSync('binanceSpootAll.ts', def+rq);
+    fs.writeFileSync('binanceFuturesCoinAll.ts', def+rq);
 
     console.log(req)
     // await req2.json()

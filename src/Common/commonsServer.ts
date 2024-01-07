@@ -1,6 +1,7 @@
 
 import {sleepAsync} from "./common";
 
+type tSocket = {emit: (marker: string, object: any) => any, on: (marker: string, callback: (a: any)=>any)=>any}
 export type tRequestScreenerT<T> = {
     key: keyof T,
     callbacksId?: string[],
@@ -21,7 +22,7 @@ export function funcPromiseServer<T extends object>(data: screenerSoc<tSocketDat
     const buf = data;
     data.api({
         onMessage: async (datum)=>{
-            const {key,request, callbacksId} = datum.data!
+            const {key,request} = datum.data!
             const buf = obj[key]
             if (!buf) return ;//throw "такого метода нет"
             if (typeof buf == "function") {
@@ -37,7 +38,7 @@ export function funcPromiseServer<T extends object>(data: screenerSoc<tSocketDat
                         }
                     })
                     let r = 0
-                    request.forEach((e,i)=>{
+                    request.forEach((e,i)=> {
                         if (e == "___FUNC") {
                             request[i] = arr[r++]
                         }
@@ -163,25 +164,27 @@ export function funcForWebSocket<T>(data: screenerSoc<tSocketData <tRequestScree
 
     data.api({
         onMessage: (data)=>{
-            if (map.has(data.mapId)) {
-                const buf = map.get(data.mapId)
-                map.delete(data.mapId)
-                free.numsSet(data.mapId)
+            const {mapId} = data
+            if (map.has(mapId)) {
+                const buf = map.get(mapId)
+                map.delete(mapId)
+                free.numsSet(mapId)
                 if (data.error) buf?.reject(data.error)
                 else buf?.resolve(data.data)
             }
-            else if (callbackMany.has(data.mapId)) {
-                const buf = callbackMany.get(data.mapId)
+            else if (callbackMany.has(mapId)) {
+                const buf = callbackMany.get(mapId)
                 // @ts-ignore
                 // надо придумать команду стоп
                 if (data.data == "___STOP") {
-
-                    // @ts-ignore
-                    callbackMany.delete(data.mapId);
-                    // @ts-ignore
-                    free.numsSet(data.mapId);
+                    callbackMany.delete(mapId);
+                    free.numsSet(mapId);
                 }
                 buf?.(data.data)
+            }
+            else {
+                // пришел ответ которого не ждали
+                console.error("пришел ответ которого не ждали " ,data)
             }
         }
     })
@@ -374,7 +377,7 @@ export type UnAwaitedArr<T extends Promise<any>[]> = T extends Promise<infer R>[
 export type tElArr<T extends any[]> = T extends (infer R)[] ? R : never
 // OmitTypes
 
-export function CreatAPIFacadeClient<T extends object>({socketKey, socket} : {socket: any, socketKey: string}){
+export function CreatAPIFacadeClient<T extends object>({socketKey, socket} : {socket: tSocket, socketKey: string}){
     const tr = funcForWebSocket<any>({
         sendMessage: (data) => socket.emit(socketKey, data),
         api: (data)=> {
@@ -398,15 +401,14 @@ export function CreatAPIFacadeClient<T extends object>({socketKey, socket} : {so
     }
 }
 
-export function CreatAPIFacadeServer<T extends object>({object, socket, socketKey}: {socket: any, object: T, socketKey: string}){
-    // серверная часть (она же клиенская для выполнения подписок)
+export function CreatAPIFacadeServer<T extends object>({object, socket, socketKey}: {socket: tSocket, object: T, socketKey: string}){
+    // серверная часть (она же клиенская, для выполнения статичных подписок)
     funcPromiseServer({
             sendMessage: (data) => socket.emit(socketKey, data),
-            api:(api) => {
+            api: (api) => {
                 socket.on(socketKey, (d: any)=> api.onMessage(d))
             }}
         ,object)
-
 }
 
 

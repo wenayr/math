@@ -20,7 +20,7 @@ type tFunc<P> = {
         type: "GET" | "POST" | string
         url: string
         HMAC?: boolean
-    }, params?: P
+    }, params?: P | undefined
 }
 
 type tData = <T, P = undefined>(data: tFunc<P>) => T
