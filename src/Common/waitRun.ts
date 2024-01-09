@@ -29,6 +29,7 @@ export function waitRun() {
                     await (async ()=>lastFunc1?.())()
                         .finally(()=>{
                             busy = false;
+                            funcAsync = Promise.resolve();
                         })
                 })
             }
