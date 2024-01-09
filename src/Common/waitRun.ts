@@ -24,12 +24,12 @@ export function waitRun() {
             lastFunc1 = func;
             if (!busy) {
                 busy = true;
-                funcAsync.finally(async () => {
-                    funcAsync = (async ()=> {
-                        await sleepAsync(ms)
-                        await (async ()=>lastFunc1?.())()
-                        busy = false;
-                    })()
+                funcAsync = funcAsync.finally(async () => {
+                    await sleepAsync(ms)
+                    await (async ()=>lastFunc1?.())()
+                        .finally(()=>{
+                            busy = false;
+                        })
                 })
             }
             return funcAsync;
