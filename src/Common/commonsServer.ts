@@ -2,7 +2,7 @@ import {sleepAsync} from "./common";
 
 type tSocket = {emit: (marker: string, object: any) => any, on: (marker: string, callback: (a: any) => any) => any}
 export type tRequestScreenerT<T> = {
-    key: keyof T,
+    key: string[],
     callbacksId?: string[],
     request: any[]
 }
@@ -21,7 +21,9 @@ export function funcPromiseServer<T extends object>(data: screenerSoc<tSocketDat
     data.api({
         onMessage: async(datum) => {
             const {key, request} = datum.data!
-            const buf = obj[key]
+            // @ts-ignore
+            const buf = key.reduce((o,k)=>o?.[k],obj) as any// obj[key]
+            // const buf = obj[key]
             if (!buf) return;//throw "такого метода нет"
             if (typeof buf == "function") {
                 const {callbacksId} = datum
@@ -83,23 +85,23 @@ export function funcPromiseServer2<T extends object>(sendMessage: screenerSoc222
  *  Есть риск одноименных методов в разных объектах
  *  пока не думал как решить =)
  * */
-export function funcPromiseServerPost<T extends object>(data: screenerPost<tRequestScreenerT<T>>, obj: T) {
-    // data: screenerPost<tSocketData <tRequestScreenerT<T>>>, obj: T
-    data.api({
-        onMessage: async(datum) => {
-            console.log(datum);
-            if (!datum) return;
-            const {key, request} = datum//.data
-            if (!key) return;
-            const buf = obj[key]
-            if (!buf) return //throw "такого метода нет"
-            if (typeof buf == "function") {
-                const a = await (async() => buf(...request))()
-                return {data: a ?? undefined} //{mapId: datum.mapId, data: a??undefined}
-            } else throw "это не функция"
-        }
-    })
-}
+// export function funcPromiseServerPost<T extends object>(data: screenerPost<tRequestScreenerT<T>>, obj: T) {
+//     // data: screenerPost<tSocketData <tRequestScreenerT<T>>>, obj: T
+//     data.api({
+//         onMessage: async(datum) => {
+//             console.log(datum);
+//             if (!datum) return;
+//             const {key, request} = datum//.data
+//             if (!key) return;
+//             const buf = obj[key]
+//             if (!buf) return //throw "такого метода нет"
+//             if (typeof buf == "function") {
+//                 const a = await (async() => buf(...request))()
+//                 return {data: a ?? undefined} //{mapId: datum.mapId, data: a??undefined}
+//             } else throw "это не функция"
+//         }
+//     })
+// }
 
 type tSocketData<T> = ({data: T, error?: undefined} | {error: any, data?: undefined}) & {
     mapId: number,
@@ -256,16 +258,16 @@ export function funcForWebSocket<T>(data: screenerSoc<tSocketData<tRequestScreen
 // export function funcForPost<T>(address: string): screenerSoc2<T> {
 //     return (new CSendForPost()).funcForPost(address)
 // }
-export function FFuncMyF<T extends object>(object: T) {
-    return {
-        send: async(data: tRequestScreenerT<T>) => {
-            const buf = object[data.key]
-            if (!buf) throw "такого метода нет"
-            if (typeof buf == "function") return buf(...data.request)
-            else throw "это не функция"
-        }
-    }
-}
+// export function FFuncMyF<T extends object>(object: T) {
+//     return {
+//         send: async(data: tRequestScreenerT<T>) => {
+//             const buf = object[data.key]
+//             if (!buf) throw "такого метода нет"
+//             if (typeof buf == "function") return buf(...data.request)
+//             else throw "это не функция"
+//         }
+//     }
+// }
 
 type tFunc = (a: any) => any
 export type screenerSoc2<T> = {
@@ -286,28 +288,76 @@ export type tMethodToPromise2<T extends object> = { [P in keyof T]: T[P] extends
 /**
  * обертка для класса - переводит класс в Promise<method> класс, также перехватывает все функции и желает свою обработку типа WebSocket или другое
  * */
-export function funcScreenerClient2<T extends object>(data: screenerSoc2<T>, wait?: boolean) {
-    return new Proxy({} as unknown as tMethodToPromise2<T>, {
-        get(target: tMethodToPromise2<T>, p: string | symbol, receiver: any): any {
-            const key = String(p) as keyof T
-            return async(...argArray: any[]) => {
-                const callback: {func: tFunc, poz: number}[] = []
-                const callback2: tFunc[] = []
-                argArray.forEach((el, i) => {
-                    if (typeof el == "function") {
-                        callback.push({func: el, poz: i})
-                        callback2.push(el)
-                        argArray[i] = "___FUNC"
-                    }
-                })
-                return data.send({key, request: argArray}, wait, callback2)
-            }
-            // .catch((e)=>{
-            //     console.error("упали при отправке сообщения");
-            //     throw "упали при отправке сообщения"
-            // })
+
+
+// export function funcScreenerClient4<T extends object>(data: screenerSoc2<T>, wait?: boolean) {
+//     return new Proxy({} as unknown as tMethodToPromise2<T>, {
+//         get(target: tMethodToPromise2<T>, p: string | symbol, receiver: any): any {
+//             const key = String(p) as keyof T
+//             return async(...argArray: any[]) => {
+//                 const callback: {func: tFunc, poz: number}[] = []
+//                 const callback2: tFunc[] = []
+//                 argArray.forEach((el, i) => {
+//                     if (typeof el == "function") {
+//                         callback.push({func: el, poz: i})
+//                         callback2.push(el)
+//                         argArray[i] = "___FUNC"
+//                     }
+//                 })
+//                 return data.send({key, request: argArray}, wait, callback2)
+//             }
+//             // .catch((e)=>{
+//             //     console.error("упали при отправке сообщения");
+//             //     throw "упали при отправке сообщения"
+//             // })
+//         }
+//     })
+// }
+
+function funcScreenerClient2<T extends object>(data: screenerSoc2<T>, wait?: boolean) {
+    const tr = (address: string[]) => new Proxy((()=>{}) as any, {
+        get(target: any, p: string | symbol, receiver: any): any {
+            address.push(p as string)
+            return tr(address)
+        },
+        apply(target: any, thisArg: any, argArray: any[]): any {
+            console.log(address,argArray)
+
+            const callback: {func: tFunc, poz: number}[] = []
+            const callback2: tFunc[] = []
+            argArray.forEach((el, i) => {
+                if (typeof el == "function") {
+                    callback.push({func: el, poz: i})
+                    callback2.push(el)
+                    argArray[i] = "___FUNC"
+                }
+            })
+            return data.send({key: address, request: argArray}, wait, callback2)
         }
     })
+    const tr2 = () => new Proxy({} as any, {
+        get(target: any, p: string | symbol, receiver: any): any {
+            return tr([String(p)])
+        },
+        // apply(target: any, thisArg: any, argArray: any[]): any {
+        //
+        //     return async(...argArray: any[]) => {
+        //         const callback: {func: tFunc, poz: number}[] = []
+        //         const callback2: tFunc[] = []
+        //         argArray.forEach((el, i) => {
+        //             if (typeof el == "function") {
+        //                 callback.push({func: el, poz: i})
+        //                 callback2.push(el)
+        //                 argArray[i] = "___FUNC"
+        //             }
+        //         })
+        //         return data.send({key, request: argArray}, wait, callback2)
+        //     }
+        //     // console.log(address,argArray)
+        //
+        // }
+    })
+    return tr2() as unknown as tMethodToPromise2<T>
 }
 
 // метод void отменяет callback, т.е. фактически мгновенно исполняет Promise resolve
@@ -321,14 +371,14 @@ export type tMethodToPromise3<T extends object> = { [P in keyof T]: T[P] extends
  * завернутый в определенный класс, чтобы можно было отделить методы с возвращением void и не создавать на них callback,
  * также перехватывает все функции и желает свою обработку типа WebSocket или другое
  * */
-export function funcScreenerClient3<T extends object>(data: screenerSoc3<T>) {
-    return new Proxy({} as unknown as tMethodToPromise3<T>, {
-        get(target: tMethodToPromise3<T>, p: string | symbol, receiver: any): any {
-            const key = String(p) as keyof T
-            return (...argArray: any) => data.send({key, request: argArray})
-        }
-    })
-}
+// export function funcScreenerClient3<T extends object>(data: screenerSoc3<T>) {
+//     return new Proxy({} as unknown as tMethodToPromise3<T>, {
+//         get(target: tMethodToPromise3<T>, p: string | symbol, receiver: any): any {
+//             const key = String(p) as keyof T
+//             return (...argArray: any) => data.send({key, request: argArray})
+//         }
+//     })
+// }
 
 /*
  *      const data = base + info.name + '&interval=' + infoTF.name + '&startTime=' + String(new Date('2000').valueOf())  + '&limit='+1
