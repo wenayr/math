@@ -282,7 +282,7 @@ export type screenerSocApi<T> = {
     callbackDeleteAll: () => void,
     callbackDelete: (func: tFunc) => void,
 }
-export type tMethodToPromise2<T extends object> = { [P in keyof T]: T[P] extends ((...args: infer Z) => infer X) ? (...args: Z) => (X extends Promise<any> ? X : Promise<X>) : Promise<T[P]> }
+export type tMethodToPromise2<T extends object> = { [P in keyof T]: T[P] extends ((...args: infer Z) => infer X) ? (...args: Z) => (X extends Promise<any> ? X : Promise<X>) : T[P] extends object ? tMethodToPromise2<T[P]> : never }
 
 // export type tMethodToPromise4<T extends object> = {[P in keyof T] : T[P] extends ((...args: any)=> any X <T[P]> extends }// T[P] extends ((...args: infer Z)=> infer X)? (...args: Z)=>(X extends Promise<any>? X : Promise<X>) : Promise<T[P]>}
 /**

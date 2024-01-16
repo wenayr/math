@@ -5,7 +5,7 @@ import * as createHmac from 'create-hmac'
 // var createHmac = require('create-hmac')
 export type MilliSec = number
 type tInputBaseR = {
-    [key:string] : number | string | string[]
+    [key:string] : boolean | number | string | string[]
 }
 
 export type tInputBase = {
