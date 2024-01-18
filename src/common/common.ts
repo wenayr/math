@@ -475,7 +475,23 @@ export function DblToStrAuto(value :number, maxprecis :number=8) {
 	return DblToStrAuto2(value, 0, maxprecis);
 }
 
-
+export function NormalizeDoubleAnd(a: number, w = 4) {
+	if (a%1.0 == 0) return a
+	let z = 10 **w
+	let k = 0
+	if (a > z) return Math.round(a)
+	for (; a<z; k++) z/=10
+	const minstep = 10/(10**k)
+	return Math.round(a/minstep)*minstep
+}
+export function DblToStrAnd(a: number, w = 4) {
+	if (a%1.0 == 0) return a.toFixed(0)
+	let z = 10 **w
+	let k = 0
+	if (a > z) return a.toFixed(0)
+	for (; a<z; k++) z/=10
+	return a.toFixed(k)
+}
 
 export function ArrayItemHandler<T extends {[key:number]:any}> (getter : (target :T, i :number)=> T[number],  setter? : (target :T, i :number, value :T[number])=> void)
 : ProxyHandler<T> {
