@@ -474,23 +474,33 @@ export function DblToStrAuto(value :number, maxprecis :number=8) {
 	if (digits<0) if (value!=0) maxprecis= Math.trunc( Math.max(0, -digits-Math.log10(fabs(value))) ); else maxprecis=0;
 	return DblToStrAuto2(value, 0, maxprecis);
 }
-
-export function NormalizeDoubleAnd(a: number, w = 4) {
-	if (a%1.0 == 0) return a
-	let z = 10 **w
-	let k = 0
-	if (a > z) return Math.round(a)
-	for (; a<z; k++) z/=10
-	const minstep = 10/(10**k)
-	return Math.round(a/minstep)*minstep
+/** Нормализация точности числа
+ * * @param value
+ *  * @param digitsPoint - Максимальная точность (число цифр после первой значимой цифры, только для дробной части).  Только положительное
+ *  * @param digitsR - Максимальная точность (число цифр после первой значимой цифры и для целых тоже, пример: 12340000).  Только положительное
+ *  */
+export function NormalizeDoubleAnd(a: number, options?: {digitsPoint?: number, digitsR?: number}) {
+	let {digitsPoint:w = 4, digitsR:r} = options ?? {}
+	if (!r && a%1.0 == 0) return a
+	if (r) w = r
+	let k = Math.ceil(Math.log10(a))
+	if (k > w && !r) return Math.round(a)
+	if (k >=0) return Math.round(a / (10 ** (k-w))) * (10 ** (k-w))
+	return Math.round(a / (10 ** (k-w))) * (10 ** (k-w))
 }
-export function DblToStrAnd(a: number, w = 4) {
-	if (a%1.0 == 0) return a.toFixed(0)
-	let z = 10 **w
-	let k = 0
-	if (a > z) return a.toFixed(0)
-	for (; a<z; k++) z/=10
-	return a.toFixed(k)
+/** Преобразование числа в стринг с автоматической точностью
+ * @param value
+ * @param digitsPoint - Максимальная точность (число цифр после первой значимой цифры, только для дробной части).  Только положительное
+ * @param digitsR - Максимальная точность (число цифр после первой значимой цифры и для целых тоже, пример: 12340000).  Только положительное
+ */
+function DblToStrAnd(a: number, options?: {digitsPoint?: number, digitsR?: number}) {
+	let {digitsPoint:w = 4, digitsR:r} = options ?? {}
+	if (!r && a%1.0 == 0) return a.toString()
+	if (r) w = r
+	const k = Math.floor(Math.log10(a))
+	if (k +1>= w && !r) return Math.round(a).toString()
+	if (k +1>= w && r) return (Math.round(a / (10 ** (k-w +1))) * (10 ** (k-w +1))).toString()
+	return a.toFixed(w - k - 1)
 }
 
 export function ArrayItemHandler<T extends {[key:number]:any}> (getter : (target :T, i :number)=> T[number],  setter? : (target :T, i :number, value :T[number])=> void)
