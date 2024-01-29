@@ -120,7 +120,8 @@ type screenerPost<T> = {
 /**
  * для обертки над WebSocket чтобы получать callback по id
  * */
-export function funcForWebSocket<T>(data: screenerSoc<tSocketData<tRequestScreenerT<T>>>): screenerSoc2<T> {
+export function funcForWebSocket<T>(data: screenerSoc<tSocketData<tRequestScreenerT<T>>> & {limit?: number}): screenerSoc2<T> {
+    const limit = data.limit
     // const sendMessage = (datum: tSocketData <tRequestScreenerT<T>>) => data.sendMessage(JSON.stringify(datum))
     const sendMessage = data.sendMessage // (datum: tSocketData <tRequestScreenerT<T>>) => data.sendMessage(datum)
     const free = (() => {
@@ -227,8 +228,8 @@ export function funcForWebSocket<T>(data: screenerSoc<tSocketData<tRequestScreen
                 free.log()
                 console.log("ключ сокета ", send.mapId, " ", send);
             }
-            if (callbackMany.size > 5) console.log("callbackMany.size = ", callbackMany.size)
-            if (map.size > 5) console.log("map.size = ", map.size)
+            if (limit && callbackMany.size > limit) console.log("callbackMany.size = ", callbackMany.size)
+            if (limit && map.size > limit) console.log("map.size = ", map.size)
             sendMessage(send);
         })
     }

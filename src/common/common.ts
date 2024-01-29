@@ -493,7 +493,7 @@ export function NormalizeDoubleAnd(a: number, options?: {digitsPoint?: number, d
  * @param digitsPoint - Максимальная точность (число цифр после первой значимой цифры, только для дробной части).  Только положительное
  * @param digitsR - Максимальная точность (число цифр после первой значимой цифры и для целых тоже, пример: 12340000).  Только положительное
  */
-function DblToStrAnd(a: number, options?: {digitsPoint?: number, digitsR?: number}) {
+export function DblToStrAnd(a: number, options?: {digitsPoint?: number, digitsR?: number}) {
 	let {digitsPoint:w = 4, digitsR:r} = options ?? {}
 	if (!r && a%1.0 == 0) return a.toString()
 	if (r) w = r
