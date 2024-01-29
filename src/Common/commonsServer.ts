@@ -411,14 +411,15 @@ export type UnAwaitedArr<T extends Promise<any>[]> = T extends Promise<infer R>[
 export type tElArr<T extends any[]> = T extends (infer R)[] ? R : never
 
 // OmitTypes
-export function CreatAPIFacadeClient<T extends object>({socketKey, socket}: {socket: tSocket, socketKey: string}) {
+export function CreatAPIFacadeClient<T extends object>({socketKey, socket, limit}: {socket: tSocket, socketKey: string, limit?: number}) {
     const tr = funcForWebSocket<any>({
         sendMessage: (data) => socket.emit(socketKey, data),
         api: (data) => {
             socket.on(socketKey, (d: any) => {
                 data.onMessage(d)
             })
-        }
+        },
+        limit
     })
     const func = funcScreenerClient2<typeVoid2<T>>(tr) //satisfies tMethodToPromise2<typeVoid2<T>>
     //Не ждет ответа
