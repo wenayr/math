@@ -228,8 +228,8 @@ export function funcForWebSocket<T>(data: screenerSoc<tSocketData<tRequestScreen
                 free.log()
                 console.log("ключ сокета ", send.mapId, " ", send);
             }
-            if (limit && callbackMany.size > limit) console.log("callbackMany.size = ", callbackMany.size)
-            if (limit && map.size > limit) console.log("map.size = ", map.size)
+            if (limit && callbackMany.size >= limit) console.log("callbackMany.size = ", callbackMany.size)
+            if (limit && map.size >= limit) console.log("map.size = ", map.size)
             sendMessage(send);
         })
     }
@@ -324,7 +324,7 @@ function funcScreenerClient2<T extends object>(data: screenerSoc2<T>, wait?: boo
             return tr(address)
         },
         apply(target: any, thisArg: any, argArray: any[]): any {
-            console.log(address,argArray)
+            // console.log(address,argArray)
 
             const callback: {func: tFunc, poz: number}[] = []
             const callback2: tFunc[] = []
