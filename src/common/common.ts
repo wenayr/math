@@ -479,27 +479,30 @@ export function DblToStrAuto(value :number, maxprecis :number=8) {
  *  * @param digitsPoint - Максимальная точность (число цифр после первой значимой цифры, только для дробной части).  Только положительное
  *  * @param digitsR - Максимальная точность (число цифр после первой значимой цифры и для целых тоже, пример: 12340000).  Только положительное
  *  */
-export function NormalizeDoubleAnd(a: number, options?: {digitsPoint?: number, digitsR?: number}) {
+export function NormalizeDoubleAnd(a: number, options?: {digitsPoint?: number, digitsR?: number, type?: "max" | "min"}) {
+	if (a == 0) return a
 	let {digitsPoint:w = 4, digitsR:r} = options ?? {}
 	if (!r && a%1.0 == 0) return a
 	if (r) w = r
 	let k = Math.ceil(Math.log10(a))
-	if (k > w && !r) return Math.round(a)
-	if (k >=0) return Math.round(a / (10 ** (k-w))) * (10 ** (k-w))
-	return Math.round(a / (10 ** (k-w))) * (10 ** (k-w))
+	const func = options?.type == "max" ? Math.ceil : options?.type == "min" ? Math.floor : Math.round
+	if (k > w && !r) return func(a)
+	if (k >=0) return func(a / (10 ** (k-w))) * (10 ** (k-w))
+	return func(a / (10 ** (k-w))) * (10 ** (k-w))
 }
 /** Преобразование числа в стринг с автоматической точностью
  * @param value
  * @param digitsPoint - Максимальная точность (число цифр после первой значимой цифры, только для дробной части).  Только положительное
  * @param digitsR - Максимальная точность (число цифр после первой значимой цифры и для целых тоже, пример: 12340000).  Только положительное
  */
-export function DblToStrAnd(a: number, options?: {digitsPoint?: number, digitsR?: number}) {
+export function DblToStrAnd(a: number, options?: {digitsPoint?: number, digitsR?: number, type?: "max" | "min"}) {
 	let {digitsPoint:w = 4, digitsR:r} = options ?? {}
 	if (!r && a%1.0 == 0) return a.toString()
 	if (r) w = r
 	const k = Math.floor(Math.log10(a))
-	if (k +1>= w && !r) return Math.round(a).toString()
-	if (k +1>= w && r) return (Math.round(a / (10 ** (k-w +1))) * (10 ** (k-w +1))).toString()
+	const func = options?.type == "max" ? Math.ceil : options?.type == "min"  ? Math.floor : Math.round
+	if (k +1>= w && !r) return func(a).toString()
+	if (k +1>= w && r) return (func(a / (10 ** (k-w +1))) * (10 ** (k-w +1))).toString()
 	return a.toFixed(w - k - 1)
 }
 
