@@ -61,14 +61,17 @@ export function funcPromiseServer<T extends any>(data: screenerSoc<tSocketData<t
                     })
                 }
                 // @ts-ignore
-                const a = await (async() => buf[nameF](...request))()
+                const trt = async() => buf[nameF](...request)
+                const a = await trt()
+                    .then(a => {
+                        if (datum.wait !== false) data.sendMessage({mapId: datum.mapId, data: a ?? undefined})
+                    })
                     .catch((e) => {
+                        console.log(nameF, request, key)
+
                         data.sendMessage({mapId: datum.mapId, error: {error: e, key: key, arguments: request}})
                         console.error({error: e, key: key, arguments: request})
                         // myCatch?.({data: e, key: key, arguments: request})
-                    })
-                    .then(a => {
-                        if (datum.wait !== false) data.sendMessage({mapId: datum.mapId, data: a ?? undefined})
                     })
                 // если ожидание отключено то ждеть не надо, не путать с функцией клбэка
             } else {
@@ -342,8 +345,6 @@ function funcScreenerClient2<T extends object>(data: screenerSoc2<T>, wait?: boo
             return tr(address)
         },
         apply(target: any, thisArg: any, argArray: any[]): any {
-            // console.log(address,argArray)
-
             const callback: {func: tFunc, poz: number}[] = []
             const callback2: tFunc[] = []
             argArray.forEach((el, i) => {
@@ -367,39 +368,37 @@ function funcScreenerClient2<T extends object>(data: screenerSoc2<T>, wait?: boo
 function funcScreenerClient3<T extends object>(data: screenerSoc2<T>, obj: ()=>any, wait?: boolean) {
     const tr = (address: string[]) => new Proxy((()=>{}) as any, {
         get(target: any, p: string | symbol, receiver: any): any {
+            address.push(p as string)
             let o = obj()
             for (let a of address) {
                 o = o?.[a]
                 if (!o) break
                 if (o == "null") return undefined
             }
-            address.push(p as string)
             return tr(address)
         },
         apply(target: any, thisArg: any, argArray: any[]): any {
-            // console.log(address,argArray)
-            // k, typeof v == "object" && v != null ? ff(v) : typeof v == "function" ? "func" : !v ? "null" : "unknow"
             let o = obj()
             for (let a of address) {
                 o = o?.[a]
                 if (!o) break
                 if (o == "null") return undefined
             }
-            let i =0
+            //
             if (address.at(-1) == "call") {
-                i = 1
                 address.length = address.length - 1
+                argArray.splice(0,1)
             }
             const callback: {func: tFunc, poz: number}[] = []
             const callback2: tFunc[] = []
-            for (i < argArray.length; i++;) {
-                const el = argArray[i]
+
+            argArray.forEach((el, i) => {
                 if (typeof el == "function") {
                     callback.push({func: el, poz: i})
                     callback2.push(el)
                     argArray[i] = "___FUNC"
                 }
-            }
+            })
 
             return data.send({key: address, request: argArray}, wait, callback2)
         }
