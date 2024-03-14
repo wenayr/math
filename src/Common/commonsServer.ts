@@ -16,16 +16,32 @@ export type tRequestScreenerT<T> = {
  *  Есть риск одноименных методов в разных объектах
  *  пока не думал как решить =)
  * */
-export function funcPromiseServer<T extends object>(data: screenerSoc<tSocketData<tRequestScreenerT<T>>>, obj: T) {
+
+export function funcPromiseServer<T extends any>(data: screenerSoc<tSocketData<tRequestScreenerT<T>>>, obj: T) {
     const buf = data;
     data.api({
         onMessage: async(datum) => {
             const {key, request} = datum.data!
+
+            let buf2 = obj
+            let nameF = ""
+            for (let k of key) {
+                nameF = k
+                // @ts-ignore
+                if (typeof buf2[nameF] == "function") break
+                // @ts-ignore
+                buf2 = buf2[nameF]
+            }
+            if (nameF == "call") {
+                console.log(key, nameF)
+            }
             // @ts-ignore
-            const buf = key.reduce((o,k)=>o?.[k],obj) as any// obj[key]
+            const buf = buf2 // key.reduce((o,k)=>o?.[k],obj) as any// obj[key]
             // const buf = obj[key]
-            if (!buf) return;//throw "такого метода нет"
-            if (typeof buf == "function") {
+            // @ts-ignore
+            if (!buf[nameF]) return;//throw "такого метода нет"
+            // @ts-ignore
+            if (typeof buf[nameF] == "function") {
                 const {callbacksId} = datum
                 if (callbacksId) {
                     const arr = callbacksId.map((e) => {
@@ -44,7 +60,8 @@ export function funcPromiseServer<T extends object>(data: screenerSoc<tSocketDat
                         }
                     })
                 }
-                const a = await (async() => buf(...request))()
+                // @ts-ignore
+                const a = await (async() => buf[nameF](...request))()
                     .catch((e) => {
                         data.sendMessage({mapId: datum.mapId, error: {error: e, key: key, arguments: request}})
                         console.error({error: e, key: key, arguments: request})
@@ -284,6 +301,7 @@ export type screenerSocApi<T> = {
     callbackDelete: (func: tFunc) => void,
 }
 export type tMethodToPromise2<T extends object> = { [P in keyof T]: T[P] extends ((...args: infer Z) => infer X) ? X extends Promise<any> ? T[P] : (...args: Z) => Promise<X> : T[P] extends object ? tMethodToPromise2<T[P]> : never }
+export type tMethodToPromise4<T extends object> = { [P in keyof T]: T[P] extends ((...args: infer Z) => infer X) ? X extends Promise<any> ? T[P] : (...args: Z) => Promise<X> : T[P] extends object ? tMethodToPromise4<T[P]> : T[P]}
 
 // export type tMethodToPromise2<T extends object> = { [P in keyof T]: T[P] extends ((...args: infer Z) => infer X) ? (...args: Z) => (X extends Promise<any> ? X : Promise<X>) : T[P] extends object ? tMethodToPromise2<T[P]> : never }
 
@@ -349,25 +367,40 @@ function funcScreenerClient2<T extends object>(data: screenerSoc2<T>, wait?: boo
 function funcScreenerClient3<T extends object>(data: screenerSoc2<T>, obj: ()=>any, wait?: boolean) {
     const tr = (address: string[]) => new Proxy((()=>{}) as any, {
         get(target: any, p: string | symbol, receiver: any): any {
+            let o = obj()
+            for (let a of address) {
+                o = o?.[a]
+                if (!o) break
+                if (o == "null") return undefined
+            }
             address.push(p as string)
             return tr(address)
         },
         apply(target: any, thisArg: any, argArray: any[]): any {
             // console.log(address,argArray)
+            // k, typeof v == "object" && v != null ? ff(v) : typeof v == "function" ? "func" : !v ? "null" : "unknow"
             let o = obj()
             for (let a of address) {
-                o = o[a]
-                if (!o) return undefined
+                o = o?.[a]
+                if (!o) break
+                if (o == "null") return undefined
+            }
+            let i =0
+            if (address.at(-1) == "call") {
+                i = 1
+                address.length = address.length - 1
             }
             const callback: {func: tFunc, poz: number}[] = []
             const callback2: tFunc[] = []
-            argArray.forEach((el, i) => {
+            for (i < argArray.length; i++;) {
+                const el = argArray[i]
                 if (typeof el == "function") {
                     callback.push({func: el, poz: i})
                     callback2.push(el)
                     argArray[i] = "___FUNC"
                 }
-            })
+            }
+
             return data.send({key: address, request: argArray}, wait, callback2)
         }
     })
@@ -430,12 +463,15 @@ export type tElArr<T extends any[]> = T extends (infer R)[] ? R : never
 export function CreatAPIFacadeClient<T extends object>({socketKey, socket, limit}: {socket: tSocket, socketKey: string, limit?: number}) {
 
     let strictlyObj = {}
+    let promiseStrictly = Promise.resolve()
+    let funcPromise: (value: unknown) => void
     const tr = funcForWebSocket<any>({
         sendMessage: (data) => socket.emit(socketKey, data),
         api: (data) => {
             socket.on(socketKey, (d: any) => {
                 if (typeof d == "object" && d?.STRICTLY) {
                     strictlyObj = d.STRICTLY
+                    funcPromise?.(undefined)
                 }
                 else data.onMessage(d)
             })
@@ -444,7 +480,7 @@ export function CreatAPIFacadeClient<T extends object>({socketKey, socket, limit
     })
     const func = funcScreenerClient2<typeVoid2<T>>(tr) //satisfies tMethodToPromise2<typeVoid2<T>>
 
-    const strictly = funcScreenerClient3<typeVoid2<T>>(tr,()=>strictlyObj) as tMethodToPromise2<T>
+    const strictly = funcScreenerClient3(tr,()=>strictlyObj) as tMethodToPromise4<T>
 
     //Не ждет ответа
     const space = funcScreenerClient2<typeNoVoid2<T>>(tr, false)
@@ -459,10 +495,13 @@ export function CreatAPIFacadeClient<T extends object>({socketKey, socket, limit
         all: func as tMethodToPromise2<T>,
         // возможность добавлять не обязательные методы
         strictly,
-        strictlyInit(obj?: object) {
+        async strictlyInit(obj?: object) {
             if (obj) strictlyObj = obj
             else {
                 socket.emit(socketKey, "___STRICTLY")
+                return new Promise(resolve => {
+                    funcPromise = resolve
+                })
             }
         }
     }
@@ -473,11 +512,13 @@ export function CreatAPIFacadeServer<T extends object>({object, socket, socketKe
     object: T,
     socketKey: string
 }) {
-
     function ff(obj: any): any {
-        return Object.fromEntries(Object.entries(obj).filter(([k,v])=>v).map(([k,v])=>[
-            k, typeof v == "object" && v != null ? ff(v) : "func"
-        ]))
+        return Object.fromEntries(Object.entries(obj).map(([k,v])=> {
+                return [
+                    k, typeof v == "object" && v != null ? ff(v) : typeof v == "function" ? "func" : !v ? "null" : "unknow"
+                ]
+            }
+        ))
     }
     const t = ff(object)
     // серверная часть (она же клиенская, для выполнения статичных подписок)
