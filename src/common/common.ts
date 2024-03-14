@@ -500,7 +500,7 @@ export function DblToStrAnd(a: number, options?: {digitsPoint?: number, digitsR?
 	if (!r && a%1.0 == 0) return a.toString()
 	if (r) w = r
 	const k = Math.floor(Math.log10(a))
-	const func = options?.type == "max" ? Math.ceil : options?.type == "min"  ? Math.floor : Math.round
+	const func = options?.type == "max" ? Math.ceil : options?.type == "min" ? Math.floor : Math.round
 	if (k +1>= w && !r) return func(a).toString()
 	if (k +1>= w && r) return (func(a / (10 ** (k-w +1))) * (10 ** (k-w +1))).toString()
 	return a.toFixed(w - k - 1)

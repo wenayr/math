@@ -342,23 +342,39 @@ function funcScreenerClient2<T extends object>(data: screenerSoc2<T>, wait?: boo
         get(target: any, p: string | symbol, receiver: any): any {
             return tr([String(p)])
         },
-        // apply(target: any, thisArg: any, argArray: any[]): any {
-        //
-        //     return async(...argArray: any[]) => {
-        //         const callback: {func: tFunc, poz: number}[] = []
-        //         const callback2: tFunc[] = []
-        //         argArray.forEach((el, i) => {
-        //             if (typeof el == "function") {
-        //                 callback.push({func: el, poz: i})
-        //                 callback2.push(el)
-        //                 argArray[i] = "___FUNC"
-        //             }
-        //         })
-        //         return data.send({key, request: argArray}, wait, callback2)
-        //     }
-        //     // console.log(address,argArray)
-        //
-        // }
+    })
+    return tr2() as unknown as tMethodToPromise2<T>
+}
+
+function funcScreenerClient3<T extends object>(data: screenerSoc2<T>, obj: ()=>any, wait?: boolean) {
+    const tr = (address: string[]) => new Proxy((()=>{}) as any, {
+        get(target: any, p: string | symbol, receiver: any): any {
+            address.push(p as string)
+            return tr(address)
+        },
+        apply(target: any, thisArg: any, argArray: any[]): any {
+            // console.log(address,argArray)
+            let o = obj()
+            for (let a of address) {
+                o = o[a]
+                if (!o) return undefined
+            }
+            const callback: {func: tFunc, poz: number}[] = []
+            const callback2: tFunc[] = []
+            argArray.forEach((el, i) => {
+                if (typeof el == "function") {
+                    callback.push({func: el, poz: i})
+                    callback2.push(el)
+                    argArray[i] = "___FUNC"
+                }
+            })
+            return data.send({key: address, request: argArray}, wait, callback2)
+        }
+    })
+    const tr2 = () => new Proxy({} as any, {
+        get(target: any, p: string | symbol, receiver: any): any {
+            return tr([String(p)])
+        },
     })
     return tr2() as unknown as tMethodToPromise2<T>
 }
@@ -412,18 +428,27 @@ export type tElArr<T extends any[]> = T extends (infer R)[] ? R : never
 
 // OmitTypes
 export function CreatAPIFacadeClient<T extends object>({socketKey, socket, limit}: {socket: tSocket, socketKey: string, limit?: number}) {
+
+    let strictlyObj = {}
     const tr = funcForWebSocket<any>({
         sendMessage: (data) => socket.emit(socketKey, data),
         api: (data) => {
             socket.on(socketKey, (d: any) => {
-                data.onMessage(d)
+                if (typeof d == "object" && d?.STRICTLY) {
+                    strictlyObj = d.STRICTLY
+                }
+                else data.onMessage(d)
             })
         },
         limit
     })
     const func = funcScreenerClient2<typeVoid2<T>>(tr) //satisfies tMethodToPromise2<typeVoid2<T>>
+
+    const strictly = funcScreenerClient3<typeVoid2<T>>(tr,()=>strictlyObj) as tMethodToPromise2<T>
+
     //Не ждет ответа
     const space = funcScreenerClient2<typeNoVoid2<T>>(tr, false)
+    // const roles =
     return {
         api: tr.api,
         // типизацией убраны некоторые методы
@@ -431,7 +456,15 @@ export function CreatAPIFacadeClient<T extends object>({socketKey, socket, limit
         // типизацией убраны некоторые методы
         space,
         // все методы
-        all: func as tMethodToPromise2<T>
+        all: func as tMethodToPromise2<T>,
+        // возможность добавлять не обязательные методы
+        strictly,
+        strictlyInit(obj?: object) {
+            if (obj) strictlyObj = obj
+            else {
+                socket.emit(socketKey, "___STRICTLY")
+            }
+        }
     }
 }
 
@@ -440,11 +473,23 @@ export function CreatAPIFacadeServer<T extends object>({object, socket, socketKe
     object: T,
     socketKey: string
 }) {
+
+    function ff(obj: any): any {
+        return Object.fromEntries(Object.entries(obj).filter(([k,v])=>v).map(([k,v])=>[
+            k, typeof v == "object" && v != null ? ff(v) : "func"
+        ]))
+    }
+    const t = ff(object)
     // серверная часть (она же клиенская, для выполнения статичных подписок)
     funcPromiseServer({
             sendMessage: (data) => socket.emit(socketKey, data),
             api: (api) => {
-                socket.on(socketKey, (d: any) => api.onMessage(d))
+                socket.on(socketKey, (d: any) => {
+                    if (d == "___STRICTLY") {
+                        socket.emit(socketKey, {STRICTLY: t})
+                    }
+                    else api.onMessage(d)
+                })
             }
         }
         , object)
