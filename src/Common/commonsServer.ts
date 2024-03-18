@@ -1,4 +1,5 @@
-import { sleepAsync } from "wenay-common";
+import { sleepAsync } from "./common";
+
 
 type tSocket = {emit: (marker: string, object: any) => any, on: (marker: string, callback: (a: any) => any) => any}
 export type tRequestScreenerT<T> = {
