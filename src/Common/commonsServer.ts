@@ -1,4 +1,5 @@
-import {sleepAsync} from "./common";
+import { sleepAsync } from "./common";
+
 
 type tSocket = {emit: (marker: string, object: any) => any, on: (marker: string, callback: (a: any) => any) => any}
 export type tRequestScreenerT<T> = {
@@ -414,6 +415,10 @@ function funcScreenerClient3<T extends object>(data: screenerSoc2<T>, obj: ()=>a
     })
     const tr2 = () => new Proxy({} as any, {
         get(target: any, p: string | symbol, receiver: any): any {
+            let o = obj()
+            if (o) {
+                if (o[p] == "null") return undefined
+            }
             return tr([String(p)])
         },
     })
