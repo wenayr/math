@@ -366,16 +366,25 @@ function funcScreenerClient2<T extends object>(data: screenerSoc2<T>, wait?: boo
 }
 
 function funcScreenerClient3<T extends object>(data: screenerSoc2<T>, obj: ()=>any, wait?: boolean) {
-    const tr = (address: string[]) => new Proxy((()=>{}) as any, {
+    const tr = (address: (string)[]) => new Proxy((()=>{}) as any, {
+        has(target: any, p: string | symbol): boolean {
+            let o = obj()
+            for (let a of address) {
+                o = o?.[a]
+                if (!o) break
+                if (o == "null") return false
+            }
+            return true
+        },
         get(target: any, p: string | symbol, receiver: any): any {
-            address.push(p as string)
+            // address.push(p as string)
             let o = obj()
             for (let a of address) {
                 o = o?.[a]
                 if (!o) break
                 if (o == "null") return undefined
             }
-            return tr(address)
+            return tr([...address, String(p)])
         },
         apply(target: any, thisArg: any, argArray: any[]): any {
             let o = obj()
