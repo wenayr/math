@@ -414,6 +414,12 @@ function funcScreenerClient3<T extends object>(data: screenerSoc2<T>, obj: ()=>a
         }
     })
     const tr2 = () => new Proxy({} as any, {
+        has(target: any, p: string | symbol): boolean {
+            let o = obj()
+            o = o?.[p]
+            if (o == "null") return false
+            return true
+        },
         get(target: any, p: string | symbol, receiver: any): any {
             let o = obj()
             if (o) {
