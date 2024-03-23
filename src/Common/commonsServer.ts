@@ -375,6 +375,8 @@ function funcScreenerClient3<T extends object>(data: screenerSoc2<T>, obj: ()=>a
                 if (!o) break
                 if (o == "null") return false
             }
+            o = o?.[p]
+            if (o == "null") return false
             return true
         },
         get(target: any, p: string | symbol, receiver: any): any {
@@ -385,6 +387,8 @@ function funcScreenerClient3<T extends object>(data: screenerSoc2<T>, obj: ()=>a
                 if (!o) break
                 if (o == "null") return undefined
             }
+            o = o?.[p]
+            if (o == "null") return undefined
             return tr([...address, String(p)])
         },
         apply(target: any, thisArg: any, argArray: any[]): any {
