@@ -37,3 +37,24 @@ export function waitRun() {
         }
     }
 }
+
+// количество параллелей
+export function queueRun(n = 5) {
+    type el = () => Promise<any>
+    const arr = [] as el[]
+    const ff = () => arr.shift()?.()?.finally(ff)
+    const buf = Array(n).fill(1).map(()=>ff())
+    const check = () => {
+        buf.forEach((e,i)=> {
+            if (!e) buf[i] = ff()
+        })}
+    return {
+        get size() {return arr.length},
+        set next(el: el) {arr.push(el)},
+        set nextRun(el: el) {arr.push(el); check()},
+        run(){
+            check()
+            return Promise.allSettled(buf)
+        },
+    }
+}
