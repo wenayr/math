@@ -26,12 +26,19 @@ export function funcPromiseServer<T extends any>(data: screenerSoc<tSocketData<t
 
             let buf2 = obj
             let nameF = ""
-            for (let k of key) {
-                nameF = k
-                // @ts-ignore
-                if (typeof buf2[nameF] == "function") break
-                // @ts-ignore
-                buf2 = buf2[nameF]
+            try {
+                for (let k of key) {
+                    nameF = k
+                    // @ts-ignore
+                    if (typeof buf2[nameF] == "function") break
+                    // @ts-ignore
+                    buf2 = buf2[nameF]
+                }
+            }
+            catch (e) {
+                data.sendMessage({mapId: datum.mapId, error: {error: e, key: key, arguments: request}})
+                console.error({error: e, key: key, arguments: request})
+                return
             }
             if (nameF == "call") {
                 console.log(key, nameF)
