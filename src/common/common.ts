@@ -476,15 +476,15 @@ export function DblToStrAuto(value :number, maxprecis :number=8) {
 }
 /** Нормализация точности числа
  * * @param value
- *  * @param digitsPoint - Максимальная точность (число цифр после первой значимой цифры, только для дробной части).  Только положительное
- *  * @param digitsR - Максимальная точность (число цифр после первой значимой цифры и для целых тоже, пример: 12340000).  Только положительное
+ *  * @param digitsPoint - Максимальная точность (число цифр после первой значимой цифры, только для дробной части).
+ *  * @param digitsR - Максимальная точность (число цифр после первой значимой цифры и для целых тоже, пример: 12340000).
  *  */
 export function NormalizeDoubleAnd(a: number, options?: {digitsPoint?: number, digitsR?: number, type?: "max" | "min"}) {
 	if (a == 0) return a
 	let {digitsPoint:w = 4, digitsR:r} = options ?? {}
 	if (!r && a%1.0 == 0) return a
 	if (r) w = r
-	let k = Math.ceil(Math.log10(a))
+	let k = Math.ceil(Math.log10(Math.abs(a)))
 	const func = options?.type == "max" ? Math.ceil : options?.type == "min" ? Math.floor : Math.round
 	if (k > w && !r) return func(a)
 	if (k >=0) return func(a / (10 ** (k-w))) * (10 ** (k-w))
@@ -492,19 +492,23 @@ export function NormalizeDoubleAnd(a: number, options?: {digitsPoint?: number, d
 }
 /** Преобразование числа в стринг с автоматической точностью
  * @param value
- * @param digitsPoint - Максимальная точность (число цифр после первой значимой цифры, только для дробной части).  Только положительное
- * @param digitsR - Максимальная точность (число цифр после первой значимой цифры и для целых тоже, пример: 12340000).  Только положительное
+ * @param digitsPoint - Максимальная точность (число цифр после первой значимой цифры, только для дробной части).
+ * @param digitsR - Максимальная точность (число цифр после первой значимой цифры и для целых тоже, пример: 12340000).
  */
 export function DblToStrAnd(a: number, options?: {digitsPoint?: number, digitsR?: number, type?: "max" | "min"}) {
 	let {digitsPoint:w = 4, digitsR:r} = options ?? {}
 	if (!r && a%1.0 == 0) return a.toString()
+	if (a == 0) return "0"
 	if (r) w = r
-	const k = Math.floor(Math.log10(a))
+	let a2 = Math.abs(a)
+	const k = Math.floor(Math.log10(a2))
 	const func = options?.type == "max" ? Math.ceil : options?.type == "min" ? Math.floor : Math.round
 	if (k +1>= w && !r) return func(a).toString()
 	if (k +1>= w && r) return (func(a / (10 ** (k-w +1))) * (10 ** (k-w +1))).toString()
 	return a.toFixed(w - k - 1)
 }
+
+
 
 export function ArrayItemHandler<T extends {[key:number]:any}> (getter : (target :T, i :number)=> T[number],  setter? : (target :T, i :number, value :T[number])=> void)
 : ProxyHandler<T> {
