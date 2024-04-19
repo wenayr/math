@@ -483,7 +483,8 @@ export function NormalizeDoubleAnd(a: number, options?: {digitsPoint?: number, d
 	if (a == 0) return a
 	let {digitsPoint:w = 4, digitsR:r} = options ?? {}
 	if (!r && a%1.0 == 0) return a
-	if (r) w = r
+	if (a == 0) return 0
+	if (r) w = r//
 	let k = Math.ceil(Math.log10(Math.abs(a)))
 	const func = options?.type == "max" ? Math.ceil : options?.type == "min" ? Math.floor : Math.round
 	if (k > w && !r) return func(a)
