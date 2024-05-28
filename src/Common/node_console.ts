@@ -20,12 +20,12 @@ let _enabled = false;
 export function enable(flag=true) { _enabled= flag; }
 export function disable()         { _enabled= false; }
 
+let wrapCallSite : ((frame :CallSite)=>CallSite) | undefined; //  ((position :Position)=>Position) | undefined;
 if (1)
 //await (async()=>{
 (()=>{
     if (typeof self != 'object' && typeof window!="object") { // если запущено на node.js
 
-        let wrapCallSite : ((frame :CallSite)=>CallSite) | undefined; //  ((position :Position)=>Position) | undefined;
 
         //let inspector= await import(/* webpackIgnore: true */ 'inspector');
         function moduleName(name :string) { return name; } // дополнительная обёртка, чтобы webpack не выдавал ошибку в js файле, скомпилированном с удалением комментариев
@@ -78,7 +78,25 @@ if (1)
         }
     }
 })();
+
+// возвращает файл, строчку и позицию где был вызван, либо выше вызванная функция по номеру уровня
+export function __LineFile(lvl = 0){
+    if (!_enabled) {
+        return ""
+    }
+    const originalPrepareStackTrace = Error.prepareStackTrace;
+    Error.prepareStackTrace = (_, stack) => stack;
+    type MyError= { stack: CallSite[]}
+    let e = (new Error() as unknown as MyError).stack[lvl + 1];
+    if (wrapCallSite) e= wrapCallSite(e);
+    Error.prepareStackTrace = originalPrepareStackTrace;
+    return `${e.getFileName()}:${e.getLineNumber()}:${e.getColumnNumber()}  ` + e.getFunctionName()
+}
 // // Tests:
+// function ttt(){
+//     console.log(__LineFile(1));
+// }
+// ttt()
 // console.log('%s %d', 'hi', 42);
 // console.log({ a: 'foo', b: 'bar'});
 // throw new Error("Errrrrr");
