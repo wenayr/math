@@ -487,7 +487,8 @@ export type typeNoVoid2<T> = {
 };
 export type UnAwaited<T extends Promise<any>> = T extends Promise<infer R> ? R : never
 export type UnAwaitedArr<T extends Promise<any>[]> = T extends Promise<infer R>[] ? R[] : never
-export type tElArr<T extends any[]> = T extends (infer R)[] ? R : never
+export type UnArray<T extends any[]> = T extends (infer R)[] ? R : never
+export type tElArr<T extends any[]> = UnArray<T>
 
 // OmitTypes
 export function CreatAPIFacadeClient<T extends object>({socketKey, socket, limit}: {socket: tSocket, socketKey: string, limit?: number}) {
