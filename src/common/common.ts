@@ -506,10 +506,21 @@ export function DblToStrAnd(a: number, options?: {digitsPoint?: number, digitsR?
 	const func = options?.type == "max" ? Math.ceil : options?.type == "min" ? Math.floor : Math.round
 	if (k +1>= w && !r) return func(a).toString()
 	if (k +1>= w && r) return (func(a / (10 ** (k-w +1))) * (10 ** (k-w +1))).toString()
-	return a.toFixed(w - k - 1)
+	return (func(a / (10 ** (k-w +1))) * (10 ** (k-w +1))).toFixed(w - k - 1)
 }
 
-
+function testDblToStrAnd(){
+	const r = 0.047952487787
+	for (let i = -10; i < 10; i++) {
+		const z =DblToStrAnd(r * (10 ** i), {digitsR: 2, type: "min"})
+		console.log(z)
+	}
+	for (let i = -10; i < 10; i++) {
+		const z =DblToStrAnd(r * (10 ** i), {digitsR: 2, type: "max"})
+		console.log(z)
+	}
+}
+// test()
 
 export function ArrayItemHandler<T extends {[key:number]:any}> (getter : (target :T, i :number)=> T[number],  setter? : (target :T, i :number, value :T[number])=> void)
 : ProxyHandler<T> {

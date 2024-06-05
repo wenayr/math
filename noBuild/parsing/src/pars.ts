@@ -6,6 +6,12 @@ console.log("123123213")
 console.log("123123213")
 console.log("123123213")
 
+// const url = "https://binance-docs.github.io/apidocs/spot/en"
+// const url = "https://binance-docs.github.io/apidocs/spot/en"
+// const url = "https://binance-docs.github.io/apidocs/spot/en"
+// const url = "https://binance-docs.github.io/apidocs/futures/en"
+// const url = "https://binance-docs.github.io/apidocs/delivery/en"
+const url = "https://binance-docs.github.io/apidocs/spot/en"
 
 const API_KEY = 'xxx';
 const API_SECRET = 'yyy';
@@ -264,7 +270,7 @@ async function start() {
     // const url = "https://binance-docs.github.io/apidocs/spot/en"
     // const url = "https://binance-docs.github.io/apidocs/spot/en"
     // const url = "https://binance-docs.github.io/apidocs/futures/en"
-    const url = "https://binance-docs.github.io/apidocs/delivery/en"
+    // const url = url
 
     const req =await axios.get(url)
     const data = req.data as string
@@ -642,7 +648,7 @@ ${str}
     /*<p><strong>Weight(UID):</strong> 1
 <strong>Weight(IP):</strong> 1</p>*/
 
-    fs.writeFileSync('binanceFuturesCoinAll.ts', def+rq);
+    fs.writeFileSync('binanceSpotAll 24 06.ts', def+rq);
 
     console.log(req)
     // await req2.json()

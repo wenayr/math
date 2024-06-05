@@ -487,6 +487,7 @@ export type typeNoVoid2<T> = {
 };
 export type UnAwaited<T extends Promise<any>> = T extends Promise<infer R> ? R : never
 export type UnAwaitedArr<T extends Promise<any>[]> = T extends Promise<infer R>[] ? R[] : never
+export type UnObject<T extends object> = T extends {[k: string]: infer R} ? R : never;
 export type UnArray<T extends any[]> = T extends (infer R)[] ? R : never
 export type tElArr<T extends any[]> = UnArray<T>
 
