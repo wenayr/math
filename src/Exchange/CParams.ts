@@ -378,6 +378,21 @@ export function isParamGroup<TParam extends IParamReadonly>(param :TParam) : par
     return isParamGroupOrArray(param) && !Array.isArray(param.value);
 }
 
+export function isSimpleParams(params: IParams | SimpleParams) {
+    let t = false
+    for (let key in params) {
+        const tr = (params[key] as any)["volume"] as any
+        if (!tr) return true;
+        else {
+            if (typeof tr == "object") {
+                const r = isSimpleParams(tr)
+                if (r) return true;
+            }
+        }
+    }
+    return false
+}
+
 type ObjectKeyPath<TObject extends object=object, TValue=unknown> = readonly string[];
 
 export function* iterateParams<TObj extends IParamsReadonly, TVal extends IParamReadonly= TObj[string]>
@@ -653,8 +668,9 @@ function convert_(valuesObj :{[key :string] :any}, srcObj : IParamsReadonly | re
 
 // слияние значений параметров
 
-export function mergeParamValuesToInfos<TParams extends IParamsReadonly> (srcObj :TParams, valuesObj :SimpleParams) {
-    return convert_(valuesObj, srcObj) as TParams;
+export function mergeParamValuesToInfos<TParams extends IParamsReadonly> (srcObj :IParams, valuesObj :SimpleParams|IParams) {
+
+    return convert_(isSimpleParams(valuesObj) ? valuesObj : GetSimpleParams(valuesObj as IParams), srcObj) as TParams;
 }
 
 
