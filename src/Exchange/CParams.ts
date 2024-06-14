@@ -378,7 +378,7 @@ export function isParamGroup<TParam extends IParamReadonly>(param :TParam) : par
     return isParamGroupOrArray(param) && !Array.isArray(param.value);
 }
 
-export function isSimpleParams(params: IParams | SimpleParams) {
+export function isSimpleParams<TParams extends IParamsReadonly>(params: TParams | SimpleParams) {
     let t = false
     for (let key in params) {
         const tr = (params[key] as any)["value"] as any
@@ -668,7 +668,7 @@ function convert_(valuesObj :{[key :string] :any}, srcObj : IParamsReadonly | re
 
 // слияние значений параметров
 
-export function mergeParamValuesToInfos<TParams extends IParamsReadonly> (srcObj :IParams, valuesObj :SimpleParams|IParams) {
+export function mergeParamValuesToInfos<TParams extends IParamsReadonly> (srcObj :TParams, valuesObj :SimpleParams|TParams) {
 
     return convert_(isSimpleParams(valuesObj) ? valuesObj : GetSimpleParams(valuesObj as IParams), srcObj) as TParams;
 }
