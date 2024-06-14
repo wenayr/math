@@ -381,7 +381,7 @@ export function isParamGroup<TParam extends IParamReadonly>(param :TParam) : par
 export function isSimpleParams(params: IParams | SimpleParams) {
     let t = false
     for (let key in params) {
-        const tr = (params[key] as any)["volume"] as any
+        const tr = (params[key] as any)["value"] as any
         if (!tr) return true;
         else {
             if (typeof tr == "object") {
