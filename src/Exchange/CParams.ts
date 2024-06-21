@@ -668,7 +668,7 @@ function convert_(valuesObj :{[key :string] :any}, srcObj : IParamsReadonly | re
 
 // слияние значений параметров
 
-export function mergeParamValuesToInfos<TParams extends IParamsReadonly> (srcObj :TParams, valuesObj :SimpleParams|TParams) {
+export function mergeParamValuesToInfos<TParams extends IParamsReadonly, TParams2 extends IParamsReadonly> (srcObj :TParams, valuesObj :SimpleParams<TParams2>|TParams2) {
 
     return convert_(isSimpleParams(valuesObj) ? valuesObj : GetSimpleParams(valuesObj as IParams), srcObj) as TParams;
 }
