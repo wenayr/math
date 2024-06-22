@@ -68,7 +68,7 @@ export function UseListen<T extends any[]>() {
     return [(...e: T)=>t?.(...e), a] as const
 }
 
-export function PromiseArrayListen<T extends any = unknown>(array: (() => Promise<T>)[]) {
+export function PromiseArrayListen<T extends any = unknown>(array: ((() => Promise<T>)|Promise<T>)[]) {
     let ok = 0, error = 0
     const count = array.length
     type tOk = [data: T, i: number, countOk: number, countError: number, count: number]
@@ -84,7 +84,8 @@ export function PromiseArrayListen<T extends any = unknown>(array: (() => Promis
         c[0](error, i, ok, error, count)
         throw error
     }
-    const arr = array.map((e, i) => () => e().then(r => a(r, i)).catch((er: any) => b(er, i)))
+    const arr = array.map((e, i) => e instanceof Promise ? e.then(r => a(r, i)).catch((er: any) => b(er, i))
+        : () => e().then(r => a(r, i)).catch((er: any) => b(er, i)))
     return {
         listenOk: (a: (...d: tOk) => any) => {
             t[1].addListen(a)
