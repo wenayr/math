@@ -1,4 +1,3 @@
-export type tFuncListenCallback = ReturnType<typeof funcListenCallback>
 type tr222<T extends any[]> = (...r: T)=> void
 export function funcListenCallback<T extends any[]>(a: (e: tr222<T>)=>(void | (()=>void)), event?: (type: "add" | "remove", count: number)=>void) {
     const obj = new Map<any, any>
