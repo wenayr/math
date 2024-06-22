@@ -1,3 +1,5 @@
+import {sleepAsync} from "wenay-common";
+
 type tr222<T extends any[]> = (...r: T)=> void
 export function funcListenCallback<T extends any[]>(a: (e: tr222<T>)=>(void | (()=>void)), event?: (type: "add" | "remove", count: number)=>void) {
     const obj = new Map<any, any>
@@ -68,7 +70,7 @@ export function UseListen<T extends any[]>() {
     return [(...e: T)=>t?.(...e), a] as const
 }
 
-export function PromiseArrayListen<T extends any = unknown>(array: ((() => Promise<T>)|Promise<T>)[]) {
+export function PromiseArrayListen<T extends any = unknown>(array: ((() => Promise<T>)|(() => any)|Promise<T>)[]) {
     let ok = 0, error = 0
     const count = array.length
     type tOk = [data: T, i: number, countOk: number, countError: number, count: number]
@@ -85,7 +87,7 @@ export function PromiseArrayListen<T extends any = unknown>(array: ((() => Promi
         throw error
     }
     const arr = array.map((e, i) => e instanceof Promise ? e.then(r => a(r, i)).catch((er: any) => b(er, i))
-        : () => e().then(r => a(r, i)).catch((er: any) => b(er, i)))
+        : () => (async ()=> e())().then(r => a(r, i)).catch((er: any) => b(er, i)))
     return {
         listenOk: (a: (...d: tOk) => any) => {
             t[1].addListen(a)
