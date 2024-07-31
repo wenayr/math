@@ -79,6 +79,9 @@ if (1)
     }
 })();
 
+function getLine(){
+
+}
 // возвращает файл, строчку и позицию где был вызван, либо выше вызванная функция по номеру уровня
 export function __LineFile(lvl = 0){
     if (!_enabled) {
@@ -91,6 +94,19 @@ export function __LineFile(lvl = 0){
     if (wrapCallSite) e= wrapCallSite(e);
     Error.prepareStackTrace = originalPrepareStackTrace;
     return `${e.getFileName()}:${e.getLineNumber()}:${e.getColumnNumber()}  ` + e.getFunctionName()
+}
+export function __LineFiles(lvlStart = 0, lvlEnd: number|undefined = 5){
+    if (!_enabled) {
+        return ""
+    }
+    const originalPrepareStackTrace = Error.prepareStackTrace;
+    Error.prepareStackTrace = (_, stack) => stack;
+    type MyError= { stack: CallSite[]}
+    let e = (new Error() as unknown as MyError).stack.slice(lvlStart + 1, lvlEnd);
+    if (wrapCallSite) e = e.map(e=> wrapCallSite!(e));
+    const msgs = e.map(e=>`${e.getFileName()}:${e.getLineNumber()}:${e.getColumnNumber()}  ` + e.getFunctionName())
+    Error.prepareStackTrace = originalPrepareStackTrace;
+    return msgs
 }
 // // Tests:
 // function ttt(){

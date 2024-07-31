@@ -11,7 +11,7 @@ console.log("123123213")
 // const url = "https://binance-docs.github.io/apidocs/spot/en"
 // const url = "https://binance-docs.github.io/apidocs/futures/en"
 // const url = "https://binance-docs.github.io/apidocs/delivery/en"
-const url = "https://binance-docs.github.io/apidocs/spot/en"
+const url = "https://binance-docs.github.io/apidocs/pm/en/"
 
 const API_KEY = 'xxx';
 const API_SECRET = 'yyy';
@@ -211,46 +211,69 @@ function fParsingUrl() {
 
     let data: ReturnType<typeof getDefault> = getDefault()
     let buffer: ReturnType<typeof getBuffer> = getBuffer()
-
+    let t  = 0
+    function end(){
+        const buf = data
+        data = getDefault()
+        buffer.status = 0
+        if (!buf.url) return undefined
+        return buf
+    }
     const func = function (st: string){
 
         let string = st
 
-        if (buffer.status == 0 && string == "<p><code>") {
-            buffer.status = 1
-            return undefined
-        }
-
-        if (buffer.status == 1 && string == "</code></p>") {
-            const buf = data
+        if (buffer.status == 0 && string.indexOf("<code>")>=0) {
             data = getDefault()
-            buffer.status = 0
-            return buf
+            buffer.status = 1
         }
 
+        if (buffer.status == 0) return undefined
+
         {
-            const sha = string.indexOf("(HMAC SHA256)")
-            if (sha >= 0) {
-                string = string.substring(0, sha)
-                data.HMAC = true
+            if (string.indexOf("GET") >= 0) {
+                data.type = `"GET"`
             }
+            if (string.indexOf("POST") >= 0) {
+                data.type = `"POST"`
+            }
+            if (string.indexOf("DELETE") >= 0) {
+                data.type = `"DELETE"`
+
+            }
+            if (string.indexOf("PUT") >= 0) {
+                data.type = `"PUT"`
+            }
+
         }
-
         {
-            const sha = string.indexOf(" ")
-            if (sha >= 0) {
-                const buf = string.substring(0, sha)
-
-                const ff = (type: string) =>{
-                    data.type = `"` + type + `"`
-                    string = string.substring(type.length)
+            // const sha = string.indexOf("(HMAC SHA256)")
+            // if (sha >= 0) {
+            //     string = string.substring(0, sha)
+            //     data.HMAC = true
+            // }
+        }
+        let tr = string.indexOf("/")
+        if (tr>=0 && string[tr-1] == " ") {
+            let st : string
+            const e = string.indexOf(" ", tr)
+            if (e == -1) {
+                const e2 = string.indexOf("<", tr)
+                if (e2 == -1) {
+                    st = string.substring(tr)
                 }
+                else {
+                    st = string.substring(tr,e2)
+                }
+            } else st = string.substring(tr,e)
 
-                if (buf == "GET") ff(buf)
-                else if (buf == "POST") ff(buf)
+            if (st) {
+                data.url = `"${st}"`
             }
         }
-        data.url = `"` + string.replaceAll(" ","") + `"`
+        if (buffer.status == 1 && string.indexOf("</code>")>=0) {
+            return end()
+        }
     }
     return func
 }
@@ -462,14 +485,16 @@ async function start() {
         result.push(el)
     }
     for (const string of arr) {
-
+        if (string.indexOf("papi/v1/um/order") >=0) {
+            console.log(2)
+        }
         // имя
         {
             const name = getNames(string)
             if (name) {
                 newEl()
                 el.name = name
-                continue;
+                // continue;
             }
         }
 
@@ -478,8 +503,8 @@ async function start() {
         {
             const wight = getWight(string)
             if (wight) {
-                el.wight = wight
-                continue;
+                // el.wight = wight
+                // continue;
             }
         }
 
@@ -495,7 +520,7 @@ async function start() {
             const address = getAddress(string)
             if (address) {
                 el.address = address
-                continue;
+                // continue;
             }
         }
 
@@ -575,7 +600,7 @@ async function start() {
             url2 = "const address = {\n"
             const buf: string[] = []
             Object.entries(address).forEach(([key,v])=>{
-                if (v) buf.push(key + " : " + v + ",")
+                if (v) buf.push(key + ` : ` + v + `,`)
             })
             url2 += buf.map((e,i,ar)=>ar[i]="\t"+e).join("\n")
             url2 +="\n}"
@@ -597,11 +622,11 @@ async function start() {
             + tr( paramComment )
             + tr( st )
             + "type req = " + (e.st?? "{}") + "|undefined \n"
-            + `return {${name ? " name,":""} ${wight ? " wight,":""} ${url2 ? " address,":""} typeParams: {} ${e.params?.arrParams.length ? " as params \n":""}, typeRes: {} as req\n}`
+            + `return {${name ? " name,":""} ${url2 ? " address,":""} typeParams: {} ${e.params?.arrParams.length ? " as params \n":""}, typeRes: {} as req\n}`
 
         bb = "\t" + bb.replaceAll("\n","\n\t")
 
-        if (!e.st) return ""
+        if (!e.st || !url2) return ""
         return tr(www) + `\n${nameFunc} = () => {\n`
             + bb
             + `\n}\n\n`
@@ -648,7 +673,7 @@ ${str}
     /*<p><strong>Weight(UID):</strong> 1
 <strong>Weight(IP):</strong> 1</p>*/
 
-    fs.writeFileSync('binanceSpotAll 24 06.ts', def+rq);
+    fs.writeFileSync('binanceMarginPAll 21 07.ts', def+rq);
 
     console.log(req)
     // await req2.json()
