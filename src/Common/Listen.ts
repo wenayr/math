@@ -1,15 +1,15 @@
 import {sleepAsync} from "wenay-common";
 
 type tr222<T extends any[]> = (...r: T)=> void
-export function funcListenCallback<T extends any[]>(a: (e: tr222<T>)=>(void | (()=>void)), event?: (type: "add" | "remove", count: number)=>void) {
+export function funcListenCallback<T extends any[]>(a: (e: tr222<T>)=>(void | (()=>void)), event?: (type: "add" | "remove", count: number, api: ReturnType<typeof funcListenCallback<T>>)=>void) {
     const obj = new Map<any, any>
-    let close: any = null//: null | (()=>void) = null
+    let close: any = null//: null | (()=>void) = null // , api: ReturnType<typeof funcListenCallback<T>>
     let lastUpdate: number | null = null
     const run = () => close = ((a((...z)=> {
         lastUpdate = Date.now()
         obj.forEach(e => e(...z))
     })) ?? null)
-    return {
+    const api = {
         lastUpdate: () => lastUpdate != null ? new Date(lastUpdate) : lastUpdate,
         lastUpdateMs: () => lastUpdate,
         isRun: () => close != null,
@@ -17,17 +17,85 @@ export function funcListenCallback<T extends any[]>(a: (e: tr222<T>)=>(void | ((
         close: () => {close?.(); close = null;},
         addListen: (a: tr222<T>) => {
             obj.set(a, a)
-            event?.("add", obj.size)
+            event?.("add", obj.size, api)
         },
         removeListen: (a: (tr222<T>)|null) => {
             obj.delete(a)
-            event?.("remove", obj.size)
+            event?.("remove", obj.size, api)
         },
         count: ()=>obj.size
     }
+    return api
 }
 
 
+type tr2<T extends (...a: any[])=>any> = (a: Parameters<T>[0])=> void//ReturnType<T>
+type t1<T extends any[] = any[]> = ReturnType<typeof funcListenCallback<T>>
+type tt2 = tr2<Parameters<t1["addListen"]>[0]>
+type tt = tr2<Parameters<t1["addListen"]>[0]>
+
+export function funcListenBySocket3<Z extends any[] = any[]>(e: t1<Z>, z: {
+    readonly status?: () => boolean,
+    readonly setEventClose?: (eventClose: ()=>any) => any,
+}) {
+    return funcListenBySocket2(e, {...z, stop: x => x("___STOP"), paramsModify:(...e) => [e[0]]})
+}
+// не проверена
+export function funcListenBySocket2<Z extends any[] = any[]>(e: t1<Z>, {stop, setEventClose, status, paramsModify}: {
+    readonly status?: () => boolean,
+    readonly setEventClose?: (eventClose: ()=>any) => any,
+    readonly stop?: (x: tt) => any,
+    readonly paramsModify?: (...e: Parameters<tt>) => any[]
+
+}) {
+    type tr2<T extends (...a: any[])=>any> = (a: Parameters<T>[0])=> void//ReturnType<T>
+    const {addListen, removeListen, count} = e
+    type tt = tr2<Parameters<typeof e.addListen>[0]>
+    // let x: tt | null = null
+    const x: {x: tt | null} = {x: null}
+    let r2: ((...a: any[]) => void) | null = null
+
+    const removeCallback = () => {
+        if (x.x) {
+            stop?.(x.x)
+            x.x = null
+        }
+        if (r2) removeListen(r2)
+        return true
+    }
+    return {
+        callback: (z: (...params: Parameters<tt>)=> void) => {//(z: tt) => { // (a: tt) => any
+            // @ts-ignore
+            if (x.x) stop?.(x.x)
+            // if (x.x) x.x("___STOP");
+            if (r2) removeListen(r2)
+            x.x = z
+            if (!z) {
+                console.log(z)
+                console.log(e.count());
+                console.trace()
+                // return;
+            }
+            let ta: typeof z
+            ta = z
+            if (paramsModify) {
+                ta = (...a) => {
+                    const params = paramsModify(...a)
+                    // @ts-ignore
+                    z(...params)
+                }
+            }
+            if (status)
+                r2 = (a: any) => {status() ? ta(a) : removeListen(r2)}
+            else
+                r2 = (a) => ta(a)
+
+            addListen(r2)
+            setEventClose?.(() => removeCallback())
+        },
+        removeCallback
+    }
+}
 // Прокидывает колбэк к листу подписок, передовая только, первый параметр функции (подписки листа).
 // Если функция уже есть, то он отправит код остановки клиенту, и удалит её
 export function funcListenBySocket<Z extends any[] = any[]>(e: ReturnType<typeof funcListenCallback<Z>>, status: ()=>boolean) {
@@ -63,9 +131,9 @@ export function funcListenBySocket<Z extends any[] = any[]>(e: ReturnType<typeof
 }
 export const funcListenBySocket1 = funcListenBySocket
 
-export function UseListen<T extends any[]>() {
+export function UseListen<T extends any[]>(data?: {event?: Parameters<typeof funcListenCallback<T>>[1]}) {
     let t: ((...a: T) => void) | null = null
-    const a = funcListenCallback<T>((e)=>{t = e})
+    const a = funcListenCallback<T>((e)=>{t = e}, data?.event)
     a.run()
     return [(...e: T)=>t?.(...e), a] as const
 }
