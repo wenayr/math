@@ -1,5 +1,3 @@
-import {sleepAsync} from "wenay-common";
-
 type tr222<T extends any[]> = (...r: T)=> void
 export function funcListenCallback<T extends any[]>(a: (e: tr222<T>)=>(void | (()=>void)), event?: (type: "add" | "remove", count: number, api: ReturnType<typeof funcListenCallback<T>>)=>void) {
     const obj = new Map<any, any>
@@ -139,6 +137,35 @@ export function UseListen<T extends any[]>(data?: {event?: Parameters<typeof fun
     return [(...e: T)=>t?.(...e), a] as const
 }
 
+
+type tDeepKeys<T, T2 extends object, T3 extends any> = {
+    [K in keyof T]: T[K] extends T2 ? T3: T[K] extends object ? tDeepKeys<T[K], T2, T3> : T[K]
+}
+
+type obj = {[k: string]: any}
+export function CompareKeys<T extends obj, T2 extends obj>(obj1: T, obj2: T2) {
+    return (new Set([...Object.keys(obj1), ...Object.keys(obj2)])).size == Object.keys(obj2).length
+}
+// @ts-ignore
+export function DeepCompareKeys<T, T2 extends obj, T3 extends unknown>(obj1: T, obj2: T2, func: (a: T2)=> T3) {
+    if (obj1 == null) return null
+    if (typeof obj1 != "object") return obj1
+    if (CompareKeys(obj1, obj2)) return func(obj1 as unknown as T2)
+    // @ts-ignore
+    return Object.fromEntries(Object.entries(obj1 as any).map(([k,v])=> [k, DeepCompareKeys(v, obj2, func)] as const))
+}
+
+export function deepModifyByListenSocket<T>(obj: T, status: () => boolean){
+    return DeepCompareKeys(obj, UseListen()[1], e => funcListenBySocket1(e, status)) as
+        tDeepKeys<T, ReturnType<typeof UseListen>[1], ReturnType<typeof funcListenBySocket1>>
+}
+export function deepModifyByListenSocket2<T>(obj: T, status: () => boolean){
+    return DeepCompareKeys(obj, UseListen()[1], e => funcListenBySocket1(e, status)) as
+        tDeepKeys<T, ReturnType<typeof UseListen>[1], ReturnType<typeof funcListenBySocket1>>
+}
+
+
+export const funcListenBySocketObj = deepModifyByListenSocket
 export function PromiseArrayListen<T extends any = unknown>(array: ((() => Promise<T>)|(() => any)|Promise<T>)[]) {
     let ok = 0, error = 0
     const count = array.length
@@ -184,45 +211,43 @@ export type getTypeCallback<T extends realSocket2<any>> = T extends realSocket2<
 type ParametersOther<T extends (forget: any,...args: any) => any> = T extends (forget: any,...args: infer P ) => any ? P : never;
 
 type tr22<T> = T extends undefined ? never : T
-export function socketBuffer3<T extends realSocket2<any| any[]>, T2 extends (readonly unknown[])|undefined, T3 extends {[key: string]: unknown}>(
+export function socketBuffer3<T extends realSocket2<any| any[]>, T2 extends (readonly unknown[])|undefined, T3  extends {[key: string]: unknown}, T4 extends T3|(()=>T3)>(
     func: T,
-    callbackMain: (data: getTypeCallback<T>, memo: T3)=> T2,
-    memo: T3 = {} as T3
+    callbackMain: (data: getTypeCallback<T>, memo: T3|T4)=> T2,
+    memo: T3|T4 = {} as T3
 ) {
     return (a: Omit<Parameters<T>[0],"callback"> & {callback: (...data: tr22<T2>)=> any}, ...b:  ParametersOther<T>) =>
         func({...a, callback: (v)=>{const z = callbackMain(v, memo); if (z) a.callback(...(z as tr22<T2>))} //  as T
         }, ...b) as ReturnType<T>
 }
 
-function socketBufferBySnapshot<T extends realSocket2<any| any[]>, T2 extends (readonly unknown[])|undefined, T3 extends {[key: string]: unknown}>({func, memo = {} as T3, callbackSave, snapshot}: {
+export function funcListenCallbackSnapshot<T extends realSocket2<any| any[]>, T2 extends (readonly unknown[])|undefined, T3 extends {[key: string]: unknown}, T4 extends T3|(()=>T3)>({func, memo = {} as T4, callbackSave, snapshot}: {
     func: ()=>T,
     callbackSave: (data: getTypeCallback<T>, memo: T3) => T2,
-    memo: T3,
-    snapshot?: (memo: T3) => T3                                                                                                                                       }
+    memo: T4,
+    snapshot?: (memo: T4) => T3                                                                                                                                       }
 ) {
-    const f = socketBuffer3(func(), callbackSave, memo)
-    type tt = typeof socketBuffer3<T, T2, T3>
+    type tt = typeof socketBuffer3<T, T2, T3, T4>
 
-    let d: ReturnType<tt>|null
+    let d: ReturnType<tt>|null = null
     const [callback, listenA] = UseListen<Parameters<typeof callbackSave>>({
         event: (type, count, api) => {
-        if (type == "remove" && count == 0) api.close()
+        if (type == "remove" && count == 0) {
+            api.close()
+            // @ts-ignore
+            d?.()
+        }
         if (type == "add" && count == 1) api.run()
         }});
     const connect = () => {
-        if (d == null) {
-            d = socketBuffer3(func(), (...a)=>{
-                callback(...a)
-                return callbackSave(...a)
-            }, memo)
-            return d
-        }
+        // @ts-ignore
+        if (d == null) d = socketBuffer3(func(), callbackSave, memo)({callback})
     }
-    const run = (...params: Parameters<typeof listenA.addListen>)=> {
+    const run = (...params: Parameters<typeof listenA.addListen>) => {
         if (!listenA.isRun()) {
             snapshot?.(memo)
             connect()
         }
         return listenA.addListen(...params)}
-    return {run, snapshot, memo, listenA, connect, get disconnect(){return d}}
+    return {run, snapshot: ()=> snapshot?.(memo), memo, listenA, connect, get disconnect(){return d}}
 }
