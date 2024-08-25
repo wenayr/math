@@ -138,9 +138,10 @@ export function UseListen<T extends any[]>(data?: {event?: Parameters<typeof fun
 }
 
 
-type tDeepKeys<T, T2 extends object, T3 extends any> = {
-    [K in keyof T]: T[K] extends T2 ? T3: T[K] extends object ? tDeepKeys<T[K], T2, T3> : T[K]
-}
+/////
+type tDeepKeys<T, T2 extends object, T3 extends any> = // T extends (a?: any) => any ? T :
+    {[K in keyof T]: T[K] extends T2 ? T3: T[K] extends object ? T[K] extends (a?: any) => any ? T[K] : tDeepKeys<T[K], T2, T3> : T[K]
+    }
 
 type obj = {[k: string]: any}
 export function CompareKeys<T extends obj, T2 extends obj>(obj1: T, obj2: T2) {
@@ -149,6 +150,7 @@ export function CompareKeys<T extends obj, T2 extends obj>(obj1: T, obj2: T2) {
 // @ts-ignore
 export function DeepCompareKeys<T, T2 extends obj, T3 extends unknown>(obj1: T, obj2: T2, func: (a: T2)=> T3) {
     if (obj1 == null) return null
+    if (typeof obj1 == "function") return obj1
     if (typeof obj1 != "object") return obj1
     if (CompareKeys(obj1, obj2)) return func(obj1 as unknown as T2)
     // @ts-ignore
@@ -159,6 +161,7 @@ export function deepModifyByListenSocket<T>(obj: T, status: () => boolean){
     return DeepCompareKeys(obj, UseListen()[1], e => funcListenBySocket1(e, status)) as
         tDeepKeys<T, ReturnType<typeof UseListen>[1], ReturnType<typeof funcListenBySocket1>>
 }
+///////
 export function deepModifyByListenSocket2<T>(obj: T, status: () => boolean){
     return DeepCompareKeys(obj, UseListen()[1], e => funcListenBySocket1(e, status)) as
         tDeepKeys<T, ReturnType<typeof UseListen>[1], ReturnType<typeof funcListenBySocket1>>
@@ -225,8 +228,8 @@ export function funcListenCallbackSnapshot<T extends realSocket2<any| any[]>, T2
     func: ()=>T,
     callbackSave: (data: getTypeCallback<T>, memo: T3) => T2,
     memo: T4,
-    snapshot?: (memo: T4) => T3                                                                                                                                       }
-) {
+    snapshot?: (memo: T4) => T3
+}) {
     type tt = typeof socketBuffer3<T, T2, T3, T4>
 
     let d: ReturnType<tt>|null = null
