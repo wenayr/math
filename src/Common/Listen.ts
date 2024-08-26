@@ -1,25 +1,41 @@
 type tr222<T extends any[]> = (...r: T)=> void
-export function funcListenCallback<T extends any[]>(a: (e: tr222<T>)=>(void | (()=>void)), event?: (type: "add" | "remove", count: number, api: ReturnType<typeof funcListenCallback<T>>)=>void) {
-    const obj = new Map<any, any>
+export function funcListenCallback<T extends any[]>(a: (e: (tr222<T>|null))=>(void | (()=>void)), event?: (type: "add" | "remove", count: number, api: ReturnType<typeof funcListenCallback<T>>)=>void, fast = true) {
+    const obj = new Map<any, tr222<T>>
     let close: any = null//: null | (()=>void) = null // , api: ReturnType<typeof funcListenCallback<T>>
-    let lastUpdate: number | null = null
+    let lastSize = 0
+    const checkFast = () => {
+        if (!fast) return;
+        const size = obj.size
+        if (lastSize > 2 && size > 2) return;
+        if (obj.size == 0) {
+            a(null); return;
+        }
+        const ar: tr222<T>[] = []
+        obj.forEach(e => ar.push(e))
+        if (obj.size == 1) a((...e)=>{ar[0](...e)})
+        if (obj.size == 2) a((...e)=>{ar[0](...e); ar[1](...e)})
+        if (obj.size > 2) a((...e)=>{obj.forEach(z => z(...e))})
+
+    }
     const run = () => close = ((a((...z)=> {
-        lastUpdate = Date.now()
         obj.forEach(e => e(...z))
     })) ?? null)
     const api = {
-        lastUpdate: () => lastUpdate != null ? new Date(lastUpdate) : lastUpdate,
-        lastUpdateMs: () => lastUpdate,
         isRun: () => close != null,
         run,
-        close: () => {close?.(); close = null;},
+        close: () => {
+            close?.();
+            close = null;
+            },
         addListen: (a: tr222<T>) => {
             obj.set(a, a)
+            checkFast()
             event?.("add", obj.size, api)
             return () => api.removeListen(a)
         },
         removeListen: (a: (tr222<T>)|null) => {
             obj.delete(a)
+            checkFast()
             event?.("remove", obj.size, api)
         },
         count: ()=>obj.size
@@ -140,7 +156,7 @@ export function UseListen<T extends any[]>(data?: {event?: Parameters<typeof fun
 
 /////
 type tDeepKeys<T, T2 extends object, T3 extends any> = // T extends (a?: any) => any ? T :
-    {[K in keyof T]: T[K] extends T2 ? T3: T[K] extends object ? T[K] extends (a?: any) => any ? T[K] : tDeepKeys<T[K], T2, T3> : T[K]
+    {[K in keyof T]: T[K] extends T2 ? T3: T[K] extends object ? T[K] extends (a?: any) => any ? T[K] : T[K] extends (...a: any[]) => any ? T[K] : tDeepKeys<T[K], T2, T3> : T[K]
     }
 
 type obj = {[k: string]: any}
