@@ -11,6 +11,7 @@ export type tRequestScreenerT<T> = {
 //     key: tKeyScreener,
 //     request: any
 // }
+type tt = {[k: string]: any}
 /**
  *  для серверной части, во входящих параметров надо отправить ссылки не WebSocket и object который будем наблюдать
  *  можно подключить последовательно к разным классам по факту если по Map объекта не находится данный ключ то он и не включиться
@@ -18,7 +19,7 @@ export type tRequestScreenerT<T> = {
  *  пока не думал как решить =)
  * */
 
-export function funcPromiseServer<T extends any>(data: screenerSoc<tSocketData<tRequestScreenerT<T>>>, obj: T) {
+export function funcPromiseServer<T extends tt>(data: screenerSoc<tSocketData<tRequestScreenerT<T>>>, obj: T) {
     const buf = data;
     data.api({
         onMessage: async(datum) => {
@@ -29,9 +30,7 @@ export function funcPromiseServer<T extends any>(data: screenerSoc<tSocketData<t
             try {
                 for (let k of key) {
                     nameF = k
-                    // @ts-ignore
                     if (typeof buf2[nameF] == "function") break
-                    // @ts-ignore
                     buf2 = buf2[nameF]
                 }
             }
@@ -40,15 +39,13 @@ export function funcPromiseServer<T extends any>(data: screenerSoc<tSocketData<t
                 console.error({error: e, key: key, arguments: request})
                 return
             }
-            if (nameF == "call") {
-                console.log(key, nameF)
-            }
-            // @ts-ignore
+            // if (nameF == "call") {
+            //     console.log(key, nameF)
+            // }
             const buf = buf2 // key.reduce((o,k)=>o?.[k],obj) as any// obj[key]
             // const buf = obj[key]
             // @ts-ignore
-            if (!buf[nameF]) return;//throw "такого метода нет"
-            // @ts-ignore
+            // if (!buf[nameF]) return;//throw "такого метода нет"
             if (typeof buf[nameF] == "function") {
                 const {callbacksId} = datum
                 if (callbacksId) {
@@ -63,25 +60,21 @@ export function funcPromiseServer<T extends any>(data: screenerSoc<tSocketData<t
                     })
                     let r = 0
                     request.forEach((e, i) => {
-                        if (e == "___FUNC") {
-                            request[i] = arr[r++]
-                        }
+                        if (e == "___FUNC") request[i] = arr[r++]
                     })
                 }
-                // @ts-ignore
                 const trt = async() => buf[nameF](...request)
-                const a = await trt()
+                await trt()
                     .then(a => {
                         if (datum.wait !== false) data.sendMessage({mapId: datum.mapId, data: a ?? undefined})
                     })
                     .catch((e) => {
                         console.log(nameF, request, key)
-
                         data.sendMessage({mapId: datum.mapId, error: {error: e, key: key, arguments: request}})
                         console.error({error: e, key: key, arguments: request})
                         // myCatch?.({data: e, key: key, arguments: request})
                     })
-                // если ожидание отключено то ждеть не надо, не путать с функцией клбэка
+                // если ожидание отключено, то ждать не надо, не путать с функцией callback
             } else {
                 data.sendMessage({
                     mapId: datum.mapId,
@@ -494,7 +487,7 @@ export type tElArr<T extends any[]> = UnArray<T>
 // OmitTypes
 export function CreatAPIFacadeClient<T extends object>({socketKey, socket, limit}: {socket: tSocket, socketKey: string, limit?: number}) {
 
-    let strictlyObj = {}
+    let strictlyObj = {} as any
     let promiseStrictly = Promise.resolve()
     let funcPromise: (value: unknown) => void
     const tr = funcForWebSocket<any>({
@@ -502,7 +495,8 @@ export function CreatAPIFacadeClient<T extends object>({socketKey, socket, limit
         api: (data) => {
             socket.on(socketKey, (d: any) => {
                 if (typeof d == "object" && d?.STRICTLY) {
-                    strictlyObj = d.STRICTLY
+                    Object.keys(strictlyObj).forEach(k=>{delete strictlyObj[k]})
+                    Object.assign(strictlyObj, d.STRICTLY)
                     funcPromise?.(undefined)
                 }
                 else data.onMessage(d)
@@ -527,6 +521,7 @@ export function CreatAPIFacadeClient<T extends object>({socketKey, socket, limit
         all: func as tMethodToPromise2<T>,
         // возможность добавлять не обязательные методы
         strictly,
+        infoStrictly(){return strictly},
         async strictlyInit(obj?: object) {
             if (obj) strictlyObj = obj
             else {
