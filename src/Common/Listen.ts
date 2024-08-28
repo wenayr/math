@@ -1,10 +1,14 @@
 type tr222<T extends any[]> = (...r: T)=> void
-export function funcListenCallback<T extends any[]>(a: (e: (tr222<T>|null))=>(void | (()=>void)), event?: (type: "add" | "remove", count: number, api: ReturnType<typeof funcListenCallback<T>>)=>void, fast = true) {
+export function funcListenCallbackBase<T extends any[]>(a: (e: (tr222<T>|null))=>(void | (()=>void)), option?: {event?: (type: "add" | "remove", count: number, api: ReturnType<typeof funcListenCallbackBase<T>>) => void, fast: boolean
+}) {
+    const {
+        fast = false,
+        event
+    } = option ?? {}
     const obj = new Map<any, tr222<T>>
     let close: any = null//: null | (()=>void) = null // , api: ReturnType<typeof funcListenCallback<T>>
     let lastSize = 0
     const checkFast = () => {
-        if (!fast) return;
         const size = obj.size
         if (lastSize > 2 && size > 2) return;
         if (obj.size == 0) {
@@ -29,18 +33,24 @@ export function funcListenCallback<T extends any[]>(a: (e: (tr222<T>|null))=>(vo
             },
         addListen: (a: tr222<T>) => {
             obj.set(a, a)
-            checkFast()
+            if (fast) checkFast()
             event?.("add", obj.size, api)
             return () => api.removeListen(a)
         },
         removeListen: (a: (tr222<T>)|null) => {
             obj.delete(a)
-            checkFast()
+            if (fast) checkFast()
             event?.("remove", obj.size, api)
         },
         count: ()=>obj.size
     }
     return api
+}
+export function funcListenCallbackFast<T extends any[]>(a: (e: (tr222<T>|null))=>(void | (()=>void))) {
+    return funcListenCallbackBase(a, {fast: true})
+}
+export function funcListenCallback<T extends any[]>(a: (e: (tr222<T>|null))=>(void | (()=>void)), event?: (type: "add" | "remove", count: number, api: ReturnType<typeof funcListenCallbackBase<T>>)=>void, fast = true) {
+    return funcListenCallbackBase(a, {event, fast})
 }
 
 
@@ -146,9 +156,9 @@ export function funcListenBySocket<Z extends any[] = any[]>(e: ReturnType<typeof
 }
 export const funcListenBySocket1 = funcListenBySocket
 
-export function UseListen<T extends any[]>(data?: {event?: Parameters<typeof funcListenCallback<T>>[1]}) {
+export function UseListen<T extends any[]>(data?: {event?: Parameters<typeof funcListenCallback<T>>[1], fast?: boolean}) {
     let t: ((...a: T) => void) | null = null
-    const a = funcListenCallback<T>((e)=>{t = e}, data?.event)
+    const a = funcListenCallbackBase<T>((e)=>{t = e}, {fast: true,...data})
     a.run()
     return [(...e: T)=>t?.(...e), a] as const
 }

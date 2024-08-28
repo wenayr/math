@@ -7,40 +7,6 @@ type tTime = number
 type tFunc = {timeStamp?: number, type: tType, weight: number}
 
 
-const map = {
-    binanceSpot: binanceSpotHistory2(),
-    binanceFutures: binanceSpotHistory3()
-}
-
-function binanceSpotHistory2() {
-
-    return {
-        symbols:()=><{
-            [key:string]: {
-                name: string,
-                dirc: object
-            }
-        }>{}
-    }
-}
-
-function binanceSpotHistory3() {
-
-    return {
-        symbols:()=><{
-            [key:string]: {
-                name: string
-            }
-        }>{}
-    }
-}
-
-type tBinance = typeof map.binanceSpot
-type tBinanceSymbols = ReturnType<tBinance["symbols"]>
-
-type binanceFutures = typeof map.binanceFutures
-type tBinanceFSymbols = ReturnType<binanceFutures["symbols"]>
-
 export function funcTimeW() {
     type tt1 = [tTime, tWeight] /// as const
     type ttt = {[key: tType]: tt1[] }
