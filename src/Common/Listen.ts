@@ -177,6 +177,7 @@ export function CompareKeys<T extends obj, T2 extends obj>(obj1: T, obj2: T2) {
 export function DeepCompareKeys<T, T2 extends obj, T3 extends unknown>(obj1: T, obj2: T2, func: (a: T2)=> T3) {
     if (obj1 == null) return null
     if (typeof obj1 == "function") return obj1
+    if (obj1 instanceof Promise) return obj1
     if (typeof obj1 != "object") return obj1
     if (CompareKeys(obj1, obj2)) return func(obj1 as unknown as T2)
     // @ts-ignore
