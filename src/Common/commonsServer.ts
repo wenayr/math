@@ -19,7 +19,7 @@ type tt = {[k: string]: any}
  *  пока не думал как решить =)
  * */
 
-export function funcPromiseServer<T extends tt>(data: screenerSoc<tSocketData<tRequestScreenerT<T>>>, obj: T) {
+export function funcPromiseServer<T extends tt>(data: screenerSoc<tSocketData<tRequestScreenerT<T>>>, obj: T, debug = false) {
     const buf = data;
     data.api({
         onMessage: async(datum) => {
@@ -521,7 +521,7 @@ export function CreatAPIFacadeClient<T extends object>({socketKey, socket, limit
         all: func as tMethodToPromise2<T>,
         // возможность добавлять не обязательные методы
         strictly,
-        infoStrictly(){return strictly},
+        infoStrictly(){return strictlyObj},
         async strictlyInit(obj?: object) {
             if (obj) strictlyObj = obj
             else {
@@ -534,10 +534,11 @@ export function CreatAPIFacadeClient<T extends object>({socketKey, socket, limit
     }
 }
 
-export function CreatAPIFacadeServer<T extends object>({object, socket, socketKey}: {
+export function CreatAPIFacadeServer<T extends object>({object, socket, socketKey, debug = false}: {
     socket: tSocket,
     object: T,
-    socketKey: string
+    socketKey: string,
+    debug: boolean
 }) {
     function ff(obj: any): any {
         return Object.fromEntries(Object.entries(obj).map(([k,v])=> {
@@ -553,6 +554,7 @@ export function CreatAPIFacadeServer<T extends object>({object, socket, socketKe
             sendMessage: (data) => socket.emit(socketKey, data),
             api: (api) => {
                 socket.on(socketKey, (d: any) => {
+                    if (debug) console.log(typeof d == "object" ? JSON.stringify(d) : d)
                     if (d == "___STRICTLY") {
                         socket.emit(socketKey, {STRICTLY: t})
                     }
