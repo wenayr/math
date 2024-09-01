@@ -164,36 +164,49 @@ export function UseListen<T extends any[]>(data?: {event?: Parameters<typeof fun
 }
 
 
-/////
+////////////
 type tDeepKeys<T, T2 extends object, T3 extends any> = // T extends (a?: any) => any ? T :
     {[K in keyof T]: T[K] extends T2 ? T3: T[K] extends object ? T[K] extends (a?: any) => any ? T[K] : T[K] extends (...a: any[]) => any ? T[K] : tDeepKeys<T[K], T2, T3> : T[K]
     }
 
 type obj = {[k: string]: any}
 export function CompareKeys<T extends obj, T2 extends obj>(obj1: T, obj2: T2) {
-    return (new Set([...Object.keys(obj1), ...Object.keys(obj2)])).size == Object.keys(obj2).length
+    const k1 = Object.keys(obj1)
+    const k2 = Object.keys(obj2)
+    return k1.length == k2.length && ((new Set([...k1, ...k2])).size == k2.length)
+}
+export function CompareKeys2<T extends obj>(obj1: T, keys: string[]) {
+    const k1 = Object.keys(obj1)
+    return k1.length == keys.length && ((new Set([...k1, ...keys])).size == keys.length)
+}
+// @ts-ignore
+export function DeepCompareKeys2<T, T3 extends unknown>(obj1: T, keys: string[], func: (a: any)=> T3) {
+    if (obj1 == null) return null
+    if (typeof obj1 == "function") return obj1
+    if (obj1 instanceof Function) return obj1
+    if (typeof obj1 != "object") return obj1
+    if (CompareKeys2(obj1, keys)) {
+        return func(obj1)
+    }
+    // @ts-ignore
+    return Object.fromEntries(Object.entries(obj1 as any).map(([k,v])=> [k, DeepCompareKeys2(v, keys, func)] as const))
 }
 // @ts-ignore
 export function DeepCompareKeys<T, T2 extends obj, T3 extends unknown>(obj1: T, obj2: T2, func: (a: T2)=> T3) {
     if (obj1 == null) return null
     if (typeof obj1 == "function") return obj1
-    if (obj1 instanceof Promise) return obj1
+    if (obj1 instanceof Function) return obj1
     if (typeof obj1 != "object") return obj1
-    if (CompareKeys(obj1, obj2)) return func(obj1 as unknown as T2)
+    const keys = Object.keys(obj2)
+    if (CompareKeys2(obj1, keys)) return func(obj1 as unknown as T2)
     // @ts-ignore
-    return Object.fromEntries(Object.entries(obj1 as any).map(([k,v])=> [k, DeepCompareKeys(v, obj2, func)] as const))
+    return Object.fromEntries(Object.entries(obj1 as any).map(([k,v])=> [k, DeepCompareKeys2(v, keys, func)] as const))
 }
 
 export function deepModifyByListenSocket<T>(obj: T, status: () => boolean){
-    return DeepCompareKeys(obj, UseListen()[1], e => funcListenBySocket1(e, status)) as
-        tDeepKeys<T, ReturnType<typeof UseListen>[1], ReturnType<typeof funcListenBySocket1>>
+    return DeepCompareKeys(obj, funcListenCallbackBase(e => {}, ), e => funcListenBySocket1(e, status)) as
+        tDeepKeys<T, ReturnType<typeof funcListenCallbackBase>, ReturnType<typeof funcListenBySocket1>>
 }
-///////
-export function deepModifyByListenSocket2<T>(obj: T, status: () => boolean){
-    return DeepCompareKeys(obj, UseListen()[1], e => funcListenBySocket1(e, status)) as
-        tDeepKeys<T, ReturnType<typeof UseListen>[1], ReturnType<typeof funcListenBySocket1>>
-}
-
 
 export const funcListenBySocketObj = deepModifyByListenSocket
 export function PromiseArrayListen<T extends any = unknown>(array: ((() => Promise<T>)|(() => any)|Promise<T>)[]) {
