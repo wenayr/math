@@ -19,7 +19,7 @@ type tt = {[k: string]: any}
  *  пока не думал как решить =)
  * */
 
-export function funcPromiseServer<T extends tt>(data: screenerSoc<tSocketData<tRequestScreenerT<T>>>, obj: T, debug = false) {
+export function funcPromiseServer<T extends tt>(data: screenerSoc<tSocketData<tRequestScreenerT<T>>>, obj: T) {
     const buf = data;
     data.api({
         onMessage: async(datum) => {
@@ -538,7 +538,7 @@ export function CreatAPIFacadeServer<T extends object>({object, socket, socketKe
     socket: tSocket,
     object: T,
     socketKey: string,
-    debug: boolean
+    debug?: boolean
 }) {
     function ff(obj: any): any {
         return Object.fromEntries(Object.entries(obj).map(([k,v])=> {
