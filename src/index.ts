@@ -31,6 +31,7 @@ export * from "./Common/objectPath";
 
 export * from "./Common/waitRun";
 export * from "./Common/Listen";
+export * from "./toError/myThrow";
 
 
 export * from "./Exchange/Bars";

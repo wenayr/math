@@ -3,6 +3,7 @@ export * from "./Common/common";
 export * from "./Common/Color";
 export * from "./Common/ListNodeAnd";
 export * from "./Common/Math";
+export * from "./toError/myThrow";
 export * from "./Exchange/ConnectData/Binance";
 
 export * as BaseTypes from "./Common/BaseTypes";

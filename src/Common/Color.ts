@@ -105,13 +105,17 @@ export function* colorGenerator2(data?: { min?: number, max?: number}): Generato
 }
 
 //светлость оттенков
-export function colorGeneratorByCount(value=180, count=100, index=1) : ColorString {
+export function colorGeneratorByCount2(value=180, count=100, index=1): [number, number, number] {
     const step = Math.floor(value * 6 * index / count)
     const p = Math.floor(step / value)
     const z = Math.floor(step % value)
     const r = (p==0 || p==5) ? value : (p==1) ? value-z : (p==4) ? z : 0
     const g = (p==1 || p==2) ? value : (p==3) ? value-z : (p==0) ? z : 0
     const b = (p==3 || p==4) ? value : (p==5) ? value-z : (p==2) ? z : 0
+    return [r,g,b];
+}
+export function colorGeneratorByCount(value=180, count=100, index=1) : ColorString {
+    const [r,g,b] = colorGeneratorByCount2(value, count, index)
     return `rgb(${r},${g},${b})`;
 }
 

@@ -1,3 +1,5 @@
+import {isProxy} from "./isProxy";
+
 type tr222<T extends any[]> = (...r: T)=> void
 export function funcListenCallbackBase<T extends any[]>(a: (e: (tr222<T>|null))=>(void | (()=>void)), option?: {event?: (type: "add" | "remove", count: number, api: ReturnType<typeof funcListenCallbackBase<T>>) => void, fast: boolean
 }) {
@@ -185,6 +187,7 @@ export function DeepCompareKeys2<T, T3 extends unknown>(obj1: T, keys: string[],
     if (typeof obj1 == "function") return obj1
     if (obj1 instanceof Function) return obj1
     if (typeof obj1 != "object") return obj1
+    if (isProxy(obj1)) return obj1
     if (CompareKeys2(obj1, keys)) {
         return func(obj1)
     }
@@ -197,6 +200,7 @@ export function DeepCompareKeys<T, T2 extends obj, T3 extends unknown>(obj1: T, 
     if (typeof obj1 == "function") return obj1
     if (obj1 instanceof Function) return obj1
     if (typeof obj1 != "object") return obj1
+    if (isProxy(obj1)) return obj1
     const keys = Object.keys(obj2)
     if (CompareKeys2(obj1, keys)) return func(obj1 as unknown as T2)
     // @ts-ignore
