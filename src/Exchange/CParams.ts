@@ -577,6 +577,7 @@ export function GetSimpleParams<T extends ReadonlyFull<IParams>>(params : T) //:
         simpleParams[key]=
             typeof(param) =="function" ? param() :
             typeof(param) !="object" ? param :
+            param == null ? null :
             //typeof(param)=="boolean" ? param :
             param.enabled==false ? null :
             typeof(param.value) !="object" ? param.value :
