@@ -306,6 +306,9 @@ export type screenerSocApi<T> = {
 }
 export type tMethodToPromise2<T extends object> = { [P in keyof T]: T[P] extends ((...args: infer Z) => infer X) ? X extends Promise<any> ? T[P] : (...args: Z) => Promise<X> : T[P] extends object ? tMethodToPromise2<T[P]> : never }
 export type tMethodToPromise4<T extends object> = { [P in keyof T]: T[P] extends ((...args: infer Z) => infer X) ? X extends Promise<any> ? T[P] : (...args: Z) => Promise<X> : T[P] extends object ? tMethodToPromise4<T[P]> : T[P]}
+type tt5<T extends any> = T extends Promise<infer R> ? R : T
+export type tMethodToPromise5<T extends object> = { [P in keyof T]: T[P] extends ((...args: infer Z) => infer X) ? (...args: Z) => Promise<tt5<X>> : T[P] extends object ? tMethodToPromise5<T[P]> : never }
+export type tMethodToPromise6<T extends object> = { [P in keyof T]: T[P] extends ((...args: infer Z) => infer X) ? (...args: Z) => Promise<tt5<X>> : T[P] extends object ? tMethodToPromise6<T[P]> : T[P]}
 
 // export type tMethodToPromise2<T extends object> = { [P in keyof T]: T[P] extends ((...args: infer Z) => infer X) ? (...args: Z) => (X extends Promise<any> ? X : Promise<X>) : T[P] extends object ? tMethodToPromise2<T[P]> : never }
 
@@ -363,7 +366,7 @@ function funcScreenerClient2<T extends object>(data: screenerSoc2<T>, wait?: boo
             return tr([String(p)])
         },
     })
-    return tr2() as unknown as tMethodToPromise2<T>
+    return tr2() as unknown as tMethodToPromise5<T>
 }
 
 function funcScreenerClient3<T extends object>(data: screenerSoc2<T>, obj: ()=>any, wait?: boolean) {
@@ -432,7 +435,7 @@ function funcScreenerClient3<T extends object>(data: screenerSoc2<T>, obj: ()=>a
             return tr([String(p)])
         },
     })
-    return tr2() as unknown as tMethodToPromise2<T>
+    return tr2() as unknown as tMethodToPromise5<T>
 }
 
 // метод void отменяет callback, т.е. фактически мгновенно исполняет Promise resolve
@@ -506,7 +509,7 @@ export function CreatAPIFacadeClient<T extends object>({socketKey, socket, limit
     })
     const func = funcScreenerClient2<typeVoid2<T>>(tr) //satisfies tMethodToPromise2<typeVoid2<T>>
 
-    const strictly = funcScreenerClient3(tr,()=>strictlyObj) as tMethodToPromise4<T>
+    const strictly = funcScreenerClient3(tr,()=>strictlyObj) as tMethodToPromise6<T>
 
     //Не ждет ответа
     const space = funcScreenerClient2<typeNoVoid2<T>>(tr, false)
@@ -518,7 +521,7 @@ export function CreatAPIFacadeClient<T extends object>({socketKey, socket, limit
         // типизацией убраны некоторые методы
         space,
         // все методы
-        all: func as tMethodToPromise2<T>,
+        all: func as tMethodToPromise5<T>,
         // возможность добавлять не обязательные методы
         strictly,
         infoStrictly(){return strictlyObj},
