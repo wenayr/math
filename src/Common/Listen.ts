@@ -32,7 +32,7 @@ export function funcListenCallbackBase<T extends any[]>(a: (e: (tr222<T>|null))=
         close: () => {
             close?.();
             close = null;
-            },
+        },
         addListen: (a: tr222<T>) => {
             obj.set(a, a)
             if (fast) checkFast()
@@ -194,6 +194,15 @@ export function DeepCompareKeys2<T, T3 extends unknown>(obj1: T, keys: string[],
     // @ts-ignore
     return Object.fromEntries(Object.entries(obj1 as any).map(([k,v])=> [k, DeepCompareKeys2(v, keys, func)] as const))
 }
+
+type tt3<T extends any[]> = typeof funcListenCallbackBase<T>
+type trr2<T extends ReturnType<typeof funcListenCallbackBase<any>>> = T extends ReturnType<tt3<infer R>> ? R : never
+type tt33<T extends any[]> = ReturnType<typeof funcListenCallbackBase<T>>
+type tt44<T extends any[]> = ReturnType<typeof funcListenBySocket1<T>>
+type ttt<T> = {[K in keyof T]: T[K] extends tt33<any> ? tt44<trr2<T[K]>> : T[K] extends typeof Promise ? T[K]  : T[K] extends (...a: any) => any ? T[K] : T[K] extends object ? ttt<T[K]> : T[K] }
+
+type trr<T extends tt33<any>> = T extends tt33<infer R> ? R : never
+type UnFuncListenCallbackBase<T> = T extends ReturnType<typeof funcListenCallbackBase> ? Parameters<Parameters<T["addListen"]>[0]> : never
 // @ts-ignore
 export function DeepCompareKeys<T, T2 extends obj, T3 extends unknown>(obj1: T, obj2: T2, func: (a: T2)=> T3) {
     if (obj1 == null) return null
@@ -202,14 +211,17 @@ export function DeepCompareKeys<T, T2 extends obj, T3 extends unknown>(obj1: T, 
     if (typeof obj1 != "object") return obj1
     if (isProxy(obj1)) return obj1
     const keys = Object.keys(obj2)
-    if (CompareKeys2(obj1, keys)) return func(obj1 as unknown as T2)
+    if (CompareKeys2(obj1, keys)) { // @ts-ignore
+        return func(obj1 as unknown as T2) as unknown as trr2<T>
+    }
     // @ts-ignore
     return Object.fromEntries(Object.entries(obj1 as any).map(([k,v])=> [k, DeepCompareKeys2(v, keys, func)] as const))
 }
 
 export function deepModifyByListenSocket<T>(obj: T, status: () => boolean){
-    return DeepCompareKeys(obj, funcListenCallbackBase(e => {}, ), e => funcListenBySocket1(e, status)) as
-        tDeepKeys<T, ReturnType<typeof funcListenCallbackBase>, ReturnType<typeof funcListenBySocket1>>
+    return DeepCompareKeys(obj, funcListenCallbackBase(e => {}, ), e => funcListenBySocket1(e, status)) as ttt<T>
+    // as
+    //     tDeepKeys<T, ReturnType<typeof funcListenCallbackBase>, ReturnType<typeof funcListenBySocket1>>
 }
 
 export const funcListenBySocketObj = deepModifyByListenSocket
@@ -280,12 +292,12 @@ export function funcListenCallbackSnapshot<T extends realSocket2<any| any[]>, T2
     let d: ReturnType<tt>|null = null
     const [callback, listenA] = UseListen<Parameters<typeof callbackSave>>({
         event: (type, count, api) => {
-        if (type == "remove" && count == 0) {
-            api.close()
-            // @ts-ignore
-            d?.()
-        }
-        if (type == "add" && count == 1) api.run()
+            if (type == "remove" && count == 0) {
+                api.close()
+                // @ts-ignore
+                d?.()
+            }
+            if (type == "add" && count == 1) api.run()
         }});
     const connect = () => {
         // @ts-ignore
