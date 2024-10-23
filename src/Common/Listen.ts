@@ -213,6 +213,7 @@ export function deepModifyByListenSocket<T>(obj: T, status: () => boolean){
 }
 
 export const funcListenBySocketObj = deepModifyByListenSocket
+
 export function PromiseArrayListen<T extends any = unknown>(array: ((() => Promise<T>)|(() => any)|Promise<T>)[]) {
     let ok = 0, error = 0
     const count = array.length
