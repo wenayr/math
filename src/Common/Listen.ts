@@ -1,32 +1,41 @@
 import {isProxy} from "./isProxy";
 
 type tr222<T extends any[]> = (...r: T)=> void
-export function funcListenCallbackBase<T extends any[]>(a: (e: (tr222<T>|null))=>(void | (()=>void)), option?: {event?: (type: "add" | "remove", count: number, api: ReturnType<typeof funcListenCallbackBase<T>>) => void, fast: boolean
-}) {
-    const {
-        fast = false,
-        event
-    } = option ?? {}
+export function funcListenCallbackBase<T extends any[]>(b: (e: (tr222<T>))=>(void | (()=>void)),
+    data?: {
+        event?: (type: "add" | "remove", count: number, api: ReturnType<typeof funcListenCallbackBase<T>>) => void,
+        fast?: boolean
+    }
+) {
+    const def = {fast: false} satisfies
+        Parameters<typeof funcListenCallbackBase>[1]
+    const {fast, event} = {...def, ...(data ?? {})}
+    let a: Parameters<typeof b>[0] | null
+
+
     const obj = new Map<any, tr222<T>>
     let close: any = null//: null | (()=>void) = null // , api: ReturnType<typeof funcListenCallback<T>>
     let lastSize = 0
     const checkFast = () => {
-        const size = obj.size
-        if (lastSize > 2 && size > 2) return;
+        // const size = obj.size
+        // if (lastSize > 2 && size > 2) return;
         if (obj.size == 0) {
-            a(null); return;
+            a = null; return;
         }
         const ar: tr222<T>[] = []
         obj.forEach(e => ar.push(e))
-        if (obj.size == 1) a((...e)=>{ar[0](...e)})
-        if (obj.size == 2) a((...e)=>{ar[0](...e); ar[1](...e)})
-        if (obj.size > 2) a((...e)=>{obj.forEach(z => z(...e))})
+        if (obj.size == 1) a = ((...e)=>{ar[0](...e)})
+        if (obj.size == 2) a = ((...e)=>{ar[0](...e); ar[1](...e)})
+        if (obj.size > 2) a = ((...e)=> {
+            for (let i = 0; i < ar.length; i++) ar[i](...e)
+            // obj.forEach(z => z(...e))
+        })
 
     }
-    const run = () => close = ((a((...z)=> {
-        obj.forEach(e => e(...z))
-    })) ?? null)
+    const func: Parameters<typeof b>[0] = (...e) => {a?.(...e)}
+    const run = () => close = b(func) ?? (() =>{})
     const api = {
+        func,
         isRun: () => close != null,
         run,
         close: () => {
@@ -44,7 +53,8 @@ export function funcListenCallbackBase<T extends any[]>(a: (e: (tr222<T>|null))=
             if (fast) checkFast()
             event?.("remove", obj.size, api)
         },
-        count: ()=>obj.size
+        count: ()=>obj.size,
+        getAllKeys: obj.keys()
     }
     return api
 }
@@ -68,9 +78,9 @@ export function funcListenBySocket3<Z extends any[] = any[]>(e: t1<Z>, z: {
     return funcListenBySocket2(e, {...z, stop: x => x("___STOP"), paramsModify:(...e) => [e[0]]})
 }
 // не проверена
-export function funcListenBySocket2<Z extends any[] = any[]>(e: t1<Z>, {stop, setEventClose, status, paramsModify}: {
+export function funcListenBySocket2<Z extends any[] = any[]>(e: t1<Z>, {stop, addListenClose, status, paramsModify}: {
     readonly status?: () => boolean,
-    readonly setEventClose?: (eventClose: ()=>any) => any,
+    readonly addListenClose?: t1<any>,
     readonly stop?: (x: tt) => any,
     readonly paramsModify?: (...e: Parameters<tt>) => any[]
 
@@ -78,54 +88,51 @@ export function funcListenBySocket2<Z extends any[] = any[]>(e: t1<Z>, {stop, se
     type tr2<T extends (...a: any[])=>any> = (a: Parameters<T>[0])=> void//ReturnType<T>
     const {addListen, removeListen, count} = e
     type tt = tr2<Parameters<typeof e.addListen>[0]>
-    // let x: tt | null = null
-    const x: {x: tt | null} = {x: null}
+    let last: tt | null = null
     let r2: ((...a: any[]) => void) | null = null
 
-    const removeCallback = () => {
-        if (x.x) {
-            stop?.(x.x)
-            x.x = null
+    function removeCallback(){
+        if (last) {
+            stop?.(last)
+            last = null
         }
         if (r2) removeListen(r2)
+        addListenClose?.removeListen(removeCallback)
         return true
     }
-    return {
-        callback: (z: (...params: Parameters<tt>)=> void) => {//(z: tt) => { // (a: tt) => any
-            // @ts-ignore
-            if (x.x) stop?.(x.x)
-            // if (x.x) x.x("___STOP");
-            if (r2) removeListen(r2)
-            x.x = z
-            if (!z) {
-                console.log(z)
-                console.log(e.count());
-                console.trace()
-                // return;
-            }
-            let ta: typeof z
-            ta = z
-            if (paramsModify) {
-                ta = (...a) => {
-                    const params = paramsModify(...a)
-                    // @ts-ignore
-                    z(...params)
-                }
-            }
-            if (status)
-                r2 = (a: any) => {status() ? ta(a) : removeListen(r2)}
-            else
-                r2 = (a) => ta(a)
 
-            addListen(r2)
-            setEventClose?.(() => removeCallback())
-        },
+    function callback(z: (...params: Parameters<tt>)=> void) {//(z: tt) => { // (a: tt) => any
+        // @ts-ignore
+        if (last) stop?.(last)
+        // if (last) last("___STOP");
+        if (r2) removeListen(r2)
+        last = z
+        if (!z) {
+            console.log(z)
+            console.log(e.count());
+            console.trace()
+            }
+        let ta: typeof z
+        ta = z
+        // @ts-ignore
+        if (paramsModify) ta = (...a) => z(...paramsModify(...a))
+        if (status)
+            r2 = (a: any) => {status() ? ta(a) : removeListen(r2)}
+        else
+            r2 = ta
+
+        addListen(r2)
+        addListenClose?.addListen(removeCallback)
+    }
+
+    return {
+        callback,
         removeCallback
     }
 }
 // Прокидывает колбэк к листу подписок, передовая только, первый параметр функции (подписки листа).
 // Если функция уже есть, то он отправит код остановки клиенту, и удалит её
-export function funcListenBySocket<Z extends any[] = any[]>(e: ReturnType<typeof funcListenCallback<Z>>, status: ()=>boolean) {
+export function funcListenBySocket<Z extends any[] = any[]>(e: ReturnType<typeof funcListenCallback<Z>>, status: ()=>boolean, onStop?: ReturnType<typeof funcListenCallback<any>>) {
     type tr2<T extends (...a: any[])=>any> = (a: Parameters<T>[0])=> void//ReturnType<T>
     const {addListen, removeListen, count} = e
     type tt = tr2<Parameters<typeof e.addListen>[0]>
@@ -158,11 +165,13 @@ export function funcListenBySocket<Z extends any[] = any[]>(e: ReturnType<typeof
 }
 export const funcListenBySocket1 = funcListenBySocket
 
-export function UseListen<T extends any[]>(data?: {event?: Parameters<typeof funcListenCallback<T>>[1], fast?: boolean}) {
-    let t: ((...a: T) => void) | null = null
-    const a = funcListenCallbackBase<T>((e)=>{t = e}, {fast: true,...data})
+export function UseListen<T extends any[]>(data: Parameters<typeof funcListenCallbackBase>[1] = {fast : true}) {
+    let t: ((...a: T) => void)// | null = null
+    const a = funcListenCallbackBase<T>((e)=>{t = e}, {fast: true, ...data})
     a.run()
-    return [(...e: T)=>t?.(...e), a] as const
+    t = a.func
+    // return [(...e: T)=>t?.(...e), a] as const
+    return [t, a] as const
 }
 
 
@@ -196,7 +205,7 @@ export function DeepCompareKeys2<T, T3 extends unknown>(obj1: T, keys: string[],
 }
 
 type tt3<T extends any[]> = typeof funcListenCallbackBase<T>
-type trr2<T extends ReturnType<typeof funcListenCallbackBase<any>>> = T extends ReturnType<tt3<infer R>> ? R : never
+type trr2<T> = T extends ReturnType<tt3<infer R>> ? R : never
 type tt33<T extends any[]> = ReturnType<typeof funcListenCallbackBase<T>>
 type tt44<T extends any[]> = ReturnType<typeof funcListenBySocket1<T>>
 type ttt<T> = {[K in keyof T]: T[K] extends tt33<any> ? tt44<trr2<T[K]>> : T[K] extends typeof Promise ? T[K]  : T[K] extends (...a: any) => any ? T[K] : T[K] extends object ? ttt<T[K]> : T[K] }
@@ -223,6 +232,14 @@ export function deepModifyByListenSocket<T>(obj: T, status: () => boolean){
     // as
     //     tDeepKeys<T, ReturnType<typeof funcListenCallbackBase>, ReturnType<typeof funcListenBySocket1>>
 }
+export function deepModifyByListenSocket2<T>(obj: T, data: {
+    status?: () => boolean,
+    addListenClose?: t1<any>,
+}){
+    return DeepCompareKeys(obj, funcListenCallbackBase(e => {}, ), e => funcListenBySocket2(e, data)) as ttt<T>
+    // as
+    //     tDeepKeys<T, ReturnType<typeof funcListenCallbackBase>, ReturnType<typeof funcListenBySocket1>>
+}
 
 export const funcListenBySocketObj = deepModifyByListenSocket
 
@@ -235,7 +252,7 @@ export function PromiseArrayListen<T extends any = unknown>(array: ((() => Promi
     const c = UseListen<tError>()
     const a = (data: T, i: number) => {
         ++ok;
-        return t[0](data, i, ok, error, count) ?? data
+        t[0](data, i, ok, error, count)
     }
     const b = (error: any, i: number) => {
         ++error;
