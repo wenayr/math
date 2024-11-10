@@ -67,29 +67,26 @@ export function funcListenCallback<T extends any[]>(a: (e: (tr222<T>|null))=>(vo
 
 
 type tr2<T extends (...a: any[])=>any> = (a: Parameters<T>[0])=> void//ReturnType<T>
+type tr2a<T extends (...a: any[])=>any> = (...a: Parameters<T>)=> void//ReturnType<T>
 type t1<T extends any[] = any[]> = ReturnType<typeof funcListenCallback<T>>
 type tt2 = tr2<Parameters<t1["addListen"]>[0]>
 type tt = tr2<Parameters<t1["addListen"]>[0]>
+type tta = tr2a<Parameters<t1["addListen"]>[0]>
 
-export function funcListenBySocket3<Z extends any[] = any[]>(e: t1<Z>, z: {
-    readonly status?: () => boolean,
-    readonly setEventClose?: (eventClose: ()=>any) => any,
-}) {
-    return funcListenBySocket2(e, {...z, stop: x => x("___STOP"), paramsModify:(...e) => [e[0]]})
-}
-// не проверена
-export function funcListenBySocket2<Z extends any[] = any[]>(e: t1<Z>, {stop, addListenClose, status, paramsModify}: {
+// передает все параметры
+export function funcListenBySocket2<Z extends any[] = any[]>(e: t1<Z>, d?: {
     readonly status?: () => boolean,
     readonly addListenClose?: t1<any>,
-    readonly stop?: (x: tt) => any,
-    readonly paramsModify?: (...e: Parameters<tt>) => any[]
+    readonly stop?: (x: tta) => any,
+    readonly paramsModify?: (...e: Parameters<tta>) => any[]
 
 }) {
+    const {stop, addListenClose, status, paramsModify} = d ?? {}
     type tr2<T extends (...a: any[])=>any> = (a: Parameters<T>[0])=> void//ReturnType<T>
     const {addListen, removeListen, count} = e
-    type tt = tr2<Parameters<typeof e.addListen>[0]>
-    let last: tt | null = null
+    let last: tta | null = null
     let r2: ((...a: any[]) => void) | null = null
+    type tt = tr2a<Parameters<typeof e.addListen>[0]>
 
     function removeCallback(){
         if (last) {
@@ -117,7 +114,7 @@ export function funcListenBySocket2<Z extends any[] = any[]>(e: t1<Z>, {stop, ad
         // @ts-ignore
         if (paramsModify) ta = (...a) => z(...paramsModify(...a))
         if (status)
-            r2 = (a: any) => {status() ? ta(a) : removeListen(r2)}
+            r2 = (...a: any) => {status() ? ta(...a) : removeListen(r2)}
         else
             r2 = ta
 
@@ -128,6 +125,16 @@ export function funcListenBySocket2<Z extends any[] = any[]>(e: t1<Z>, {stop, ad
     return {
         callback,
         removeCallback
+    }
+}
+// передает первый параметр
+export function funcListenBySocket3<Z extends any[] = any[]>(e: t1<Z>, options: Omit<Parameters<typeof funcListenBySocket2>[1], "paramsModify">) {
+    const r = funcListenBySocket2(e, {...options, paramsModify: e=>[e]})
+    type tt = tr2<Parameters<typeof e.addListen>[0]>
+    const callback = r.callback as unknown as (z: (...params: Parameters<tt>) => void)=>void
+    return {
+        callback,
+        removeCallback: r.removeCallback
     }
 }
 // Прокидывает колбэк к листу подписок, передовая только, первый параметр функции (подписки листа).
@@ -229,16 +236,14 @@ export function DeepCompareKeys<T, T2 extends obj, T3 extends unknown>(obj1: T, 
 
 export function deepModifyByListenSocket<T>(obj: T, status: () => boolean){
     return DeepCompareKeys(obj, funcListenCallbackBase(e => {}, ), e => funcListenBySocket1(e, status)) as ttt<T>
-    // as
-    //     tDeepKeys<T, ReturnType<typeof funcListenCallbackBase>, ReturnType<typeof funcListenBySocket1>>
 }
-export function deepModifyByListenSocket2<T>(obj: T, data: {
-    status?: () => boolean,
-    addListenClose?: t1<any>,
-}){
+
+export function deepModifyByListenSocket2<T>(obj: T, data: Parameters<typeof funcListenBySocket2>[1]){
     return DeepCompareKeys(obj, funcListenCallbackBase(e => {}, ), e => funcListenBySocket2(e, data)) as ttt<T>
-    // as
-    //     tDeepKeys<T, ReturnType<typeof funcListenCallbackBase>, ReturnType<typeof funcListenBySocket1>>
+}
+// у подписок передает только первый параметр
+export function deepModifyByListenSocket3<T>(obj: T, data: Parameters<typeof funcListenBySocket3>[1]){
+    return DeepCompareKeys(obj, funcListenCallbackBase(e => {}, ), e => funcListenBySocket3(e, data)) as ttt<T>
 }
 
 export const funcListenBySocketObj = deepModifyByListenSocket
