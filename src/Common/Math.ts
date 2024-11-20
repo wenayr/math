@@ -16,9 +16,9 @@ export function CorrelationRollingByBuffer(data: tCorrelationByBuffer) {
         clear(data?: tCorrelationByBuffer)  {clear(); data && this.init(data);},
         // set index(t:number) {index = t},
         // get index() {return index},
-        corr(arr1: number[], arr2: number[], max: number, bufferOn: boolean, key1?: any, key2?: any) {
-            const buffer = bufferOn ? getBuffer(key1 ?? arr1, key2 ?? arr2) : null
-            CorrelationFunc(arr1,arr2, {rolling: max, buffer})
+        corr(arr1: number[], arr2: number[], key1?: any, key2?: any) {
+            const buffer = setting.bufferOn ? getBuffer(key1 ?? arr1, key2 ?? arr2) : null
+            return CorrelationFunc(arr1,arr2, {rolling: setting.max, buffer})
         }
     })
 }
