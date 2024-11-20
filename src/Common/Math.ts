@@ -5,7 +5,14 @@ type tCorrelationByBuffer = {max: number, bufferOn?: boolean}
 export function CorrelationRollingByBuffer(data: tCorrelationByBuffer) {
     let setting: tCorrelationByBuffer = {...data};
     const map = new Map<object, Map<object,tCorrBuffer>>()
-    const getBuffer = (key1: any, key2: any) => map.get(key1)?.get(key2)
+    const defBuf = (): tCorrBuffer => ({last1: 0, last2: 0, mulSum: 0, pow1:0 , pow2: 0, sum2:0 , sum1: 0})
+    const getBuffer = (key1: any, key2: any) => {
+        let a1 = map.get(key1)
+        if (!a1) map.set(key1, a1 = new Map<object,tCorrBuffer>())
+        let a2 = a1.get(key2)
+        if (!a2) a1.set(key2, a2 = defBuf())
+        return a2
+    }
     let index = 0;
     const clear = () => {
         index = 0;
