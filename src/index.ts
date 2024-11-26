@@ -14,6 +14,8 @@
 
 export * from "./Common/node_console";
 
+export * from "./Common/Decorator";
+
 export * from "./Common/BaseTypes";
 export * from "./Common/ByteStream";
 export * from "./Common/Color";
