@@ -7,10 +7,10 @@ export function Decorator<T extends (...arg: any[]) => any>(
             parametersAfter?: (...a: Parameters<T>) => any,
             result?: (a: ReturnType<T>) => any,
             resultModifier?: (a: ReturnType<T>) => ReturnType<T>,
-        }){
+        }) {
     return (...arg: Parameters<T>) => {
         option?.parameters?.(...arg)
-        const r = func(...(option?.parametersModifier?.(...arg) ?? arg))
+        const r = func(...(option?.parametersModifier?.(...arg) ?? arg)) as ReturnType<T>
         option?.parametersAfter?.(...arg)
         option?.result?.(r)
         return option?.resultModifier?.(r) ?? r
