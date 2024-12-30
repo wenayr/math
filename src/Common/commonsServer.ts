@@ -18,7 +18,6 @@ type tt = {[k: string]: any}
  *  Есть риск одноименных методов в разных объектах
  *  пока не думал как решить =)
  * */
-
 export function funcPromiseServer<T extends tt>(data: screenerSoc<tSocketData<tRequestScreenerT<T>>>, obj: T) {
     const buf = data;
     data.api({
@@ -48,7 +47,7 @@ export function funcPromiseServer<T extends tt>(data: screenerSoc<tSocketData<tR
             // if (!buf[nameF]) return;//throw "такого метода нет"
             if (typeof buf[nameF] == "function") {
                 const {callbacksId} = datum
-                if (callbacksId) {
+                if (callbacksId && Array.isArray(callbacksId)) {
                     const arr = callbacksId.map((e) => {
                         return (d: any) => {
                             try {
@@ -575,6 +574,8 @@ type PromiseAllZL<T extends any> =
 
 export function fMiniTest() {
 }
+
+
 
 export class CTestWeb {
     func(a: number, b: number) {

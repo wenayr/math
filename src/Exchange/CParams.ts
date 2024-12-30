@@ -121,6 +121,8 @@ export type AnyEnumVal= number|string|const_Date|object;
 
 interface IParamBase0 { //extends Readonly<{
     name? : string; // имя
+
+    commentary?: string[],
     //value : string|number|boolean | (number|string|boolean)[] | IParams;  // значение по умолчанию
     range? : (number|string|DateTime|object)[] | UserNumRange | UserTimeRange | undefined;  // допустимый диапазон значений
     //defaultRange? : Partial<NumRange>|undefined; // допустимый диапазон значений
@@ -219,15 +221,18 @@ interface IParamEnumBase<T extends number|string|DateTime> extends _IParamEnumBa
 }
 
 export interface IParamEnum<T extends number|string|DateTime= number|string|DateTime> extends ParamVal<IParamEnumBase<T>, T> { }
-
+export interface IParamEnum<T extends number|string|DateTime= number|string|DateTime> extends ParamVal<IParamEnumBase<T>, T> {
+    commentary?: string[];
+}
 export type IParamEnumReadonly<T extends number|string|DateTime= number|string|DateTime> = ReadonlyFull<IParamEnum<T>>;
 
 export type IParamEnumAny<T extends AnyEnumVal = AnyEnumVal> = (T extends number|string|DateTime ? IParamEnumReadonly<T> : IParamEnumBaseAny<T>) & IParamVal<T>;
 
 export interface IParamEnumArr<T extends number|string|DateTime= number|string|DateTime> extends ParamArr<IParamEnumBase<T>, T> { }
 
-export type ParamEnum<T extends number|string|DateTime = number|string|DateTime> = IParamEnum<T> | IParamEnumArr<T>;
-
+// export type ParamEnum<T extends number|string|DateTime = number|string|DateTime> = IParamEnum<T> | IParamEnumArr<T>;
+export type ParamEnum<T extends number|string|DateTime = number|string|DateTime> =
+    (IParamEnum<T> | IParamEnumArr<T>) & { commentary?: string[] };
 export type ParamEnumReadonly<T extends number|string|DateTime> = ReadonlyFull<ParamEnum<T>>;
 
 interface IParamTimeBase1 extends IParamBaseDefault {
@@ -241,11 +246,15 @@ interface IParamTimeBase2 extends IParamBaseDefault {
 
 
 export interface IParamTime1 extends ParamVal<IParamTimeBase1, DateTimeStr> { }
-export interface IParamTime2 extends ParamVal<IParamTimeBase2, const_Date> { }
+export interface IParamTime2 extends ParamVal<IParamTimeBase2, const_Date> {
+}
 
+export interface IParamTime1 extends ParamVal<IParamTimeBase1, DateTimeStr> {
+}
 export interface IParamTimeArr1 extends ParamArr<IParamTimeBase1, DateTimeStr> { }
 export interface IParamTimeArr2 extends ParamArr<IParamTimeBase2, const_Date> { }
-
+export interface IParamTimeArr2 extends ParamArr<IParamTimeBase2, const_Date> {
+}
 export type ParamTime= IParamTime1 | IParamTime2 | IParamTimeArr1 | IParamTimeArr2;
 
 
@@ -279,7 +288,7 @@ interface IParamString extends ParamVal<IParamStringBase, string> { }
 
 interface IParamStringArr extends ParamArr<IParamStringBase, string> { }
 
-export type ParamString = IParamString | IParamStringArr;
+export type ParamString = (IParamString | IParamStringArr) & { commentary?: string[] };
 
 
 interface IParamBoolBase extends IParamBaseDefault {
@@ -292,7 +301,7 @@ export interface IParamBoolean extends ParamVal<IParamBoolBase, boolean> { }
 
 export interface IParamBooleanArr extends ParamArr<IParamBoolBase, boolean> { constLength?: true }
 
-export type ParamBoolean = IParamBoolean | IParamBooleanArr;
+export type ParamBoolean = (IParamBoolean | IParamBooleanArr) & { commentary?: string[] };
 
 export interface IParamGroup extends IParamBaseDefault, IParamBase1 {
     value: IParams;
@@ -472,7 +481,7 @@ let bbb :IParamsReadonly2 = xxx; //paramsInfoToExt(aaa);
 // Пример
 const param : IParams= {
     p0 : {name: "MA0", value: [10, 20], range: [10, 20 ,30] },
-    p1 : {name: "MA1", value: 20, range: {min: 10, max: 20, step: 2} },
+    p1 : {name: "MA1", commentary:["fgf"], value: 20, range: {min: 10, max: 20, step: 2} },
     p2 : {name: "MA2", value: 10, range: [10, 20, 30] },
     p3 : {name: "MA3", value: "a", range: ["a", "b", "c"] },
     p4 : {name: "MA4", value: true },
@@ -522,7 +531,7 @@ class Test extends CParams {
     p1 = {name: "MA1", value: 20, range: {min: 10, max: 20, step: 2} };
     p2 = {name: "MA2", value: 10, range: [10, 20, 30] };
     p3 = {name: "MA3", value: "a", range: ["a", "b", "c"] };
-    p4 = {name: "MA4", value: true };
+    p4 = {name: "MA4", value: true, commentary: ["Dsd"] };
     p5 = {
         name : "group",
         enabled : true,
@@ -674,7 +683,13 @@ export function mergeParamValuesToInfos<TParams extends IParamsReadonly, TParams
     return convert_(isSimpleParams(valuesObj) ? valuesObj : GetSimpleParams(valuesObj as IParams), srcObj) as TParams;
 }
 
-
+function test(){
+    const p = new Test()
+    const s = GetSimpleParams(p)
+    const r = mergeParamValuesToInfos(p, s)
+    console.log(p, s, r)
+}
+// test()
 
 //
 // function GetSimpleParams2<T extends IParams>(params : T) //: SimpleT<T>
