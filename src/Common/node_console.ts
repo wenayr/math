@@ -8,10 +8,8 @@ import type {CallSite} from "source-map-support"
 
 export {};
 
-// @ts-ignore
-declare var self : unknown;
-// @ts-ignore
-declare var window : unknown;
+
+const {self, window} = globalThis as any;
 
 //console.log("!!!!!",typeof self, typeof window);
 
@@ -25,7 +23,6 @@ if (1)
 //await (async()=>{
 (()=>{
     if (typeof self != 'object' && typeof window!="object") { // если запущено на node.js
-
 
         //let inspector= await import(/* webpackIgnore: true */ 'inspector');
         function moduleName(name :string) { return name; } // дополнительная обёртка, чтобы webpack не выдавал ошибку в js файле, скомпилированном с удалением комментариев
@@ -45,34 +42,52 @@ if (1)
             return;
         }
         _enabled= true;
-        for(let methodName of ['debug', 'log', 'warn', 'error'] as (keyof typeof console)[]) {
-            const originalLoggingMethod = console[methodName] as typeof console.log; //any;
+        const origLogMethod= console.log;
+        const origErrorMethod = console.error;
+        let _callee :CallSite|undefined;
 
-            console[methodName] = ((firstArgument? :any, ...otherArguments :any[]) => {
-                if (!_enabled) return originalLoggingMethod(firstArgument, ...otherArguments);
+        for(let methodName of [
+                'debug', 'info', 'log', 'warn', 'error', 'group', 'groupCollapsed', 'table', 'timeLog', 'timeEnd',
+                'count', 'assert', 'dir', 'dirxml'
+            ] satisfies (keyof typeof console)[])
+        {
+            const origMethod = console[methodName] as typeof console.log; //any;
+
+            console[methodName] = ((...args :any[]) => {
+                if (!_enabled) return origMethod(...args);
                 const originalPrepareStackTrace = Error.prepareStackTrace;
                 Error.prepareStackTrace = (_, stack) => stack;
-                type MyError= { stack: CallSite[]}
+                type MyError= {stack: CallSite[]}
                 let callee = (new Error() as unknown as MyError).stack[1];
-                if (!callee) return;
+                Error.prepareStackTrace = originalPrepareStackTrace;
+                if (!callee) {
+                    origErrorMethod("сallee is not found in node_console");
+                    _enabled=false;
+                    return origMethod(...args);
+                }
+                if (! methodName.match(/debug|info|log|warn|error|dirxml/)) {
+                    _callee ??= callee;  return origMethod(...args);
+                }
+                if (_callee) { callee= _callee; _callee= undefined; }
+
                 if (wrapCallSite) callee= wrapCallSite(callee);
 
-                Error.prepareStackTrace = originalPrepareStackTrace;
                 const fileName = callee.getFileName(); //path.relative(process.cwd(), callee.getFileName());
-                if (fileName?.includes("source-map-support")) { originalLoggingMethod(firstArgument, ...otherArguments);  return; }
+                if (fileName?.includes("source-map-support")) { origMethod(...args);  return; }
                 let fileAndLine = `${fileName}:${callee.getLineNumber()}:${callee.getColumnNumber()}  `+callee.getFunctionName();
                 fileAndLine = fileAndLine.replaceAll("\\","/");
                 fileAndLine = fileAndLine.replace("webpack:///","");
                 fileAndLine = fileAndLine.replace("?","");
                 if (! fileAndLine.startsWith("./"))
                     if (! fileAndLine.toLowerCase().startsWith("file:///")) fileAndLine= "file:///" + fileAndLine;
+                let [firstArg, ...otherArgs] = args;
                 if (1)
-                    originalLoggingMethod(firstArgument, ...otherArguments, "",fileAndLine);
+                    origMethod(...args, "",fileAndLine);
                 else
-                if (typeof firstArgument === 'string') {
-                    originalLoggingMethod(fileAndLine + ' ' + firstArgument, ...otherArguments);
+                if (typeof firstArg==='string') {
+                    origMethod(fileAndLine+' '+firstArg, ...otherArgs);
                 } else {
-                    originalLoggingMethod(fileAndLine, firstArgument, ...otherArguments);
+                    origMethod(fileAndLine, ...args);
                 }
             }) as any;
         }
@@ -110,7 +125,33 @@ export function __LineFiles(lvlStart = 0, lvlEnd: number|undefined = 5){
 //     console.log(__LineFile(1));
 // }
 // ttt()
+
+
+function test() {
+    console.log("LOG");
+    console.debug("DEBUG");
+    console.warn("WARN");
+    console.error("ERROR");
+    console.info("INFO");
+    console.time("ttt");
+    console.timeLog("ttt","TIME_LOG");
+    console.timeEnd("ttt");
+    console.count("COUNT");
+    console.group("GROUP");
+    console.groupEnd();
+    console.groupCollapsed("GROUP COLLAPSED");
+    console.groupEnd();
+    console.table([10,20,30]);
+    console.assert(false);
+    console.dir({DIR: 10, b: "str", c: { d: 1, e: [5,6,7] }})
+    console.dirxml("DIRXML",10,20,"hello", {a:5, b:"str"});
+    console.trace("TRACE");
+}
+
+//test();
+
+// // Tests:
 // console.log('%s %d', 'hi', 42);
 // console.log({ a: 'foo', b: 'bar'});
-// throw new Error("Errrrrr");
+
 
