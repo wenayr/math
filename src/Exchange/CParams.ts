@@ -222,7 +222,7 @@ interface IParamEnumBase<T extends number|string|DateTime> extends _IParamEnumBa
 
 export interface IParamEnum<T extends number|string|DateTime= number|string|DateTime> extends ParamVal<IParamEnumBase<T>, T> { }
 export interface IParamEnum<T extends number|string|DateTime= number|string|DateTime> extends ParamVal<IParamEnumBase<T>, T> {
-    commentary?: string[];
+    // commentary?: string[];
 }
 export type IParamEnumReadonly<T extends number|string|DateTime= number|string|DateTime> = ReadonlyFull<IParamEnum<T>>;
 
@@ -232,7 +232,7 @@ export interface IParamEnumArr<T extends number|string|DateTime= number|string|D
 
 // export type ParamEnum<T extends number|string|DateTime = number|string|DateTime> = IParamEnum<T> | IParamEnumArr<T>;
 export type ParamEnum<T extends number|string|DateTime = number|string|DateTime> =
-    (IParamEnum<T> | IParamEnumArr<T>) & { commentary?: string[] };
+    (IParamEnum<T> | IParamEnumArr<T>) //& { commentary?: string[] };
 export type ParamEnumReadonly<T extends number|string|DateTime> = ReadonlyFull<ParamEnum<T>>;
 
 interface IParamTimeBase1 extends IParamBaseDefault {
@@ -288,7 +288,7 @@ interface IParamString extends ParamVal<IParamStringBase, string> { }
 
 interface IParamStringArr extends ParamArr<IParamStringBase, string> { }
 
-export type ParamString = (IParamString | IParamStringArr) & { commentary?: string[] };
+export type ParamString = (IParamString | IParamStringArr) // & { commentary?: string[] };
 
 
 interface IParamBoolBase extends IParamBaseDefault {
@@ -301,7 +301,7 @@ export interface IParamBoolean extends ParamVal<IParamBoolBase, boolean> { }
 
 export interface IParamBooleanArr extends ParamArr<IParamBoolBase, boolean> { constLength?: true }
 
-export type ParamBoolean = (IParamBoolean | IParamBooleanArr) & { commentary?: string[] };
+export type ParamBoolean = (IParamBoolean | IParamBooleanArr) // & { commentary?: string[] };
 
 export interface IParamGroup extends IParamBaseDefault, IParamBase1 {
     value: IParams;
@@ -487,6 +487,7 @@ const param : IParams= {
     p4 : {name: "MA4", value: true },
     p5 : {
         name : "group",
+        commentary: ["group for... "],
         enabled : true,
         value:{
             p1 : {name: "gMA1", value: 20, range: {min: 10, max: 20, step: 2} },
