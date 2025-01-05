@@ -122,15 +122,37 @@ export function colorGeneratorByCount(value=180, count=100, index=1) : ColorStri
 export function colorStringToRGBA(str :ColorString) : [number,number,number,number];
 export function colorStringToRGBA(str :string) : [number,number,number,number]|undefined;
 
-export function colorStringToRGBA(str :string) : [number,number,number,number]|undefined {
-	let arr = str.match(/^rgb?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);
-	//let a= rgb.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);
-	if (!arr || arr[1]==null) arr= str.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);
-	const nums : (number|null)[]= arr?.slice(1).map((str)=>(str!=null ? parseInt(str) : null)) ?? [];
-    let [r, g, b, a]= nums;
-    if (r==null || g==null || b==null) return undefined;
-	a ??= 1;  // alpha
-	return [r, g, b, a];
+export function colorStringToRGBA(str: string): [number, number, number, number] | undefined {
+    const rgbRegex = /^rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/i;
+    const rgbaRegex = /^rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d*\.?\d+)\s*\)$/i;
+
+    let match = str.match(rgbRegex);
+    if (match) {
+        const [r, g, b] = match.slice(1).map(Number);
+        if (isValidRGBValue(r) && isValidRGBValue(g) && isValidRGBValue(b)) {
+            return [r, g, b, 1]; // Альфа по умолчанию: 1
+        }
+    }
+
+    match = str.match(rgbaRegex);
+    if (match) {
+        const [r, g, b, a] = match.slice(1).map(Number);
+        if (isValidRGBValue(r) && isValidRGBValue(g) && isValidRGBValue(b) && isValidAlphaValue(a)) {
+            return [r, g, b, a];
+        }
+    }
+
+    return undefined; // Возвращаем undefined для некорректных строк
+}
+
+// Проверяет, является ли значение RGB допустимым (0-255)
+function isValidRGBValue(value: number): boolean {
+    return value >= 0 && value <= 255;
+}
+
+// Проверяет, является ли значение альфа-канала допустимым (0.0-1.0)
+function isValidAlphaValue(value: number): boolean {
+    return value >= 0 && value <= 1;
 }
 
 export function toColorString(str :string) { if (colorStringToRGBA(str)) return str as ColorString;  throw `the string '${str}' is not valid 'rgb' or 'rgba' string`; }
@@ -139,7 +161,7 @@ export function toColorString(str :string) { if (colorStringToRGBA(str)) return 
 export function isSimilarColors(color1 :ColorString|readonly[number,number,number], color2 :ColorString|readonly[number,number,number], maxDelta = 32) {
 	let [r1, g1, b1] = typeof color1=="string" ? colorStringToRGBA(color1) : color1;
 	let [r2, g2, b2] = typeof color2=="string" ? colorStringToRGBA(color2) : color2;
-	let delta = Math.max(r1-r2) + Math.max(g1-g2) + Math.max(b1-b2);
+	let delta = Math.abs(r1-r2) + Math.abs(g1-g2) + Math.abs(b1-b2);
 	return delta <= maxDelta;
 }
 

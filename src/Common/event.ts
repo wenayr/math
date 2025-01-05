@@ -1,5 +1,4 @@
 import {CListNodeAnd} from "./ListNodeAnd";
-
 export type tListEvent<T=any, T2=void> = {
     // что нужно выполнить при событии
     func?:(data?:T)=>T2,
@@ -17,7 +16,7 @@ export class CObjectEventsArr<T extends object>{
 
     private set setup(link:tListEvent) {
         const data = link
-        data.del = ()=>{
+        data.del = ()=> {
             for (let i = 0; i < this.data.length; i++) {
                 if (this.data[i]==data) {
                     this.data[i].OnDel?.();
@@ -40,9 +39,10 @@ export class CObjectEventsArr<T extends object>{
     // OnSpecEvent<T extends object>(f:(e:T)=>void)           {this.data.forEach((e)=>{let l=e.func?.() as T; if (l) {f(l);}  e.func2?.();})}
     OnSpecEvent(f:(e:T)=>void)              {this.data.forEach((e)=>{const l= e.func?.() as unknown as (T|undefined); l&&f(l); e.func2?.();})} // l&&f(l);  if (l) {f(l);}
     Clean()                                 {
-        for (let i = this.data.length - 1; i >= 0; i--) {
-            this.data[i].del?.();
-            this.data[i].OnDel?.();
+        const a = [...this.data];
+        for (let i = a.length - 1; i >= 0; i--) {
+            a[i].del?.();
+            a[i].OnDel?.();
         }
         this.data=[];
     }

@@ -1,5 +1,5 @@
 
-//import "wenay-common/lib/Common/common";
+// import  * as lib from "wenay-common/lib/index";
 
 import * as lib from "wenay-common";
 

@@ -7,15 +7,16 @@
   "types": "lib/index.d.ts",
   "private": true,
   "scripts": {
+    "test": "npm run --prefix ./test test",
+    "test2": "jest",
+    "test3": "jest --clearCache",
     "build & watch": "npm run _clearDir  &&  tsc --watch",
     "build": "npm run _clearDir  &&  tsc --build --verbose  &&  npm run _afterBuild",
-    "_afterBuild" : "node copyCompiledFiles.mjs .\\dist  &&  cd dist  &&  npm pkg delete scripts devDependencies private",
-    "test": "npm run --prefix ./test test",
+    "_afterBuild": "node copyCompiledFiles.mjs .\\dist  &&  cd dist  &&  npm pkg delete scripts devDependencies private",
     "pack": "npm run _afterBuild  &&  npm pack .\\dist",
     "_publish": "npm run test  &&  npm publish .\\dist",
     "publish": "npm run _afterBuild  &&  npm run _publish",
     "build & publish": "npm run build  &&  npm run _publish",
-
     "_clearDir": "IF exist lib (rd /s /q lib)  &&  mkdir lib  &&  copy tsconfig_lib.json lib\\tsconfig.json  &&  echo:"
   },
   "files": [
@@ -34,17 +35,20 @@
   "dependencies": {
     "axios": "^1.7.2",
     "create-hmac": "^1.1.7",
-    "xmlhttprequest": "^1.8.0",
-    "source-map-support": "^0.5.21"
+    "source-map-support": "^0.5.21",
+    "xmlhttprequest": "^1.8.0"
   },
   "devDependencies": {
-    "npm": "^11.0.0",
-    "ts-node": "^10.9.2",
-    "typescript": "5.6.3",
     "@types/create-hmac": "^1.1.3",
-    "@types/node": "^18.19.37",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.10.5",
     "@types/source-map-support": "^0.5.10",
-    "wenay-common" : "file:./dist"
+    "jest": "^29.7.0",
+    "npm": "^11.0.0",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2",
+    "wenay-common": "file:./dist"
   },
   "optionalDependencies": {
     "utf-8-validate": "^6.0.3"

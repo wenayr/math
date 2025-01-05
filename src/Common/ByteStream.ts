@@ -54,7 +54,9 @@ export class ByteStreamW
 	protected _isThrowable = true;
 	protected _buffer() { return this._view?.buffer; }
 
-	protected resize(size :number) {  let buf= createCopyOfBuffer(this._buffer(), size);  this._view= new DataView(buf); }
+	protected resize(size :number) {
+		// if (!this._buffer()) throw "Buffer is not created";
+		let buf= createCopyOfBuffer(this._buffer() as Readonly<ArrayBuffer>, size);  this._view= new DataView(buf); }
 
 	constructor(view? :DataView) { this.resize(0); }
 
