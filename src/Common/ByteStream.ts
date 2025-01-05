@@ -161,7 +161,11 @@ export class ByteStreamW
 			this._ensureAllocation(length+4);
 			this.pushInt32(length);
 			let arrayClass= (array instanceof Int8Array) ? Int8Array : Uint8Array;
-			if (length != array.length) array = new arrayClass(array, 0, length);
+			if (length != array.length) {
+				// @ts-ignore
+				array = new arrayClass(array.buffer, 0, length);
+			}
+			// @ts-ignore
 			new arrayClass(this._buffer()).set(array, this._pos);
 			return this;
 		}
@@ -341,6 +345,7 @@ class ByteStreamR_<throwable extends boolean>
 			let arrayClass= type=="int8" ? Int8Array : Uint8Array;
 			let size= this.readUint32();  if (size==null) return null;
 			let bufpos= this._view.byteOffset + this._pos;
+			// @ts-ignore
 			new arrayClass(this._view.buffer.slice(bufpos, bufpos+size!));
 		}
         //@ts-ignore

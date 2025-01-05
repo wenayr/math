@@ -5,7 +5,7 @@ import { sleepAsync } from "./common";
  * Управляет запуском асинхронных функций с ограничениями по времени.
  */
 export function enhancedWaitRun() {
-    let lastExecutionTime: number = Date.now(); // Время последнего успешного выполнения функции
+    let lastExecutionTime: number = 0 //Date.now(); // Время последнего успешного выполнения функции
     let activePromise: Promise<void> = Promise.resolve(); // Активная цепочка промисов
     let isBusy: boolean = false; // Флаг занятости
     let latestFunction: (() => any | Promise<any>) | undefined; // Последняя переданная функция (для отложенного запуска)

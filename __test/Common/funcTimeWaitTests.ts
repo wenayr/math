@@ -1,6 +1,8 @@
 // // tests/funcTimeWait.test.ts
 import {funcTimeW} from '../../src/Common/funcTimeWait';
 
+
+
 describe('funcTimeW - Functional Tests', () => {
   let manager: ReturnType<typeof funcTimeW>;
   const mockType = "UID"; // Тестируем на ключе UID
