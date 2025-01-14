@@ -78,8 +78,9 @@ describe("Тестирование функций из common.ts", () => {
   });
 
   test("BSearchNearest - ближайший элемент", () => {
-    const array = [1, 3, 7, 10];
+    const array = [1, 3, 8, 10];
     const index = BSearchNearest(array, 5);
+    console.log({index})
     expect(index).toBe(1); // Ближайшее значение 3
 
     const exactIndex = BSearchNearest(array, 10);

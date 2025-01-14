@@ -341,7 +341,7 @@ export type tMethodToPromise6<T extends object> = { [P in keyof T]: T[P] extends
 //     })
 // }
 
-function funcScreenerClient2<T extends object>(data: screenerSoc2<T>, wait?: boolean) {
+export function funcScreenerClient2<T extends object>(data: screenerSoc2<T>, wait?: boolean) {
     const tr = (address: string[]) => new Proxy((()=>{}) as any, {
         get(target: any, p: string | symbol, receiver: any): any {
             address.push(p as string)
