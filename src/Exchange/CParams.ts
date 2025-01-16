@@ -542,6 +542,25 @@ class Test extends CParams {
         }
     }
 }
+// так не стоит делать
+function TestFunction() {
+    return {
+        //[param :string] : IParam2;
+        p0: {name: "MA0", value: [10, 20], range: [10, 20 ,30] },
+        p1: {name: "MA1", value: 20, range: {min: 10, max: 20, step: 2} },
+        p2: {name: "MA2", value: 10, range: [10, 20, 30] },
+        p3: {name: "MA3", value: "a", range: ["a", "b", "c"] },
+        p4: {name: "MA4", value: true, commentary: ["Dsd"] },
+        p5: {
+            name : "group",
+            enabled : true,
+            value:{
+                p1 : {name: "gMA1", value: 20, range: {min: 10, max: 20, step: 2} },
+                p2 : {name: "gMA2", value: 10 ,range: [10, 20, 30] }
+            }
+        }
+    } satisfies CParams
+}
 
 
 
@@ -685,10 +704,20 @@ export function mergeParamValuesToInfos<TParams extends IParamsReadonly, TParams
 }
 
 function test(){
-    const p = new Test()
-    const s = GetSimpleParams(p)
-    const r = mergeParamValuesToInfos(p, s)
-    console.log(p, s, r)
+    {
+        const p = new Test()
+
+        const s = GetSimpleParams(p)
+        const r = mergeParamValuesToInfos(p, s)
+        console.log(p, s, r)
+    }
+    {
+        // const p = TestFunction()
+        //
+        // const s = GetSimpleParams(p)
+        // const r = mergeParamValuesToInfos(p, s) // Error
+        // console.log(p, s, r)
+    }
 }
 // test()
 
