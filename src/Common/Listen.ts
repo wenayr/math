@@ -54,7 +54,7 @@ export function funcListenCallbackBase<T extends any[]>(b: (e: (tr222<T>))=>(voi
             event?.("remove", obj.size, api)
         },
         count: ()=>obj.size,
-        getAllKeys: obj.keys()
+        getAllKeys: [...obj.keys()]
     }
     return api
 }
