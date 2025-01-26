@@ -1,45 +1,55 @@
 import { sleepAsync } from "./common";
+type CommonOptions<T extends (...args: any[]) => any> = {
+    beforeParams?: (...a: Parameters<T>) => void;
+    modifyParams?: (...a: Parameters<T>) => Parameters<T>;
+    afterParams?: (...a: Parameters<T>) => void;
+    onResult?: (res: ReturnType<T>) => void;
+    modifyResult?: (res: ReturnType<T>) => ReturnType<T>;
+};
 
-/**
- * Оборачивает функцию для добавления гибкой настройки выполнения.
- * Позволяет модифицировать параметры до/после выполнения и результат функции.
- */
+type AsyncExtras<T extends (...args: any[]) => any> = ReturnType<T> extends Promise<any>
+    ? {
+        onCatch?: (error: unknown) => void;
+        onFinally?: () => void;
+    }
+    : {};
+
+type EnhancedDecoratorOptions<T extends (...args: any[]) => any> = CommonOptions<T> & AsyncExtras<T>;
+
 export function enhancedDecorator<T extends (...args: any[]) => any>(
     fn: T,
-    opt?: {
-        /** Выполняется перед вызовом функции, получая её параметры. */
-        beforeParams?: (...a: Parameters<T>) => any,
-        /** Позволяет модифицировать параметры перед вызовом функции. */
-        modifyParams?: (...a: Parameters<T>) => Parameters<T>,
-        /** Выполняется после вызова функции, получая оригинальные параметры. */
-        afterParams?: (...a: Parameters<T>) => any,
-        /** Выполняется с результатом функции после её выполнения. */
-        onResult?: (res: ReturnType<T>) => any,
-        /** Позволяет модифицировать результат функции перед его возвратом. */
-        modifyResult?: (res: ReturnType<T>) => ReturnType<T>,
-    }
-) {
-    return (...args: Parameters<T>): ReturnType<T> => {
-        // Предобработка параметров (если задана)
+    opt?: EnhancedDecoratorOptions<T>
+): (...args: Parameters<T>) => ReturnType<T> {
+    return (...args: Parameters<T>) => {
         opt?.beforeParams?.(...args);
-
-        // Модификация параметров (если задана)
-        const modifiedArgs = opt?.modifyParams?.(...args) ?? args;
-
-        // Выполнение основной функции
-        const result = fn(...modifiedArgs) as ReturnType<T>;
-
-        // Обработка параметров после выполнения функции (если задана)
+        const modifiedArgs = opt?.modifyParams?.(...args) || args;
+        const rawResult = fn(modifiedArgs);
         opt?.afterParams?.(...args);
 
-        // Обработка результата (например, логирование)
-        opt?.onResult?.(result);
-
-        // Возврат обработанного или оригинального результата
-        return opt?.modifyResult?.(result) ?? result;
+        if (rawResult instanceof Promise) {
+            const optAsync = opt as EnhancedDecoratorOptions<() => Promise<any>>;
+            return rawResult
+                .then((res) => opt?.modifyResult?.(optAsync?.onResult?.(res) || res) || res)
+                .catch((err) => {
+                    optAsync?.onCatch?.(err);
+                    throw err;
+                })
+                .finally(() => optAsync?.onFinally?.()) as ReturnType<T>;
+        } else {
+            opt?.onResult?.(rawResult);
+            return opt?.modifyResult?.(rawResult) || rawResult;
+        }
     };
 }
-
+// проверка типизации
+// async function tt3(a: number){
+//     return a+1;
+// }
+// function tt4(a: number){
+//     return a+1;
+// }
+// const b = enhancedDecorator(tt3, {onFinally: ()=>{}})  // все ок
+// const b2 = enhancedDecorator(tt4, {onFinally: ()=>{}}) // onFinally ошибка
 /**
  * Оборачивает функцию для выполнения определённой пост-обработки.
  */
@@ -86,6 +96,7 @@ export function Transformer<T extends (...args: any[]) => any, R>(
 ) {
     return enhancedTransformer(fn, transform);
 }
+
 
 //import { sleepAsync } from "./common";
 //

@@ -1,10 +1,11 @@
 
 // import  * as lib from "wenay-common/lib/index";
+//
+// import * as lib from "wenay-common";
+//
+// lib.test();
 
-import * as lib from "wenay-common";
-
-lib.test();
-
+console.log("ok")
 
 //const x = await Promise.resolve(42);
 //console.log(x);
