@@ -181,7 +181,7 @@ export abstract class IBars implements Iterable<CBar> // extends Array<CBar>
 	get closes() { return this.Values((bar)=>bar.close); }
 	get volumes() { return this.Values((bar)=>bar.volume); }
 
-	entries() { return this.data.entries(); }
+	entries() { return this.data.entries() as IterableIterator<[number, CBar]>; }
 
 	//*times2()  { for (let bar of this.data) yield bar.time; }  // Итератор времени
 	//*closes()  { for (let bar of this._data) yield bar.close; } // Итератор цен закрытия
