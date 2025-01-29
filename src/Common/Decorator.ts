@@ -41,14 +41,18 @@ export function enhancedDecorator<T extends (...args: any[]) => any>(
         }
     };
 }
+
+
+
 // проверка типизации
-// async function tt3(a: number){
-//     return a+1;
+// async function tt3(O: { a: number, b: number }, c: string){
+//     return o.a+1;
 // }
 // function tt4(a: number){
 //     return a+1;
 // }
 // const b = enhancedDecorator(tt3, {onFinally: ()=>{}})  // все ок
+// const b3 = enhancedDecorator(tt3, {afterParams: (e, c)=>{}})  // все ок
 // const b2 = enhancedDecorator(tt4, {onFinally: ()=>{}}) // onFinally ошибка
 /**
  * Оборачивает функцию для выполнения определённой пост-обработки.
