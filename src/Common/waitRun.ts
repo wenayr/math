@@ -61,74 +61,93 @@ export function enhancedWaitRun() {
         },
     };
 }
+export function createAsyncQueue(concurrency: number = 1) {
+    type Task<T = any> = () => Promise<T>;
+    let queue: Task[] = [];
+    let activeCount = 0;
 
+    let resolveIdle: (() => void) | null = null;
+    let idlePromise: Promise<void> | null = null;
+
+    const runNext = (): void => {
+        if (activeCount >= concurrency || queue.length === 0) {
+            if (activeCount === 0 && queue.length === 0 && resolveIdle) {
+                resolveIdle();
+                resolveIdle = null;
+                idlePromise = null;
+            }
+            return;
+        }
+
+        const task = queue.shift();
+        if (!task) return;
+
+        activeCount++;
+        task().finally(() => {
+            activeCount--;
+            runNext();
+        });
+
+        runNext();
+    };
+
+    const enqueue = <T>(task: Task<T>): Promise<T> => {
+        return new Promise<T>((resolve, reject) => {
+            queue.push(async () => {
+                try {
+                    resolve(await task());
+                } catch (err) {
+                    reject(err);
+                }
+            });
+
+            runNext();
+        });
+    };
+
+    const onIdle = (): Promise<void> => {
+        if (!idlePromise) {
+            idlePromise = new Promise((resolve) => {
+                if (activeCount === 0 && queue.length === 0) {
+                    resolve();
+                } else {
+                    resolveIdle = resolve;
+                }
+            });
+        }
+        return idlePromise;
+    };
+
+    const getQueueSize = (): number => queue.length;
+
+    return {
+        enqueue,
+        onIdle,
+        getQueueSize,
+    };
+}
 /**
  * Улучшенная версия queueRun с исправлениями.
  * Контролирует выполнение задач в очереди с заданным числом одновременно исполняемых задач.
  */
 export function enhancedQueueRun(maxParallelTasks = 5) {
-    type Task = () => Promise<any>;
+    const tr = createAsyncQueue(maxParallelTasks)
 
-    const taskQueue: Task[] = []; // Очередь задач
-    const workers: Promise<void>[] = Array(maxParallelTasks).fill(Promise.resolve()); // Потоки для выполнения задач
-
-    /**
-     * Внутренняя функция, которая забирает задачу из очереди и выполняет её.
-     */
-    const processNextTask = () => {
-        const task = taskQueue.shift();
-        if (task) {
-            return task()
-                .catch((error) => {
-                    console.error("Error in task execution:", error);
-                })
-                .finally(processNextTask); // После выполнения задачи запускаем следующую
-        }
-    };
-
-    /**
-     * Проверяет и запускает доступные задачи, если есть свободные потоки.
-     */
-    const checkAndRun = () => {
-        workers.forEach((worker, index) => {
-            if (!worker || worker === Promise.resolve()) {
-                workers[index] = processNextTask() || Promise.resolve();
-            }
-        });
-    };
 
     return {
-        /**
-         * Получить количество задач в очереди.
-         */
         get queueSize() {
-            return taskQueue.length;
+            return tr.getQueueSize();
         },
 
-        /**
-         * Добавить задачу в очередь без немедленного запуска.
-         * @param task Функция задачи.
-         */
-        enqueue(task: Task) {
-            taskQueue.push(task);
+        enqueue(task: ()=>Promise<any>) {
+            tr.enqueue(task);
         },
 
-        /**
-         * Добавить задачу в очередь и проверить возможность немедленного выполнения.
-         * @param task Функция задачи.
-         */
-        enqueueAndRun(task: Task) {
-            taskQueue.push(task);
-            checkAndRun();
+        enqueueAndRun(task:  ()=>Promise<any>) {
+            tr.enqueue(task);
         },
-
-        /**
-         * Запустить выполнение всех задач в очереди.
-         * @returns Промис, который выполнится после завершения всех задач.
-         */
         runAll() {
-            checkAndRun();
-            return Promise.allSettled(workers);
+            return tr.onIdle();
         },
     };
 }
