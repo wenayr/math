@@ -94,11 +94,18 @@ export function Decorator<T extends (...args: any[]) => any>(
 /**
  * Поддержка старого метода `Transformer` через перенаправление на новую улучшенную версию.
  */
-export function Transformer<T extends (...args: any[]) => any, R>(
+export function TransformerResult<T extends (...args: any[]) => any, R>(
     fn: T,
     transform: (data: [args: Parameters<T>, result: ReturnType<T>]) => R
 ) {
     return enhancedTransformer(fn, transform);
+}
+
+export function Transformer<T extends (...args: any[]) => any, R>(
+    fn: T,
+    transform: (data: [args: Parameters<T>, fn: T]) => R
+): (...args: Parameters<T>) => R {
+    return (...args: Parameters<T>): R => transform([args, fn]) as R;
 }
 
 
