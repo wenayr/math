@@ -35,8 +35,6 @@ export * from "./Common/waitRun";
 export * from "./Common/Listen";
 export * from "./toError/myThrow";
 
-export * from "./Common/fsKeyVolume";
-export * from "./Common/webHook2";
 
 export * from "./Exchange/Bars";
 // export * from "./Exchange/mini";
