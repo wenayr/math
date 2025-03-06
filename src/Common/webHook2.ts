@@ -146,9 +146,14 @@ export const createWebhookServer = (params: params) => {
         res.json({ tags: [...tagsSet] });
     });
 
-    if (!params.app) app.listen(port, () => console.log(`Webhook сервер запущен на порту ${port}`));
 
-    return { emit };
+    const appServerReady = new Promise<void>(resolve => {
+        if (!params.app) app.listen(port, () => {
+            resolve()
+        });
+        else resolve()
+    })
+    return { emit, appServerReady };
 };
 export const createWebhookClient = (options: WebhookClientOptions) => {
     const { app: app_, serverUrl, clientPort, authToken, autoRenew = false, renewIntervalMs = 86400000 } = options;
@@ -222,7 +227,11 @@ export const createWebhookClient = (options: WebhookClientOptions) => {
             payload
         }, { headers: { authorization: authToken } });
     }
-
-    if (!app_) app.listen(clientPort, () => console.log(`Webhook клиент запущен на порту ${clientPort}`));
-    return { connect, unsubscribe, status, tags, getMySubscriptions, getAvailableTags, Provider };
+    const appServerReady = new Promise<void>(resolve => {
+        if (!app_) app.listen(clientPort, () => {
+            resolve()
+        });
+        else resolve()
+    })
+    return { connect, unsubscribe, status, tags, getMySubscriptions, getAvailableTags, Provider, appServerReady };
 };
