@@ -1,4 +1,4 @@
-import * as express from 'express';
+import express from 'express';
 import type { Express, Request, Response } from 'express';
 import axios from 'axios';
 import * as fs from 'fs';
@@ -58,7 +58,6 @@ type params = {
 }
 // Серверная часть
 export const createWebhookServer = (params: params) => {
-    // @ts-ignore
     const app: Express = params.app ??  express();
     if (!params.app) app.use(express.json());
     const file = params.file ?? apiSaveData;
