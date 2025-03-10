@@ -5,8 +5,8 @@
 // // уже определены (см. ранее приведённую реализацию).
 // // Для демонстрации создадим пару фейковых сокетов, имитирующих bidirectional связь.
 //
-// import {createAPIFacadeClient, createAPIFacadeServer} from "./commonsServer4";
 // import {sleepAsync} from "wenay-common";
+// import {createAPIFacadeServer, createAPIFacadeClient} from "./commonsServerMini";
 //
 // interface Socket {
 //     emit: (event: string, payload: any) => any;
@@ -69,6 +69,7 @@
 //     greet: (name: string) => `Привет, ${name}!`,
 //     async callback1(callback: (a: number)=>void) {
 //         for (let i = 0; i < 50; i++) {
+//             if (i == 30) return "___STOP"
 //             await sleepAsync(150)
 //             callback(i)
 //         }
@@ -124,62 +125,54 @@
 //     try {
 //
 //         await cli.strictInit()
+//         const r = cli.strict.ma.ma
+//         console.log(typeof r)
+//         console.log(Object.keys(r));
+//
+//
+//         // @ts-ignore
+//         const z = r.ma.ap7?.()
+//
+//         console.log("ok", z)
+//
+//         // Вызов метода, возвращающего число
+//         cli.all.add(5, 7)
 //             .then(e=>{
 //                 console.log(e)
 //             })
 //
-//         const a = cli.strict.ma.ma.ma
+//         cli.all.greet("Мир")
+//             .then(e=>{
+//                 console.log(e)
+//             })
 //
-//         console.log(Object.keys(a));
+//         cli.all.greet("Это тестовый лог")
+//             .then(e=>{
+//                 console.log(e)
+//             })
 //
-//         // @ts-ignore
-//         cli.all.v["hi"].a(e=>{
+//         const a= cli.all
+//
+//         a.greet("dsds")
+//             .then(e=>{
+//                 console.log(e)
+//             })
+//
+//         a.callback1(e=>{
+//             console.log(e)
+//         })
+//         a.callback2(e=>{
 //             console.log(e)
 //         })
 //
-//         // @ts-ignore
-//         cli.all.v["hi2"].a(e=>{
-//             console.log(e+100)
-//         })
+//         const b = cli.all.greet
 //
-//         // // Вызов метода, возвращающего число
-//         // cli.all.add(5, 7)
-//         //     .then(e=>{
-//         //         console.log(e)
-//         //     })
-//         //
-//         // cli.all.greet("Мир")
-//         //     .then(e=>{
-//         //         console.log(e)
-//         //     })
-//         //
-//         // cli.all.greet("Это тестовый лог")
-//         //     .then(e=>{
-//         //         console.log(e)
-//         //     })
-//         //
-//         // const a= cli.all
-//         //
-//         // a.greet("dsds")
-//         //     .then(e=>{
-//         //         console.log(e)
-//         //     })
-//         //
-//         // a.callback1(e=>{
-//         //     console.log(e)
-//         // })
-//         // a.callback2(e=>{
-//         //     console.log(e)
-//         // })
-//         //
-//         // const b = cli.all.greet
-//         //
-//         // b("dsds")
-//         //     .then(e=>{
-//         //         console.log(e)
-//         //     })
-//         //
-//         //
+//         b("dsds")
+//             .then(e=>{
+//                 console.log(e)
+//             })
+//
+//
 //
 //
 //         // @ts-ignore

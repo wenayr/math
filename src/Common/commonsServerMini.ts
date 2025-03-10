@@ -106,35 +106,35 @@ export function createClientProxy<T extends object>(soc2: ScreenerSoc2<T>, wait?
 }
 
 function createClientProxyStrict<T extends object>(soc2: ScreenerSoc2<T>, getTarget: () => any, wait?: boolean) {
-    const chain = (path: string[]): any => new Proxy(() => {}, {
-        has: (_, p: string | symbol) => {
-            let tgt = getTarget();
-            for (const a of path) { tgt = tgt?.[a]; if (!tgt || tgt === "null") return false; }
-            return tgt?.[p] !== "null";
-        },
-        ownKeys(target) {
-            let tgt = getTarget();
-            for (const a of path) { tgt = tgt?.[a]; if (!tgt || tgt === "null") return []; }
-            return Object.keys(tgt)
-        },
 
-        getOwnPropertyDescriptor(target: any, prop: string | symbol) {
-            return {enumerable: true, configurable: true,};
-        },
-        get: (_, p: string | symbol) => {
-            let tgt = getTarget();
-            for (const a of path) { tgt = tgt?.[a]; if (!tgt || tgt === "null") return undefined; }
-            return tgt?.[p] === "null" ? undefined : chain([...path, String(p)]);
-        },
-        apply: (_, __, args: any[]) => {
-            let tgt = getTarget();
-            for (const a of path) { tgt = tgt?.[a]; if (!tgt || tgt === "null") return undefined; }
-            if (path.at(-1) === "call") { path.length--; args.splice(0, 1); }
-            const fns: Func[] = [];
-            args.forEach((arg, i) => { if (typeof arg === "function") { fns.push(arg); args[i] = "___FUNC"; } });
-            return soc2.send({ key: path, request: args }, wait, fns);
-        }
-    });
+
+    const chain = (path: string[]): any => {
+        let tgt = getTarget();
+        for (const a of path) { tgt = tgt?.[a]}
+        if (!tgt || tgt === "null" || tgt === "unknown") return undefined// Object.defineProperty({}, 'isNull', { value: true });
+        const baseObject = tgt === "func" ? function(){} : {};
+        return new Proxy(baseObject, {
+            has: (_, p: string | symbol) => {
+                return tgt?.[p] !== "null";
+            },
+            getPrototypeOf(_){
+                if (!tgt || tgt === "null") return Object.prototype
+                if (tgt == "func") return Function.prototype
+                return null
+            },
+            ownKeys: typeof tgt != "object" ? undefined : (target) => Object.keys(tgt),
+            getOwnPropertyDescriptor: typeof tgt != "object" ? undefined : (target: any, prop: string | symbol) => ({enumerable: true, configurable: true}),
+            get: (_, p: string | symbol) => {
+                return tgt?.[p] === "null" ? undefined : chain([...path, String(p)]);
+            },
+            apply: (_, __, args: any[]) => {
+                if (path.at(-1) === "call") { path.length--; args.splice(0, 1); }
+                const fns: Func[] = [];
+                args.forEach((arg, i) => { if (typeof arg === "function") { fns.push(arg); args[i] = "___FUNC"; } });
+                return soc2.send({ key: path, request: args }, wait, fns);
+            }
+        });
+    }
     return new Proxy({}, {
         has: (_, p: string | symbol) => getTarget()?.[p] !== "null",
         get: (_, p: string | symbol) => (getTarget() && getTarget()[p] === "null" ? undefined : chain([String(p)]))
@@ -164,7 +164,7 @@ export function createAPIFacadeClient<T extends object>({ socket: sock, socketKe
 
 export function createAPIFacadeServer<T extends object>({ socket: sock, object: targetObj, socketKey: key, debug = false }: { socket: Socket; object: T; socketKey: string; debug?: boolean }) {
     function serialize(obj: any): any {
-        return Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, typeof v === "object" && v != null ? serialize(v) : typeof v === "function" ? "func" : !v ? "null" : "unknow"]));
+        return Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, typeof v === "object" && v != null ? serialize(v) : typeof v === "function" ? "func" : !v ? "null" : "unknown"]));
     }
     const ser = serialize(targetObj);
     promiseServer({ sendMessage: (msg) => sock.emit(key, msg), api: ({ onMessage }) => { sock.on(key, (d: any) => {
