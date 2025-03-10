@@ -618,7 +618,7 @@ export function CreatAPIFacadeClient<T extends object>({socketKey, socket, limit
     })
     const func = funcScreenerClient2<typeVoid2<T>>(tr) //satisfies tMethodToPromise2<typeVoid2<T>>
 
-    const strictly = funcScreenerClient4(tr,()=>strictlyObj) as tMethodToPromise6<T>
+    const strictly = funcScreenerClient3(tr,()=>strictlyObj) as tMethodToPromise6<T>
 
     //Не ждет ответа
     const space = funcScreenerClient2<typeNoVoid2<T>>(tr, false)
