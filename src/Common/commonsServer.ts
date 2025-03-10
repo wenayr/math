@@ -1,113 +1,5 @@
 import { sleepAsync } from "./common";
 
-function funcScreenerClient4<T extends object>(data: screenerSoc2<T>, obj: ()=>any, wait?: boolean) {
-    const tr = (address: (string)[]) => new Proxy((()=>{}) as any, {
-        has(target: any, p: string | symbol): boolean {
-            let o = obj()
-            for (let a of address) {
-                o = o?.[a]
-                if (!o) break
-                if (o == "null") return false
-            }
-            o = o?.[p]
-            if (o == "null") return false
-            return true
-        },
-        get(target: any, p: string | symbol, receiver: any): any {
-            // Поддержка для итерации в цикле for...of и for...in
-            if (p === Symbol.iterator) {
-                return function* () {
-                    let o = obj();
-                    for (let a of address) {
-                        o = o?.[a]
-                        if (!o) return;
-                        if (o == "null") return;
-                    }
-
-                    // Если объект не итерируемый, выходим
-                    if (!o || typeof o !== 'object') return;
-
-                    // Перебираем свойства исходного объекта
-                    for (const key of Object.keys(o)) {
-                        yield [key, tr([...address, key])];
-                    }
-                };
-            }
-
-            // Обычная обработка свойства
-            let o = obj()
-            for (let a of address) {
-                o = o?.[a]
-                if (!o) break
-                if (o == "null") return undefined
-            }
-            o = o?.[p]
-            if (o == "null") return undefined
-            return tr([...address, String(p)])
-        },
-        apply(target: any, thisArg: any, argArray: any[]): any {
-            let o = obj()
-            for (let a of address) {
-                o = o?.[a]
-                if (!o) break
-                if (o == "null") return undefined
-            }
-            //
-            if (address.at(-1) == "call") {
-                address.length = address.length - 1
-                argArray.splice(0,1)
-            }
-            const callback: {func: tFunc, poz: number}[] = []
-            const callback2: tFunc[] = []
-
-            argArray.forEach((el, i) => {
-                if (typeof el == "function") {
-                    callback.push({func: el, poz: i})
-                    callback2.push(el)
-                    argArray[i] = "___FUNC"
-                }
-            })
-
-            return data.send({key: address, request: argArray}, wait, callback2)
-        },
-        // Добавляем поддержку Object.keys и for...in
-        ownKeys(target: any): ArrayLike<string | symbol> {
-            let o = obj();
-            for (let a of address) {
-                o = o?.[a];
-                if (!o) return [];
-                if (o == "null") return [];
-            }
-
-            // Возвращаем ключи объекта, если он существует
-            return typeof o === 'object' && o !== null ? Object.keys(o) : [];
-        },
-
-        // Необходимо для корректной работы Object.keys и for...in
-        getOwnPropertyDescriptor(target: any, p: string | symbol): PropertyDescriptor | undefined {
-            let o = obj();
-            for (let a of address) {
-                o = o?.[a];
-                if (!o) return undefined;
-                if (o == "null") return undefined;
-            }
-
-            if (o && p in o) {
-                return {
-                    value: o[p],
-                    enumerable: true,
-                    configurable: true,
-                    writable: true
-                };
-            }
-
-            return undefined;
-        }
-    });
-
-    return tr([]);
-}
-
 
 type tSocket = {emit: (marker: string, object: any) => any, on: (marker: string, callback: (a: any) => any) => any}
 export type tRequestScreenerT<T> = {
@@ -597,7 +489,7 @@ export type UnArray<T extends any[]> = T extends (infer R)[] ? R : never
 export type tElArr<T extends any[]> = UnArray<T>
 
 // OmitTypes
-export function CreatAPIFacadeClient<T extends object>({socketKey, socket, limit}: {socket: tSocket, socketKey: string, limit?: number}) {
+export function CreatAPIFacadeClientOld<T extends object>({socketKey, socket, limit}: {socket: tSocket, socketKey: string, limit?: number}) {
 
     let strictlyObj = {} as any
     let promiseStrictly = Promise.resolve()
@@ -646,7 +538,7 @@ export function CreatAPIFacadeClient<T extends object>({socketKey, socket, limit
     }
 }
 
-export function CreatAPIFacadeServer<T extends object>({object, socket, socketKey, debug = false}: {
+export function CreatAPIFacadeServerOld<T extends object>({object, socket, socketKey, debug = false}: {
     socket: tSocket,
     object: T,
     socketKey: string,

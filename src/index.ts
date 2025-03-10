@@ -22,6 +22,7 @@ export * from "./Common/Color";
 export * from "./Common/Time";
 export * from "./Common/common";
 export * from "./Common/commonsServer";
+export * from "./Common/commonsServerMini";
 export * from "./Common/event";
 export * from "./Common/funcTimeWait";
 export * from "./Common/List";
