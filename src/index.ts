@@ -46,6 +46,8 @@ export * from "./Exchange/ConnectData/Binance";
 
 // export * from "./Exchange/IHistoryBase";
 
+export * from "./Common/SocketServerHook";
+
 export * as BaseTypes from "./Common/BaseTypes";
 export * as Common from "./Common/common";
 export * as Time from "./Common/Time";
