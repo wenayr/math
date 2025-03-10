@@ -367,6 +367,142 @@ export function funcScreenerClient2<T extends object>(data: screenerSoc2<T>, wai
     })
     return tr2() as unknown as tMethodToPromise5<T>
 }
+function funcScreenerClient4<T extends object>(data: screenerSoc2<T>, obj: ()=>any, wait?: boolean) {
+    // Функция создания прокси для заданного пути
+    const tr = (address: string[]) => new Proxy((()=>{}) as any, {
+        // Проверка существования свойства
+        has(target: any, p: string | symbol): boolean {
+            let o = obj();
+            for (let a of address) {
+                o = o?.[a];
+                if (!o) return false;
+                if (o === "null") return false;
+            }
+            o = o?.[p];
+            return o !== undefined && o !== "null";
+        },
+
+        // Получение свойства
+        get(target: any, p: string | symbol, receiver: any): any {
+            // Специальная обработка для Symbol.iterator для поддержки циклов for...of
+            if (p === Symbol.iterator) {
+                return function* () {
+                    let o = obj();
+                    for (let a of address) {
+                        o = o?.[a];
+                        if (!o) return;
+                        if (o === "null") return;
+                    }
+
+                    // Если объект не перебираемый, выходим
+                    if (!o || typeof o !== 'object') return;
+
+                    // Перебираем свойства исходного объекта
+                    for (const key in o) {
+                        if (o.hasOwnProperty(key)) {
+                            yield [key, tr([...address, key])];
+                        }
+                    }
+                };
+            }
+
+            // Поддержка Object.keys, Object.entries и др.
+            if (p === Symbol.toStringTag) {
+                return 'Object';
+            }
+
+            // Обычная обработка свойства
+            let o = obj();
+            for (let a of address) {
+                o = o?.[a];
+                if (!o) return undefined;
+                if (o === "null") return undefined;
+            }
+
+            o = o?.[p];
+            if (o === "null") return undefined;
+
+            // Если это функция, возвращаем прокси с новым путем
+            return tr([...address, String(p)]);
+        },
+
+        // Вызов метода
+        apply(target: any, thisArg: any, argArray: any[]): any {
+            let o = obj();
+            for (let a of address) {
+                o = o?.[a];
+                if (!o) return undefined;
+                if (o === "null") return undefined;
+            }
+
+            // Обработка метода call
+            if (address.at(-1) === "call") {
+                address.length = address.length - 1;
+                argArray.splice(0, 1);
+            }
+
+            const callback: {func: tFunc, poz: number}[] = [];
+            const callback2: tFunc[] = [];
+
+            argArray.forEach((el, i) => {
+                if (typeof el === "function") {
+                    callback.push({func: el, poz: i});
+                    callback2.push(el);
+                    argArray[i] = "___FUNC";
+                }
+            });
+
+            return data.send({key: address, request: argArray}, wait, callback2);
+        },
+
+        // Поддержка перебора свойств (для Object.keys, for...in)
+        ownKeys(target: any): ArrayLike<string | symbol> {
+            let o = obj();
+            for (let a of address) {
+                o = o?.[a];
+                if (!o) return [];
+                if (o === "null") return [];
+            }
+
+            return Object.keys(o || {});
+        },
+
+        // Для проверки собственных свойств объекта
+        getOwnPropertyDescriptor(target: any, p: string | symbol): PropertyDescriptor | undefined {
+            let o = obj();
+            for (let a of address) {
+                o = o?.[a];
+                if (!o) return undefined;
+                if (o === "null") return undefined;
+            }
+
+            if (!(p in o)) return undefined;
+
+            return {
+                value: tr([...address, String(p)]),
+                enumerable: true,
+                configurable: true,
+                writable: true
+            };
+        },
+
+        // Поддержка сравнения объектов
+        deleteProperty(target: any, p: string | symbol): boolean {
+            // Запрещаем удаление свойств через прокси
+            return false;
+        },
+
+        // Установка свойства
+        set(target: any, p: string | symbol, value: any, receiver: any): boolean {
+            // В данной реализации мы не позволяем устанавливать свойства
+            return false;
+        }
+    });
+
+    // Возвращаем корневой прокси
+    return tr([]);
+}
+
 
 function funcScreenerClient3<T extends object>(data: screenerSoc2<T>, obj: ()=>any, wait?: boolean) {
     const tr = (address: (string)[]) => new Proxy((()=>{}) as any, {
@@ -509,7 +645,7 @@ export function CreatAPIFacadeClient<T extends object>({socketKey, socket, limit
     })
     const func = funcScreenerClient2<typeVoid2<T>>(tr) //satisfies tMethodToPromise2<typeVoid2<T>>
 
-    const strictly = funcScreenerClient3(tr,()=>strictlyObj) as tMethodToPromise6<T>
+    const strictly = funcScreenerClient4(tr,()=>strictlyObj) as tMethodToPromise6<T>
 
     //Не ждет ответа
     const space = funcScreenerClient2<typeNoVoid2<T>>(tr, false)
