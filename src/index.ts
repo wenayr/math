@@ -29,6 +29,7 @@ export * from "./Common/List";
 export * from "./Common/ListNodeAnd";
 
 export * from "./Common/Math";
+export * from "./Common/MemoFunc";
 
 export * from "./Common/objectPath";
 
