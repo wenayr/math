@@ -20,7 +20,7 @@
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.2.3",
     "socket.io-client": "^4.6.1",
-    "wenay-common": "^1.0.63",
+    "wenay-common": "^1.0.217",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
