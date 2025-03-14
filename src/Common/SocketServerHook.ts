@@ -4,17 +4,18 @@ type transformer = (func: (data: any) => any, tag: string, data: any) => any
 export function SocketServerHook(opt?:{transformer?: transformer}) {
     const obj: {[k: string]: ReturnType<typeof UseListen>} = {}
     const transformer = opt?.transformer
-    return {
+    const r = {
         obj,
         get(tag: string) {
             return obj[tag] ??= UseListen()
         },
         provider: (tag: string, data: any) => {
-            const r = obj[tag]?.[0]
-            if (transformer) transformer(r, tag, data)
-            else r(data)
+            const t = r.get(tag)[0]
+            if (transformer) transformer(t, tag, data)
+            else t(data)
         }
-    } as const
+    }
+    return r
 }
 export function WebSocketServerHook(s: ReturnType<typeof SocketServerHook>, paramsSoc?: Parameters<typeof soc>[1], disconnect?:()=>any) {
     const get = new Proxy(s.obj, {
