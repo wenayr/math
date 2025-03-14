@@ -49,6 +49,7 @@ export * from "./Exchange/ConnectData/Binance";
 
 export * from "./Common/SocketServerHook";
 
+export * as Wait from "./Exchange/Bars";
 export * as BaseTypes from "./Common/BaseTypes";
 export * as Common from "./Common/common";
 export * as Time from "./Common/Time";

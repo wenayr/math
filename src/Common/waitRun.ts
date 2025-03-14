@@ -182,6 +182,22 @@ export function queueRun(n = 5) {
     };
 }
 
+export function createTaskQueue(){
+    let ready = false;
+    const tasks: Array<() => void | Promise<void>> = [];
+
+    return {
+        add: (fn: () => any | Promise<any>) => ready ? void fn() : tasks.push(fn),
+        setReady: async () => {
+            ready = true;
+            for (const fn of tasks) await fn();
+            tasks.length = 0;
+        },
+        isReady: () => ready,
+        tasks: () => [...tasks],
+    };
+};
+
 // import {sleepAsync} from "./common";
 //
 // export function waitRun() {
