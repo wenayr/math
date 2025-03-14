@@ -6,6 +6,9 @@ export function SocketServerHook(opt?:{transformer?: transformer}) {
     const transformer = opt?.transformer
     return {
         obj,
+        get(tag: string) {
+            return obj[tag] ??= UseListen()
+        },
         provider: (tag: string, data: any) => {
             const r = obj[tag]?.[0]
             if (transformer) transformer(r, tag, data)
@@ -16,8 +19,7 @@ export function SocketServerHook(opt?:{transformer?: transformer}) {
 export function WebSocketServerHook(s: ReturnType<typeof SocketServerHook>, paramsSoc?: Parameters<typeof soc>[1], disconnect?:()=>any) {
     const get = new Proxy(s.obj, {
         get(target: any, p: string, receiver: any): any {
-            if (!s.obj[p]) s.obj[p] = UseListen()
-            return soc(s.obj[p][1], paramsSoc)
+            return soc(s.get(p)[1], paramsSoc)
         }
     }) as {[k: string]: ReturnType<typeof soc>}
     return {
