@@ -113,8 +113,9 @@ function createClientProxyStrict<T extends object>(soc2: ScreenerSoc2<T>, getTar
         for (const a of path) { tgt = tgt?.[a]}
         if (!tgt || tgt === "null" || tgt === "unknown") return undefined// Object.defineProperty({}, 'isNull', { value: true });
         const baseObject = tgt === "func" ? function(){} : {};
-        return new Proxy(baseObject, {
+        const r = new Proxy(baseObject, {
             has: (_, p: string | symbol) => {
+                console.log(_,p,"has",path)
                 return tgt?.[p] !== "null";
             },
             getPrototypeOf(_){
@@ -125,15 +126,18 @@ function createClientProxyStrict<T extends object>(soc2: ScreenerSoc2<T>, getTar
             ownKeys: typeof tgt != "object" ? undefined : (target) => Object.keys(tgt),
             getOwnPropertyDescriptor: typeof tgt != "object" ? undefined : (target: any, prop: string | symbol) => ({enumerable: true, configurable: true}),
             get: (_, p: string | symbol) => {
+                if (p == "call" && tgt == "func") return r
                 return tgt?.[p] === "null" ? undefined : chain([...path, String(p)]);
             },
             apply: (_, __, args: any[]) => {
-                if (path.at(-1) === "call") { path.length--; args.splice(0, 1); }
+                if (path.at(-1) === "call") { path.length--; // ???? args.splice(0, 1);
+                }
                 const fns: Func[] = [];
                 args.forEach((arg, i) => { if (typeof arg === "function") { fns.push(arg); args[i] = "___FUNC"; } });
                 return soc2.send({ key: path, request: args }, wait, fns);
             }
         });
+        return r;
     }
     return new Proxy({}, {
         has: (_, p: string | symbol) => getTarget()?.[p] !== "null",
