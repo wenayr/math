@@ -127,11 +127,18 @@ function createClientProxyStrict<T extends object>(soc2: ScreenerSoc2<T>, getTar
             getOwnPropertyDescriptor: typeof tgt != "object" ? undefined : (target: any, prop: string | symbol) => ({enumerable: true, configurable: true}),
             get: (_, p: string | symbol) => {
                 if (p == "call" && tgt == "func") {
-                    return chain([...path, String(p)]); //(_: any, ...args: any[]) => soc2.send({ key: path, request: args }, wait, [() => {}])
+                    // Первый параметр будет добавлен как this его надо удалить
+                    return (_: any, ...args: any[]) => {
+                        const fns: Func[] = [];
+                        args.forEach((arg, i) => { if (typeof arg === "function") { fns.push(arg); args[i] = "___FUNC"; } });
+                        return soc2.send({ key: path, request: args }, wait, fns);
+                    }
                 }
                 return tgt?.[p] === "null" ? undefined : chain([...path, String(p)]);
             },
+            // скорее всего больше не нужно прокси на apply
             apply: (_, __, args: any[]) => {
+                console.log(path)
                 if (path.at(-1) === "call") {
                     // Первый параметр будет добавлен как this его надо удалить
                     path.length--; args.splice(0, 1);
