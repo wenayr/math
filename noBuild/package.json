@@ -4,7 +4,7 @@
     "install_noBuild" : "npm install"
   },
   "dependencies": {
-    "wenay-common": "^1.0.219",
+    "wenay-common": "^1.0.222",
     "dotenv": "^8.2.0"
   },
   "devDependencies": {
