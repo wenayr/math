@@ -23,7 +23,7 @@ export function enhancedDecorator<T extends (...args: any[]) => any>(
     return (...args: Parameters<T>) => {
         opt?.beforeParams?.(...args);
         const modifiedArgs = opt?.modifyParams?.(...args) || args;
-        const rawResult = fn(modifiedArgs);
+        const rawResult = fn(...modifiedArgs);
         opt?.afterParams?.(...args);
 
         if (rawResult instanceof Promise) {
@@ -42,18 +42,6 @@ export function enhancedDecorator<T extends (...args: any[]) => any>(
     };
 }
 
-
-
-// проверка типизации
-// async function tt3(O: { a: number, b: number }, c: string){
-//     return o.a+1;
-// }
-// function tt4(a: number){
-//     return a+1;
-// }
-// const b = enhancedDecorator(tt3, {onFinally: ()=>{}})  // все ок
-// const b3 = enhancedDecorator(tt3, {afterParams: (e, c)=>{}})  // все ок
-// const b2 = enhancedDecorator(tt4, {onFinally: ()=>{}}) // onFinally ошибка
 /**
  * Оборачивает функцию для выполнения определённой пост-обработки.
  */
@@ -107,37 +95,3 @@ export function Transformer<T extends (...args: any[]) => any, R>(
 ): (...args: Parameters<T>) => R {
     return (...args: Parameters<T>): R => transform([args, fn]) as R;
 }
-
-
-//import { sleepAsync } from "./common";
-//
-//
-// export function Decorator<T extends (...arg: any[]) => any>(
-//     func: T,
-//     option?:
-//         {
-//             parameters?: (...a: Parameters<T>) => any,
-//             parametersModifier?: (...a: Parameters<T>) => Parameters<T>,
-//             parametersAfter?: (...a: Parameters<T>) => any,
-//             result?: (a: ReturnType<T>) => any,
-//             resultModifier?: (a: ReturnType<T>) => ReturnType<T>,
-//         }) {
-//     return (...arg: Parameters<T>) => {
-//         option?.parameters?.(...arg)
-//         const r = func(...(option?.parametersModifier?.(...arg) ?? arg)) as ReturnType<T>
-//         option?.parametersAfter?.(...arg)
-//         option?.result?.(r)
-//         return option?.resultModifier?.(r) ?? r
-//
-//     }
-// }
-//
-// export function Transformer<T extends (...arg: any[]) => any, R>(
-//     func: T,
-//     transformer: (a: [params: Parameters<T>, result: ReturnType<T>]) => R
-// ) {
-//     return (...arg: Parameters<T>) => {
-//         const r = func(...arg);
-//         return transformer([arg, r]) as R
-//     }
-// }
