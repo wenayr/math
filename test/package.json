@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "test": "file:",
-    "wenay-common": "file:../dist"
+    "wenay-common": "^1.0.223"
   },
   "//dependencies": {
     "wenay-common": "file:.."

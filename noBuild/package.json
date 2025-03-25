@@ -1,10 +1,10 @@
 {
   "name": "no_build",
-  "scripts" : {
-    "install_noBuild" : "npm install"
+  "scripts": {
+    "install_noBuild": "npm install"
   },
   "dependencies": {
-    "wenay-common": "^1.0.222",
+    "wenay-common": "^1.0.223",
     "dotenv": "^8.2.0"
   },
   "devDependencies": {
