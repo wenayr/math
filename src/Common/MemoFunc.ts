@@ -61,4 +61,4 @@ export function MemoFunc(a?: {
     };
 }
 export type MemoFuncOpt = Parameters<ReturnType<typeof MemoFunc>["func"]>[1];
-export const MemoFuncConvert= <T extends (opt?: MemoFuncOpt) => any> (func: T , memo: ReturnType<typeof MemoFunc>) => ((opt?: Parameters<typeof memo.func>[1]) => memo.func(func, opt))() //as ReturnType<T>
+export const MemoFuncConvert= <T extends () => any> (func: T , memo: ReturnType<typeof MemoFunc>) => ((opt?: MemoFuncOpt) => memo.func(func, opt)()) //as ReturnType<T>
