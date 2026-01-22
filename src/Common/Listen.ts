@@ -128,8 +128,8 @@ export function funcListenBySocket2<Z extends any[] = any[]>(e: t1<Z>, d?: {
     }
 }
 // передает первый параметр
-export function funcListenBySocket3<Z extends any[] = any[]>(e: t1<Z>, options: Omit<Parameters<typeof funcListenBySocket2>[1], "paramsModify">) {
-    const r = funcListenBySocket2(e, {...options, paramsModify: e=>[e]})
+export function funcListenBySocket3<Z extends any[] = any[]>(e: t1<Z>, options?: Omit<Parameters<typeof funcListenBySocket2>[1], "paramsModify">) {
+    const r = funcListenBySocket2(e, {...(options ?? {}), paramsModify: e=>[e]})
     type tt = tr2<Parameters<typeof e.addListen>[0]>
     const callback = r.callback as unknown as (z: (...params: Parameters<tt>) => void)=>void
     return {
@@ -238,11 +238,11 @@ export function deepModifyByListenSocket<T>(obj: T, status: () => boolean){
     return DeepCompareKeys(obj, funcListenCallbackBase(e => {}, ), e => funcListenBySocket1(e, status)) as ttt<T>
 }
 
-export function deepModifyByListenSocket2<T>(obj: T, data: Parameters<typeof funcListenBySocket2>[1]){
+export function deepModifyByListenSocket2<T>(obj: T, data?: Parameters<typeof funcListenBySocket2>[1]){
     return DeepCompareKeys(obj, funcListenCallbackBase(e => {}, ), e => funcListenBySocket2(e, data)) as ttt<T>
 }
 // у подписок передает только первый параметр
-export function deepModifyByListenSocket3<T>(obj: T, data: Parameters<typeof funcListenBySocket3>[1]){
+export function deepModifyByListenSocket3<T>(obj: T, data?: Parameters<typeof funcListenBySocket3>[1]){
     return DeepCompareKeys(obj, funcListenCallbackBase(e => {}, ), e => funcListenBySocket3(e, data)) as ttt<T>
 }
 
