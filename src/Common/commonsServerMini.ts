@@ -4,20 +4,78 @@ type Obj = { [k: string]: any };
 type SocketData<T> = (
     { data: T; error?: undefined } | { error: any; data?: undefined }
     ) & { mapId: number; wait?: boolean; callbacksId?: number[] };
+type PromiseServerHooks<T> = {
+    onRequest?: (ctx: { key: string[]; request: any[]; fnName: string; fn: Func; msg: SocketData<RequestScreener<T>> }) => boolean | Promise<boolean>;
+    onInvalid?: (ctx: { reason: "invalid_payload" | "not_function" | "resolve_error" | "rate_limit"; key?: any; request?: any; error?: any; msg: SocketData<RequestScreener<T>> }) => void | Promise<void>;
+};
+export function createSimpleRateLimitHook(options: { max: number; intervalMs: number }): PromiseServerHooks<any>["onRequest"] {
+    let count = 0;
+    let resetAt = 0;
+    return () => {
+        const now = Date.now();
+        if (now >= resetAt) {
+            resetAt = now + options.intervalMs;
+            count = 0;
+        }
+        count += 1;
+        if (count > options.max) {
+            throw new Error("Rate limit exceeded");
+        }
+        return true;
+    };
+}
 type ScreenerSoc<T> = { sendMessage: (d: T) => void; api: (h: { onMessage: (m: T) => void | Promise<void> }) => void };
 
-export function promiseServer<T extends Obj>(soc: ScreenerSoc<SocketData<RequestScreener<T>>>, target: T) {
+export function promiseServer<T extends Obj>(
+    soc: ScreenerSoc<SocketData<RequestScreener<T>>> & { hooks?: PromiseServerHooks<T> },
+    target: T
+) {
+    const serializeError = (err: any) => {
+        if (err instanceof Error) {
+            return { name: err.name, message: err.message, stack: err.stack };
+        }
+        return err;
+    };
+    const hooks = soc.hooks;
     soc.api({ onMessage: async (msg) => {
+            if (!msg || typeof msg !== "object" || !msg.data || !Array.isArray(msg.data.key) || !Array.isArray(msg.data.request)) {
+                const err = serializeError(new Error("Invalid request payload"));
+                try { await hooks?.onInvalid?.({ reason: "invalid_payload", key: msg?.data?.key, request: msg?.data?.request, error: err, msg }); }
+                catch (hookErr) { console.error({ error: serializeError(hookErr), where: "onInvalid" }); }
+                soc.sendMessage({ mapId: msg?.mapId ?? -1, error: { error: err, key: msg?.data?.key, arguments: msg?.data?.request } });
+                console.error({ error: err, key: msg?.data?.key, arguments: msg?.data?.request });
+                return;
+            }
             const { key, request } = msg.data!;
             let curr = target, fnName = "";
             try {
                 for (const k of key) { fnName = k; if (typeof curr[fnName] === "function") break; curr = curr[fnName]; }
             } catch (e) {
-                soc.sendMessage({ mapId: msg.mapId, error: { error: e, key, arguments: request } });
-                console.error({ error: e, key, arguments: request });
+                const err = serializeError(e);
+                try { await hooks?.onInvalid?.({ reason: "resolve_error", key, request, error: err, msg }); }
+                catch (hookErr) { console.error({ error: serializeError(hookErr), where: "onInvalid" }); }
+                soc.sendMessage({ mapId: msg.mapId, error: { error: err, key, arguments: request } });
+                console.error({ error: err, key, arguments: request });
                 return;
             }
             if (typeof curr[fnName] === "function") {
+                const fn = curr[fnName];
+                if (hooks?.onRequest) {
+                    try {
+                        const allowed = await hooks.onRequest({ key, request, fnName, fn, msg });
+                        if (allowed === false) {
+                            const err = serializeError(new Error("Request rejected by hook"));
+                            soc.sendMessage({ mapId: msg.mapId, error: { error: err, key, arguments: request } });
+                            console.error({ error: err, key, arguments: request });
+                            return;
+                        }
+                    } catch (hookErr) {
+                        const err = serializeError(hookErr);
+                        soc.sendMessage({ mapId: msg.mapId, error: { error: err, key, arguments: request } });
+                        console.error({ error: err, key, arguments: request });
+                        return;
+                    }
+                }
                 const { callbacksId } = msg;
                 if (callbacksId && Array.isArray(callbacksId)) {
                     const cbArr = callbacksId.map(id => (data: any) => {
@@ -31,10 +89,13 @@ export function promiseServer<T extends Obj>(soc: ScreenerSoc<SocketData<Request
                     if (msg.wait !== false) soc.sendMessage({ mapId: msg.mapId, data: res ?? undefined });
                 } catch (e) {
                     console.log(fnName, request, key);
-                    soc.sendMessage({ mapId: msg.mapId, error: { error: e, key, arguments: request } });
-                    console.error({ error: e, key, arguments: request });
+                    const err = serializeError(e);
+                    soc.sendMessage({ mapId: msg.mapId, error: { error: err, key, arguments: request } });
+                    console.error({ error: err, key, arguments: request });
                 }
             } else {
+                try { await hooks?.onInvalid?.({ reason: "not_function", key, request, msg }); }
+                catch (hookErr) { console.error({ error: serializeError(hookErr), where: "onInvalid" }); }
                 soc.sendMessage({ mapId: msg.mapId, error: JSON.stringify({ data: "это не функция", key, arguments: request }) });
                 console.error({ data: "это не функция", key, arguments: request });
             }

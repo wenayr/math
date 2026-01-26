@@ -1,5 +1,6 @@
 import * as fs from "fs";
-import {createAsyncQueue, Transformer} from "wenay-common";
+import {createAsyncQueue} from "./waitRun";
+import {Transformer} from "./Decorator";
 
 export type saveKeyValue = ReturnType<typeof saveKeyValue>
 

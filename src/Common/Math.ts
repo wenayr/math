@@ -30,7 +30,7 @@ export function CorrelationRollingByBuffer(data: tCorrelationByBuffer) {
     }
     function checkSize(e: any[]){
         const a = e.length - setting.max
-        if (a > 0) e.slice(0, a)
+        if (a > 0) e.splice(0, a)
     }
     return ({
         init(data: tCorrelationByBuffer)    {setting = {...data}},

@@ -2,7 +2,7 @@ import express from 'express';
 import type { Express, Request, Response } from 'express';
 import axios from 'axios';
 import * as fs from 'fs';
-import { createAsyncQueue } from 'wenay-common';
+import {createAsyncQueue} from "./waitRun";
 
 const SUBSCRIBERS_FILE = './subscribers.json';
 
@@ -30,7 +30,7 @@ const loadSubscribers = (): Map<string, Subscriber> => {
         fs.writeFileSync(SUBSCRIBERS_FILE, '{}', 'utf-8');
     }
     const data = JSON.parse(fs.readFileSync(SUBSCRIBERS_FILE, 'utf-8'));
-    return new Map(Object.entries(data).map(([key, sub]: [string, any]) => [key, { url: sub.url, tags: sub.tag, expireAt: new Date(sub.expireAt) }]));
+    return new Map(Object.entries(data).map(([key, sub]: [string, any]) => [key, { url: sub.url, tags: sub.tags ?? sub.tag, expireAt: new Date(sub.expireAt) }]));
 };
 
 const Queue = createAsyncQueue(1)

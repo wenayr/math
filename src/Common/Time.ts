@@ -215,7 +215,7 @@ export class TF implements IPeriod
 	static readonly MN2 : TF = TF.get("MN2");
 	static readonly MN3 : TF = TF.get("MN3");
 	static readonly MN4 : TF = TF.get("MN4");
-	static readonly MN6 : TF = TF.get("MN4");
+	static readonly MN6 : TF = TF.get("MN6");
 	static readonly Y1 : TF = TF.get("Y1");
 
 	/*

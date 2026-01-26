@@ -58,7 +58,13 @@ export class ByteStreamW
 		// if (!this._buffer()) throw "Buffer is not created";
 		let buf= createCopyOfBuffer(this._buffer() as Readonly<ArrayBuffer>, size);  this._view= new DataView(buf); }
 
-	constructor(view? :DataView) { this.resize(0); }
+	constructor(view? :DataView) {
+		if (view) {
+			this._view = view;
+		} else {
+			this.resize(0);
+		}
+	}
 
 	get length() { return this._pos; }
 	//get buffer() : Readonly<ArrayBuffer> { return this._buffer; }
@@ -167,6 +173,7 @@ export class ByteStreamW
 			}
 			// @ts-ignore
 			new arrayClass(this._buffer()).set(array, this._pos);
+			this._pos += length;
 			return this;
 		}
 		let func = (stream :ByteStreamW, item :T)=> item.write(stream)!=false;
@@ -346,7 +353,9 @@ class ByteStreamR_<throwable extends boolean>
 			let size= this.readUint32();  if (size==null) return null;
 			let bufpos= this._view.byteOffset + this._pos;
 			// @ts-ignore
-			new arrayClass(this._view.buffer.slice(bufpos, bufpos+size!));
+			const out = new arrayClass(this._view.buffer.slice(bufpos, bufpos+size!));
+			this._pos += size;
+			return Array.from(out);
 		}
         //@ts-ignore
 		return this._readArrayByFunc(this._getReadFuncForNumeric(type));

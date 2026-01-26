@@ -1,4 +1,4 @@
-import {funcListenBySocket2 as soc, UseListen} from "wenay-common";
+import {funcListenBySocket2 as soc, UseListen} from "./Listen";
 
 type transformer = (func: (data: any) => any, tag: string, data: any) => any
 export function SocketServerHook(opt?:{transformer?: transformer}) {
