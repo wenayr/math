@@ -25,80 +25,94 @@ export function createSimpleRateLimitHook(options: { max: number; intervalMs: nu
     };
 }
 type ScreenerSoc<T> = { sendMessage: (d: T) => void; api: (h: { onMessage: (m: T) => void | Promise<void> }) => void };
-
 export function promiseServer<T extends Obj>(
     soc: ScreenerSoc<SocketData<RequestScreener<T>>> & { hooks?: PromiseServerHooks<T> },
     target: T,
-
+    { stop = false }: { stop?: boolean } = {}
 ) {
-    const serializeError = (err: any) => {
-        if (err instanceof Error) {
-            return { name: err.name, message: err.message, stack: err.stack };
-        }
-        return err;
-    };
+    const serializeError = (err: any) =>
+        err instanceof Error ? { name: err.name, message: err.message, stack: err.stack } : err;
+
     const hooks = soc.hooks;
+
     soc.api({ onMessage: async (msg) => {
-            if (!msg || typeof msg !== "object" || !msg.data || !Array.isArray(msg.data.key) || !Array.isArray(msg.data.request)) {
+            // 1.
+            if (!msg?.data || !Array.isArray(msg.data.key) || !Array.isArray(msg.data.request)) {
                 const err = serializeError(new Error("Invalid request payload"));
-                try { await hooks?.onInvalid?.({ reason: "invalid_payload", key: msg?.data?.key, request: msg?.data?.request, error: err, msg }); }
-                catch (hookErr) { console.error({ error: serializeError(hookErr), where: "onInvalid" }); }
+                await hooks?.onInvalid?.({ reason: "invalid_payload", key: msg?.data?.key, request: msg?.data?.request, error: err, msg });
                 soc.sendMessage({ mapId: msg?.mapId ?? -1, error: { error: err, key: msg?.data?.key, arguments: msg?.data?.request } });
-                console.error({ error: err, key: msg?.data?.key, arguments: msg?.data?.request });
                 return;
             }
-            const { key, request } = msg.data!;
-            let curr = target, fnName = "";
+
+            const { key, request } = msg.data;
+            let curr: any = target;
+            let fnName = "";
+
+            // 2.
             try {
-                for (const k of key) { fnName = k; if (typeof curr[fnName] === "function") break; curr = curr[fnName]; }
+                for (let i = 0; i < key.length; i++) {
+                    fnName = key[i];
+                    if (typeof curr[fnName] === "function") break;
+                    curr = curr[fnName];
+                }
             } catch (e) {
                 const err = serializeError(e);
-                try { await hooks?.onInvalid?.({ reason: "resolve_error", key, request, error: err, msg }); }
-                catch (hookErr) { console.error({ error: serializeError(hookErr), where: "onInvalid" }); }
+                await hooks?.onInvalid?.({ reason: "resolve_error", key, request, error: err, msg });
                 soc.sendMessage({ mapId: msg.mapId, error: { error: err, key, arguments: request } });
-                console.error({ error: err, key, arguments: request });
                 return;
             }
-            if (typeof curr[fnName] === "function") {
-                const fn = curr[fnName];
-                if (hooks?.onRequest) {
-                    try {
-                        const allowed = await hooks.onRequest({ key, request, fnName, fn, msg });
-                        if (allowed === false) {
-                            const err = serializeError(new Error("Request rejected by hook"));
-                            soc.sendMessage({ mapId: msg.mapId, error: { error: err, key, arguments: request } });
-                            console.error({ error: err, key, arguments: request });
-                            return;
-                        }
-                    } catch (hookErr) {
-                        const err = serializeError(hookErr);
-                        soc.sendMessage({ mapId: msg.mapId, error: { error: err, key, arguments: request } });
-                        console.error({ error: err, key, arguments: request });
-                        return;
-                    }
-                }
-                const { callbacksId } = msg;
-                if (callbacksId && Array.isArray(callbacksId)) {
-                    const cbArr = callbacksId.map(id => (data: any) => {
-                        try { soc.sendMessage({ mapId: id, data: data ?? undefined }); }
-                        catch (err) { console.log("Ошибка callback", err); }
-                    });
-                    let idx = 0; request.forEach((item, i) => { if (item === "___FUNC") request[i] = cbArr[idx++]; });
-                }
+
+            const fn = curr[fnName];
+            if (typeof fn !== "function") {
+                await hooks?.onInvalid?.({ reason: "not_function", key, request, msg });
+                soc.sendMessage({ mapId: msg.mapId, error: { error: "Target is not a function", key, arguments: request } });
+                return;
+            }
+
+            // 3.
+            if (hooks?.onRequest) {
                 try {
-                    const res = await curr[fnName](...request);
-                    if (msg.wait !== false) soc.sendMessage({ mapId: msg.mapId, data: res ?? undefined });
-                } catch (e) {
-                    console.log(fnName, request, key);
-                    const err = serializeError(e);
-                    soc.sendMessage({ mapId: msg.mapId, error: { error: err, key, arguments: request } });
-                    console.error({ error: err, key, arguments: request });
+                    const allowed = await hooks.onRequest({ key, request, fnName, fn, msg });
+                    if (allowed === false) throw new Error("Request rejected by hook");
+                } catch (hookErr) {
+                    soc.sendMessage({ mapId: msg.mapId, error: { error: serializeError(hookErr), key, arguments: request } });
+                    return;
                 }
-            } else {
-                try { await hooks?.onInvalid?.({ reason: "not_function", key, request, msg }); }
-                catch (hookErr) { console.error({ error: serializeError(hookErr), where: "onInvalid" }); }
-                soc.sendMessage({ mapId: msg.mapId, error: JSON.stringify({ data: "это не функция", key, arguments: request }) });
-                console.error({ data: "это не функция", key, arguments: request });
+            }
+
+            // 4.
+            const { callbacksId } = msg;
+            const currentActiveCallbacks = new Set<string | number>();
+
+            if (Array.isArray(callbacksId)) {
+                let cbIdx = 0;
+                request.forEach((item, i) => {
+                    if (item === "___FUNC" && callbacksId[cbIdx] !== undefined) {
+                        const id = callbacksId[cbIdx++];
+                        currentActiveCallbacks.add(id);
+                        request[i] = (data: any) => {
+                            soc.sendMessage({ mapId: id, data: data ?? undefined });
+                        };
+                    }
+                });
+            }
+
+            // 5.
+            try {
+                // Используем .apply(curr, ...) чтобы сохранить правильный `this`
+                const res = await fn.apply(curr, request);
+                if (msg.wait !== false) {
+                    soc.sendMessage({ mapId: msg.mapId, data: res ?? undefined });
+                }
+            } catch (e) {
+                soc.sendMessage({ mapId: msg.mapId, error: { error: serializeError(e), key, arguments: request } });
+            } finally {
+                if (stop && currentActiveCallbacks.size > 0) {
+                    currentActiveCallbacks.forEach(id => {
+                        // @ts-ignore
+                        soc.sendMessage({ mapId: id, data: "___STOP" });
+                    });
+                }
             }
         }});
 }
@@ -267,5 +281,5 @@ export function createAPIFacadeServer<T extends object>({ socket: sock, object: 
         }); } }, targetObj);
 }
 
-export const CreatAPIFacadeServer = createAPIFacadeServer;
-export const CreatAPIFacadeClient = createAPIFacadeClient;
+export const CreatAPIFacadeServer2 = createAPIFacadeServer;
+export const CreatAPIFacadeClient2 = createAPIFacadeClient;
