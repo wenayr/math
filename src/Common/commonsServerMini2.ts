@@ -1,5 +1,5 @@
 type Socket = { emit: (e: string, p: any) => any; on: (e: string, cb: (d: any) => any) => any };
-export type RequestScreener<T> = { key: string[]; callbacksId?: string[]; request: any[] };
+type RequestScreener<T> = { key: string[]; callbacksId?: string[]; request: any[] };
 type Obj = { [k: string]: any };
 type SocketData<T> = (
     { data: T; error?: undefined } | { error: any; data?: undefined }
@@ -8,7 +8,7 @@ type PromiseServerHooks<T> = {
     onRequest?: (ctx: { key: string[]; request: any[]; fnName: string; fn: Func; msg: SocketData<RequestScreener<T>> }) => boolean | Promise<boolean>;
     onInvalid?: (ctx: { reason: "invalid_payload" | "not_function" | "resolve_error" | "rate_limit"; key?: any; request?: any; error?: any; msg: SocketData<RequestScreener<T>> }) => void | Promise<void>;
 };
-export function createSimpleRateLimitHook(options: { max: number; intervalMs: number }): PromiseServerHooks<any>["onRequest"] {
+function createSimpleRateLimitHook(options: { max: number; intervalMs: number }): PromiseServerHooks<any>["onRequest"] {
     let count = 0;
     let resetAt = 0;
     return () => {
@@ -25,7 +25,7 @@ export function createSimpleRateLimitHook(options: { max: number; intervalMs: nu
     };
 }
 type ScreenerSoc<T> = { sendMessage: (d: T) => void; api: (h: { onMessage: (m: T) => void | Promise<void> }) => void };
-export function promiseServer<T extends Obj>(
+function promiseServer<T extends Obj>(
     soc: ScreenerSoc<SocketData<RequestScreener<T>>> & { hooks?: PromiseServerHooks<T> },
     target: T,
     { stop = false }: { stop?: boolean } = {}
@@ -118,20 +118,20 @@ export function promiseServer<T extends Obj>(
 }
 
 type Func = (a: any) => any;
-export type ScreenerSoc2<T> = { send: (d: RequestScreener<T>, wait?: boolean, cbs?: Func[]) => Promise<any>; api: ScreenerSocApi<T>, abortAll: (textError: string) => void };
-export type ScreenerSocApi<T> = {
+type ScreenerSoc2<T> = { send: (d: RequestScreener<T>, wait?: boolean, cbs?: Func[]) => Promise<any>; api: ScreenerSocApi<T>, abortAll: (textError: string) => void };
+type ScreenerSocApi<T> = {
     log: (s: boolean) => void; promiseTotal: () => number; callbackTotal: () => number;
     promiseDeleteAll: (rej: boolean) => void; callbackDeleteAll: () => void; callbackDelete: (fn: Func) => void;
 };
 type UnwrapPromise<T> = T extends Promise<infer R> ? R : T;
-export type MethodToPromise<T extends object> = {
+type MethodToPromise<T extends object> = {
     [P in keyof T]: T[P] extends (...args: infer Z) => infer X ? (...args: Z) => Promise<UnwrapPromise<X>> : T[P] extends object ? MethodToPromise<T[P]> : never;
 };
-export type MethodToPromiseStrict<T extends object> = {
+type MethodToPromiseStrict<T extends object> = {
     [P in keyof T]: T[P] extends (...args: infer Z) => infer X ? (...args: Z) => Promise<UnwrapPromise<X>> : T[P] extends object ? MethodToPromiseStrict<T[P]> : T[P];
 };
 
-export function wsWrapper<T>(soc: ScreenerSoc<SocketData<RequestScreener<T>>> & { limit?: number }): ScreenerSoc2<T> {
+function wsWrapper<T>(soc: ScreenerSoc<SocketData<RequestScreener<T>>> & { limit?: number }): ScreenerSoc2<T> {
     const max = soc.limit, sendMsg = soc.sendMessage;
     const pool = (() => { const free: number[] = []; let tot = 0, pos = 0; return { log: () => console.log({ free, tot, pos }), next: () => pos > 0 ? free[--pos] : ++tot, release: (id: number) => { free[pos++] = id; } }; })();
     const promises = new Map<number, { resolve: Func; reject: Func }>(), cbsMap = new Map<number, Func>();
@@ -186,7 +186,7 @@ export function wsWrapper<T>(soc: ScreenerSoc<SocketData<RequestScreener<T>>> & 
         }) };
 }
 
-export function createClientProxy<T extends object>(soc2: ScreenerSoc2<T>, wait?: boolean) {
+function createClientProxy<T extends object>(soc2: ScreenerSoc2<T>, wait?: boolean) {
     const chain = (path: string[]): any => new Proxy(() => {}, {
         get: (_, p: string | symbol) => { path.push(String(p)); return chain(path); },
         apply: (_, __, args: any[]) => {
@@ -248,10 +248,10 @@ function createClientProxyStrict<T extends object>(soc2: ScreenerSoc2<T>, getTar
     }) as unknown as MethodToPromise<T>;
 }
 
-export type NoVoid<T> = { [P in Exclude<keyof T, { [K in keyof T]: T[K] extends (...args: any[]) => any ? ReturnType<T[K]> extends void ? K : never : never; }[keyof T]>]: T[P] };
-export type OnlyVoid<T> = { [P in Exclude<keyof T, { [K in keyof T]: T[K] extends (...args: any[]) => any ? ReturnType<T[K]> extends void ? never : K : never; }[keyof T]>]: T[P] };
+type NoVoid<T> = { [P in Exclude<keyof T, { [K in keyof T]: T[K] extends (...args: any[]) => any ? ReturnType<T[K]> extends void ? K : never : never; }[keyof T]>]: T[P] };
+type OnlyVoid<T> = { [P in Exclude<keyof T, { [K in keyof T]: T[K] extends (...args: any[]) => any ? ReturnType<T[K]> extends void ? never : K : never; }[keyof T]>]: T[P] };
 
-export function createAPIFacadeClient<T extends object>({ socket: sock, socketKey: key, limit }: { socket: Socket; socketKey: string; limit?: number }) {
+function createAPIFacadeClient<T extends object>({ socket: sock, socketKey: key, limit }: { socket: Socket; socketKey: string; limit?: number }) {
     let strictData: any = {}, resolveStrict: (v: unknown) => void;
     const wsWrap = wsWrapper<any>({
         sendMessage: (msg) => sock.emit(key, msg),
@@ -269,7 +269,7 @@ export function createAPIFacadeClient<T extends object>({ socket: sock, socketKe
         } };
 }
 
-export function createAPIFacadeServer<T extends object>({ socket: sock, object: targetObj, socketKey: key, debug = false }: { socket: Socket; object: T; socketKey: string; debug?: boolean }) {
+function createAPIFacadeServer<T extends object>({ socket: sock, object: targetObj, socketKey: key, debug = false }: { socket: Socket; object: T; socketKey: string; debug?: boolean }) {
     function serialize(obj: any): any {
         return Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, typeof v === "object" && v != null ? serialize(v) : typeof v === "function" ? "func" : !v ? "null" : "unknown"]));
     }
