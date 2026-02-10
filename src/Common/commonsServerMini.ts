@@ -8,7 +8,7 @@ type PromiseServerHooks<T> = {
     onRequest?: (ctx: { key: string[]; request: any[]; fnName: string; fn: Func; msg: SocketData<RequestScreener<T>> }) => boolean | Promise<boolean>;
     onInvalid?: (ctx: { reason: "invalid_payload" | "not_function" | "resolve_error" | "rate_limit"; key?: any; request?: any; error?: any; msg: SocketData<RequestScreener<T>> }) => void | Promise<void>;
 };
-export function createSimpleRateLimitHook(options: { max: number; intervalMs: number }): PromiseServerHooks<any>["onRequest"] {
+function createSimpleRateLimitHook(options: { max: number; intervalMs: number }): PromiseServerHooks<any>["onRequest"] {
     let count = 0;
     let resetAt = 0;
     return () => {

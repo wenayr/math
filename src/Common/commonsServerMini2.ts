@@ -1,285 +1,370 @@
-type Socket = { emit: (e: string, p: any) => any; on: (e: string, cb: (d: any) => any) => any };
-type RequestScreener<T> = { key: string[]; callbacksId?: string[]; request: any[] };
-type Obj = { [k: string]: any };
-type SocketData<T> = (
-    { data: T; error?: undefined } | { error: any; data?: undefined }
-    ) & { mapId: number; wait?: boolean; callbacksId?: number[] };
-type PromiseServerHooks<T> = {
-    onRequest?: (ctx: { key: string[]; request: any[]; fnName: string; fn: Func; msg: SocketData<RequestScreener<T>> }) => boolean | Promise<boolean>;
-    onInvalid?: (ctx: { reason: "invalid_payload" | "not_function" | "resolve_error" | "rate_limit"; key?: any; request?: any; error?: any; msg: SocketData<RequestScreener<T>> }) => void | Promise<void>;
-};
-function createSimpleRateLimitHook(options: { max: number; intervalMs: number }): PromiseServerHooks<any>["onRequest"] {
-    let count = 0;
-    let resetAt = 0;
-    return () => {
-        const now = Date.now();
-        if (now >= resetAt) {
-            resetAt = now + options.intervalMs;
-            count = 0;
-        }
-        count += 1;
-        if (count > options.max) {
-            throw new Error("Rate limit exceeded");
-        }
-        return true;
-    };
+// ==========================================
+// commonsServerMini2.ts — Optimized RPC v7.2
+// ==========================================
+
+const Pkt = { CALL: 0, RESP: 1, CB: 2, MAP: 3, STRICT: 4 } as const;
+const FN_MARKER = "$_f";
+
+const BANNED_KEYS = new Set(["__proto__", "constructor", "prototype"]);
+const isSafeKey = (k: string) => !BANNED_KEYS.has(k);
+const hasOwn = (obj: any, k: string) => Object.prototype.hasOwnProperty.call(obj, k);
+
+type Socket = { emit: (e: string, d: any) => void; on: (e: string, cb: (d: any) => void) => void };
+type Func = (...args: any[]) => any;
+
+// ---- LIFO ID Pool ----
+class IdPool {
+    private s: number[] = [];
+    private p = 0;
+    private n = 0;
+    next() { return this.p > 0 ? this.s[--this.p] : ++this.n; }
+    release(id: number) { this.s[this.p++] = id; }
 }
-type ScreenerSoc<T> = { sendMessage: (d: T) => void; api: (h: { onMessage: (m: T) => void | Promise<void> }) => void };
-function promiseServer<T extends Obj>(
-    soc: ScreenerSoc<SocketData<RequestScreener<T>>> & { hooks?: PromiseServerHooks<T> },
-    target: T,
-    { stop = false }: { stop?: boolean } = {}
-) {
-    const serializeError = (err: any) =>
-        err instanceof Error ? { name: err.name, message: err.message, stack: err.stack } : err;
 
-    const hooks = soc.hooks;
+// ---- Deep walk: functions ↔ markers ----
+function walk(val: any, onLeaf: (v: any) => any): any {
+    if (val == null || typeof val !== "object") return onLeaf(val);
+    if (val[FN_MARKER] !== undefined) return onLeaf(val);
+    if (Array.isArray(val)) return val.map(v => walk(v, onLeaf));
+    const o: any = {};
+    for (const k of Object.keys(val)) if (isSafeKey(k)) o[k] = walk(val[k], onLeaf);
+    return o;
+}
 
-    soc.api({ onMessage: async (msg) => {
-            // 1.
-            if (!msg?.data || !Array.isArray(msg.data.key) || !Array.isArray(msg.data.request)) {
-                const err = serializeError(new Error("Invalid request payload"));
-                await hooks?.onInvalid?.({ reason: "invalid_payload", key: msg?.data?.key, request: msg?.data?.request, error: err, msg });
-                soc.sendMessage({ mapId: msg?.mapId ?? -1, error: { error: err, key: msg?.data?.key, arguments: msg?.data?.request } });
-                return;
-            }
+function pack(args: any[], pool: IdPool, cbStore: Map<number, Function>, cbIds: number[]): any[] {
+    return args.map(v => walk(v, leaf => {
+        if (typeof leaf === "function") {
+            const id = pool.next();
+            cbStore.set(id, leaf);
+            cbIds.push(id);
+            return { [FN_MARKER]: id };
+        }
+        return leaf;
+    }));
+}
 
-            const { key, request } = msg.data;
-            let curr: any = target;
-            let fnName = "";
+function unpack(args: any[], sender: (id: number, a: any[]) => void): any[] {
+    return args.map(v => walk(v, leaf =>
+        leaf != null && typeof leaf === "object" && leaf[FN_MARKER] !== undefined
+            ? (...a: any[]) => sender(leaf[FN_MARKER], a)
+            : leaf
+    ));
+}
 
-            // 2.
-            try {
-                for (let i = 0; i < key.length; i++) {
-                    fnName = key[i];
-                    if (typeof curr[fnName] === "function") break;
-                    curr = curr[fnName];
+const errToObj = (e: any) =>
+    e instanceof Error ? { name: e.name, message: e.message, stack: e.stack } : e;
+
+const resolveCA = (path: string[], args: any[]): [string[], any[]] => {
+    const last = path[path.length - 1];
+    if (last === "call") return [path.slice(0, -1), args.slice(1)];
+    if (last === "apply") return [path.slice(0, -1), args[1] ?? []];
+    return [path, args];
+};
+
+// ==========================================
+//  SERVER
+// ==========================================
+
+type PromiseServerHooks<T> = {
+    onRequest?: (ctx: { key: string[]; request: any[]; fnName: string; fn: Func }) => boolean | Promise<boolean>;
+    onInvalid?: (ctx: { reason: "invalid_payload" | "not_function" | "resolve_error" | "rate_limit"; key?: any; request?: any; error?: any }) => void | Promise<void>;
+};
+
+// Входящие сообщения на сервер
+type ServerIncomingMsg =
+    | typeof Pkt.STRICT                                                          // запрос схемы
+    | [type: typeof Pkt.CALL, reqId: number, ref: number | string[], args: any[], wait?: false]; // вызов
+
+// Входящие сообщения на клиент
+type ClientIncomingMsg =
+    | [type: typeof Pkt.RESP, reqId: number, result: unknown]                     // успех
+    | [type: typeof Pkt.RESP, reqId: number, result: null, error: SerializedError] // ошибка
+    | [type: typeof Pkt.CB,   cbId: number, args: unknown[]]                      // вызов колбэка
+    | [type: typeof Pkt.MAP,  routes: Record<string, number> | null, schema: Record<string, unknown> | null]; // карта методов
+
+type SerializedError = {
+    name?: string;
+    message?: string;
+    stack?: string;
+} | unknown;
+
+function createServer<T extends object>(socket: Socket, key: string, target: T, hooks?: PromiseServerHooks<T>) {
+    const methods: Function[] = [];
+    const contexts: any[] = [];
+    const routeMap: Record<string, number> = {};
+
+    (function index(obj: any, prefix: string) {
+        for (const k of Object.keys(obj)) {
+            if (!isSafeKey(k)) continue;
+            const v = obj[k], path = prefix ? prefix + "." + k : k;
+            if (typeof v === "function") { routeMap[path] = methods.length; methods.push(v); contexts.push(obj); }
+            else if (v && typeof v === "object") index(v, path);
+        }
+    })(target, "");
+
+    function serialize(obj: any): any {
+        const out: any = {};
+        for (const k of Object.keys(obj)) {
+            if (!isSafeKey(k)) continue;
+            const v = obj[k];
+            out[k] = typeof v === "function" ? "func" : v != null && typeof v === "object" ? serialize(v) : v == null ? "null" : "unknown";
+        }
+        return out;
+    }
+
+    const strictSchema = serialize(target);
+    const send = (d: any) => socket.emit(key, d);
+
+    send([Pkt.MAP, routeMap, strictSchema]);
+
+    socket.on(key, async (msg: ServerIncomingMsg) => {
+        if (msg === Pkt.STRICT) { send([Pkt.MAP, routeMap, strictSchema]); return; }
+        if (!Array.isArray(msg) || msg[0] !== Pkt.CALL) return;
+
+        const [, reqId, ref, rawArgs, w] = msg;
+        const wait = w !== false;
+
+        if (typeof reqId !== "number" || !Number.isFinite(reqId)) {
+            hooks?.onInvalid?.({ reason: "invalid_payload", key: ref, request: rawArgs, error: "reqId is not a valid number" });
+            return;
+        }
+        if (typeof ref !== "number" && !Array.isArray(ref)) {
+            hooks?.onInvalid?.({ reason: "invalid_payload", key: ref, request: rawArgs, error: "ref must be number or string[]" });
+            if (wait) send([Pkt.RESP, reqId, null, errToObj(new Error("Invalid ref type"))]);
+            return;
+        }
+        if (!Array.isArray(rawArgs)) {
+            hooks?.onInvalid?.({ reason: "invalid_payload", key: ref, request: rawArgs, error: "args must be an array" });
+            if (wait) send([Pkt.RESP, reqId, null, errToObj(new Error("Invalid args: expected array"))]);
+            return;
+        }
+
+        try {
+            let fn: Function | undefined, ctx: any;
+
+            if (typeof ref === "number") {
+                fn = methods[ref]; ctx = contexts[ref];
+            } else {
+                if (!ref.every((s: any) => typeof s === "string" && isSafeKey(s))) {
+                    hooks?.onInvalid?.({ reason: "invalid_payload", key: ref, request: rawArgs });
+                    if (wait) send([Pkt.RESP, reqId, null, errToObj(new Error("Forbidden path segment"))]);
+                    return;
                 }
-            } catch (e) {
-                const err = serializeError(e);
-                await hooks?.onInvalid?.({ reason: "resolve_error", key, request, error: err, msg });
-                soc.sendMessage({ mapId: msg.mapId, error: { error: err, key, arguments: request } });
-                return;
+                const idx = routeMap[ref.join(".")];
+                if (idx !== undefined) {
+                    fn = methods[idx]; ctx = contexts[idx];
+                } else {
+                    let curr: any = target;
+                    for (let i = 0; i < ref.length - 1; i++) {
+                        const seg = ref[i];
+                        if (curr == null || typeof curr !== "object" || !hasOwn(curr, seg)) { curr = undefined; break; }
+                        curr = curr[seg];
+                    }
+                    const last = ref[ref.length - 1];
+                    if (curr != null && typeof curr === "object" && hasOwn(curr, last)) { ctx = curr; fn = curr[last]; }
+                }
             }
 
-            const fn = curr[fnName];
             if (typeof fn !== "function") {
-                await hooks?.onInvalid?.({ reason: "not_function", key, request, msg });
-                soc.sendMessage({ mapId: msg.mapId, error: { error: "Target is not a function", key, arguments: request } });
+                hooks?.onInvalid?.({ reason: "not_function", key: ref, request: rawArgs });
+                if (wait) send([Pkt.RESP, reqId, null, errToObj(new Error("Not a function: " + ref))]);
                 return;
             }
 
-            // 3.
             if (hooks?.onRequest) {
-                try {
-                    const allowed = await hooks.onRequest({ key, request, fnName, fn, msg });
-                    if (allowed === false) throw new Error("Request rejected by hook");
-                } catch (hookErr) {
-                    soc.sendMessage({ mapId: msg.mapId, error: { error: serializeError(hookErr), key, arguments: request } });
+                const keyArr = typeof ref === "number"
+                    ? Object.keys(routeMap).find(k => routeMap[k] === ref)?.split(".") ?? []
+                    : ref;
+                const allowed = await hooks.onRequest({ key: keyArr, request: rawArgs, fnName: keyArr[keyArr.length - 1] ?? "", fn: fn as Func });
+                if (allowed === false) {
+                    if (wait) send([Pkt.RESP, reqId, null, errToObj(new Error("Rejected by hook"))]);
                     return;
                 }
             }
 
-            // 4.
-            const { callbacksId } = msg;
-            const currentActiveCallbacks = new Set<string | number>();
-
-            if (Array.isArray(callbacksId)) {
-                let cbIdx = 0;
-                request.forEach((item, i) => {
-                    if (item === "___FUNC" && callbacksId[cbIdx] !== undefined) {
-                        const id = callbacksId[cbIdx++];
-                        currentActiveCallbacks.add(id);
-                        request[i] = (data: any) => {
-                            soc.sendMessage({ mapId: id, data: data ?? undefined });
-                        };
-                    }
-                });
-            }
-
-            // 5.
-            try {
-                // Используем .apply(curr, ...) чтобы сохранить правильный `this`
-                const res = await fn.apply(curr, request);
-                if (msg.wait !== false) {
-                    soc.sendMessage({ mapId: msg.mapId, data: res ?? undefined });
-                }
-            } catch (e) {
-                soc.sendMessage({ mapId: msg.mapId, error: { error: serializeError(e), key, arguments: request } });
-            } finally {
-                if (stop && currentActiveCallbacks.size > 0) {
-                    currentActiveCallbacks.forEach(id => {
-                        // @ts-ignore
-                        soc.sendMessage({ mapId: id, data: "___STOP" });
-                    });
-                }
-            }
-        }});
+            const args = unpack(rawArgs, (cbId, cbArgs) => send([Pkt.CB, cbId, cbArgs]));
+            const res = await fn.apply(ctx, args);
+            if (wait) send([Pkt.RESP, reqId, res]);
+        } catch (e) {
+            if (wait) send([Pkt.RESP, reqId, null, errToObj(e)]);
+        }
+    });
 }
 
-type Func = (a: any) => any;
-type ScreenerSoc2<T> = { send: (d: RequestScreener<T>, wait?: boolean, cbs?: Func[]) => Promise<any>; api: ScreenerSocApi<T>, abortAll: (textError: string) => void };
-type ScreenerSocApi<T> = {
-    log: (s: boolean) => void; promiseTotal: () => number; callbackTotal: () => number;
-    promiseDeleteAll: (rej: boolean) => void; callbackDeleteAll: () => void; callbackDelete: (fn: Func) => void;
-};
+// ==========================================
+//  CLIENT
+// ==========================================
+
 type UnwrapPromise<T> = T extends Promise<infer R> ? R : T;
-type MethodToPromise<T extends object> = {
-    [P in keyof T]: T[P] extends (...args: infer Z) => infer X ? (...args: Z) => Promise<UnwrapPromise<X>> : T[P] extends object ? MethodToPromise<T[P]> : never;
+type ClientAPI<T> = {
+    [K in keyof T]: T[K] extends (...args: infer A) => infer R
+        ? (...args: A) => Promise<UnwrapPromise<R>>
+        : T[K] extends object ? ClientAPI<T[K]> : T[K];
 };
-type MethodToPromiseStrict<T extends object> = {
-    [P in keyof T]: T[P] extends (...args: infer Z) => infer X ? (...args: Z) => Promise<UnwrapPromise<X>> : T[P] extends object ? MethodToPromiseStrict<T[P]> : T[P];
+type ClientAPIStrict<T> = ClientAPI<T>;
+
+type ClientApiHandle = {
+    log: (s: boolean) => void;
+    promiseTotal: () => number;
+    callbackTotal: () => number;
+    promiseDeleteAll: (reject?: boolean) => void;
+    callbackDeleteAll: () => void;
+    callbackDelete: (fn: Function) => void;
+    callbackEnd: (fn: Function) => void;
 };
 
-function wsWrapper<T>(soc: ScreenerSoc<SocketData<RequestScreener<T>>> & { limit?: number }): ScreenerSoc2<T> {
-    const max = soc.limit, sendMsg = soc.sendMessage;
-    const pool = (() => { const free: number[] = []; let tot = 0, pos = 0; return { log: () => console.log({ free, tot, pos }), next: () => pos > 0 ? free[--pos] : ++tot, release: (id: number) => { free[pos++] = id; } }; })();
-    const promises = new Map<number, { resolve: Func; reject: Func }>(), cbsMap = new Map<number, Func>();
-    const forceRejectAll = (reason: string) => {
-        promises.forEach((p, id) => {
-            p.reject({
-                error: { name: "RPC_ABORT", message: reason },
-                mapId: id
-            });
-            pool.release(id);
-        });
-        promises.clear();
-        cbsMap.clear();
-    };
-    soc.api({ onMessage: (msg) => {
-            const id = msg.mapId;
-
-            if (promises.has(id)) { const p = promises.get(id)!; promises.delete(id); pool.release(id); msg.error ? p.reject(msg.error) : p.resolve(msg.data); }
-            else if (cbsMap.has(id)) {
-                const cb = cbsMap.get(id)!;
-                // @ts-ignore
-                if (msg.data === "___STOP") { cbsMap.delete(id); pool.release(id); }
-                cb(msg.data);
-            } else console.error("Неожиданный ответ", msg);
-        }
-    });
+function createClient<T extends object>(socket: Socket, key: string, opts?: { limit?: number }) {
+    const limit = opts?.limit ?? 10000;
+    const pool = new IdPool();
+    const pending = new Map<number, { ok: Function; fail: Function; cbs: number[] }>();
+    const callbacks = new Map<number, Function>();
+    const routeCache: Record<string, number> = {};
+    let strictData: any = {};
+    let strictWaiters: ((v: unknown) => void)[] = [];
     let debug = false;
-    const api: ScreenerSocApi<T> = {
-        log: (s: boolean) => { debug = s; },
-        promiseTotal: () => promises.size,
-        callbackTotal: () => cbsMap.size,
-        promiseDeleteAll: (rej = true) => {
-            const arr = [...promises.values()], keys = [...promises.keys()];
-            promises.clear(); keys.forEach(k => pool.release(k));
-            arr.forEach(p => (rej ? p.reject("promiseDeleteAll") : p.resolve(undefined)));
-        },
-        callbackDeleteAll: () => { const keys = [...cbsMap.keys()]; cbsMap.clear(); keys.forEach(k => pool.release(k)); },
-        callbackDelete: (fn: Func) => { cbsMap.forEach((cb, key) => { if (cb === fn) { cbsMap.delete(key); pool.release(key); } }); }
-    };
-    return {
 
-        abortAll: forceRejectAll,
-        api,
-        send: (data, wait?: boolean, cbs?: Func[]) => new Promise((resolve, reject) => {
-            const msg: SocketData<RequestScreener<T>> = { mapId: pool.next(), data, wait, callbacksId: [] };
-            for (const fn of cbs ?? []) { const id = pool.next(); msg.callbacksId!.push(id); if (debug) console.log("Ключ callback", id, msg); cbsMap.set(id, fn); }
-            if (wait !== false) promises.set(msg.mapId, { resolve, reject });
-            if (debug) { pool.log(); console.log("Ключ сокета", msg.mapId, msg); }
-            if (max && cbsMap.size >= max) console.log("callbacksMap.size =", cbsMap.size);
-            if (max && promises.size >= max) console.log("promises.size =", promises.size);
-            sendMsg(msg);
-        }) };
-}
-
-function createClientProxy<T extends object>(soc2: ScreenerSoc2<T>, wait?: boolean) {
-    const chain = (path: string[]): any => new Proxy(() => {}, {
-        get: (_, p: string | symbol) => { path.push(String(p)); return chain(path); },
-        apply: (_, __, args: any[]) => {
-            const fns: Func[] = [];
-            args.forEach((arg, i) => { if (typeof arg === "function") { fns.push(arg); args[i] = "___FUNC"; } });
-            return soc2.send({ key: path, request: args }, wait, fns);
+    socket.on(key, (msg: ClientIncomingMsg) => {
+        if (!Array.isArray(msg)) return;
+        switch (msg[0]) {
+            case Pkt.RESP: {
+                const req = pending.get(msg[1]);
+                if (!req) break;
+                pending.delete(msg[1]);
+                pool.release(msg[1]);
+                for (const cbId of req.cbs) { callbacks.delete(cbId); pool.release(cbId); }
+                msg[3] ? req.fail(msg[3]) : req.ok(msg[2]);
+                break;
+            }
+            case Pkt.CB: {
+                callbacks.get(msg[1])?.(...(msg[2] || []));
+                break;
+            }
+            case Pkt.MAP: {
+                if (msg[1]) Object.assign(routeCache, msg[1]);
+                if (msg[2]) {
+                    for (const k of Object.keys(strictData)) delete strictData[k];
+                    Object.assign(strictData, msg[2]);
+                    for (const r of strictWaiters) r(undefined);
+                    strictWaiters = [];
+                }
+                break;
+            }
         }
     });
-    return new Proxy({}, { get: (_, p: string | symbol) => chain([String(p)]) }) as unknown as MethodToPromise<T>;
-}
 
-function createClientProxyStrict<T extends object>(soc2: ScreenerSoc2<T>, getTarget: () => any, wait?: boolean) {
+    const sendCall = (path: string[], args: any[], wait: boolean): any => {
+        const cbIds: number[] = [];
+        const clean = pack(args, pool, callbacks, cbIds);
+        const ref: number | string[] = routeCache[path.join(".")] ?? path;
 
-    const chain = (path: string[]): any => {
-        let tgt = getTarget();
-        for (const a of path) { tgt = tgt?.[a]}
-        if (!tgt || tgt === "null" || tgt === "unknown") return undefined// Object.defineProperty({}, 'isNull', { value: true });
-        const baseObject = tgt === "func" ? function(){} : {};
-        const r = new Proxy(baseObject, {
-            has: (_, p: string | symbol) => {
-                console.log(_,p,"has",path)
-                return tgt?.[p] !== "null";
-            },
-            getPrototypeOf(_){
-                if (!tgt || tgt === "null") return Object.prototype
-                if (tgt == "func") return Function.prototype
-                return null
-            },
-            ownKeys: typeof tgt != "object" ? undefined : (target) => Object.keys(tgt),
-            getOwnPropertyDescriptor: typeof tgt != "object" ? undefined : (target: any, prop: string | symbol) => ({enumerable: true, configurable: true}),
-            get: (_, p: string | symbol) => {
-                if (p == "call" && tgt == "func") {
-                    // Первый параметр будет добавлен как this его надо удалить
-                    return (_: any, ...args: any[]) => {
-                        const fns: Func[] = [];
-                        args.forEach((arg, i) => { if (typeof arg === "function") { fns.push(arg); args[i] = "___FUNC"; } });
-                        return soc2.send({ key: path, request: args }, wait, fns);
-                    }
-                }
-                return tgt?.[p] === "null" ? undefined : chain([...path, String(p)]);
-            },
-            // скорее всего больше не нужно прокси на apply
-            apply: (_, __, args: any[]) => {
-                console.log(path)
-                if (path.at(-1) === "call") {
-                    // Первый параметр будет добавлен как this его надо удалить
-                    path.length--; args.splice(0, 1);
-                }
-                const fns: Func[] = [];
-                args.forEach((arg, i) => { if (typeof arg === "function") { fns.push(arg); args[i] = "___FUNC"; } });
-                return soc2.send({ key: path, request: args }, wait, fns);
-            }
+        if (!wait) {
+            socket.emit(key, [Pkt.CALL, 0, ref, clean, false]);
+            return Promise.resolve();
+        }
+        return new Promise((resolve, reject) => {
+            if (pending.size >= limit) return reject(new Error("RPC limit"));
+            const reqId = pool.next();
+            pending.set(reqId, { ok: resolve, fail: reject, cbs: cbIds });
+            if (debug) console.log("[RPC]", path.join("."), "id=", reqId);
+            socket.emit(key, [Pkt.CALL, reqId, ref, clean]);
         });
-        return r;
+    };
+
+    const buildProxy = (path: string[], wait: boolean): any =>
+        new Proxy(function () {}, {
+            get(_, p: string | symbol) {
+                if (p === "then" || p === "catch" || p === Symbol.toPrimitive) return undefined;
+                return buildProxy([...path, String(p)], wait);
+            },
+            apply(_, __, args) {
+                const [fp, fa] = resolveCA(path, args);
+                return sendCall(fp, fa, wait);
+            },
+        });
+
+    const buildStrict = (path: string[], wait: boolean): any => {
+        let tgt: any = strictData;
+        for (const seg of path) { tgt = tgt?.[seg]; if (tgt == null || tgt === "null") return undefined; }
+
+        return new Proxy(tgt === "func" ? function () {} : {}, {
+            has: (_, p) => tgt?.[String(p)] !== "null",
+            ownKeys: () => tgt && typeof tgt === "object" ? Object.keys(tgt) : [],
+            getOwnPropertyDescriptor: () => ({ enumerable: true, configurable: true }),
+            getPrototypeOf: () => !tgt || tgt === "null" ? Object.prototype : tgt === "func" ? Function.prototype : null,
+            get(_, p: string | symbol) {
+                if (p === "then" || p === "catch" || p === Symbol.toPrimitive) return undefined;
+                if (p === "call" && tgt === "func") return (_: any, ...args: any[]) => sendCall(path, args, wait);
+                const child = tgt?.[String(p)];
+                return child === "null" || child === undefined ? undefined : buildStrict([...path, String(p)], wait);
+            },
+            apply(_, __, args) {
+                const [fp, fa] = resolveCA(path, args);
+                return sendCall(fp, fa, wait);
+            },
+        });
+    };
+
+    const releaseCbs = (fn: Function) => {
+        callbacks.forEach((cb, id) => { if (cb === fn) { callbacks.delete(id); pool.release(id); } });
+    };
+
+    const clearAll = (rejectReason?: any) => {
+        pending.forEach((p, id) => { pool.release(id); p.fail(rejectReason ?? "aborted"); });
+        pending.clear();
+        callbacks.forEach((_, id) => pool.release(id));
+        callbacks.clear();
+    };
+
+    const api: ClientApiHandle = {
+        log: s => { debug = s; },
+        promiseTotal: () => pending.size,
+        callbackTotal: () => callbacks.size,
+        promiseDeleteAll: (rej = true) => {
+            pending.forEach((p, id) => { pool.release(id); rej ? p.fail("promiseDeleteAll") : p.ok(undefined); });
+            pending.clear();
+        },
+        callbackDeleteAll: () => { callbacks.forEach((_, id) => pool.release(id)); callbacks.clear(); },
+        callbackDelete: releaseCbs,
+        callbackEnd: releaseCbs,
+    };
+
+    const func = buildProxy([], true) as ClientAPI<T>;
+
+    return {
+        func,
+        space: buildProxy([], false) as ClientAPI<T>,
+        all: func as ClientAPI<T>,
+        strict: buildStrict([], true) as ClientAPIStrict<T>,
+        api,
+        abortAll: (reason: string) => clearAll({ error: { name: "RPC_ABORT", message: reason } }),
+        infoStrict: () => strictData,
+        async strictInit(obj?: object) {
+            if (obj) { strictData = obj; }
+            else { socket.emit(key, Pkt.STRICT); return new Promise(r => { strictWaiters.push(r); }); }
+        },
+    };
+}
+
+// ==========================================
+//  FACADE (backward compat)
+// ==========================================
+
+function createAPIFacadeServer<T extends object>({ socket, object: target, socketKey: key, debug = false, hooks }: {
+    socket: Socket; object: T; socketKey: string; debug?: boolean; hooks?: PromiseServerHooks<T>;
+}) {
+    if (debug) {
+        const origOn = socket.on.bind(socket);
+        socket.on = (e: string, cb: (d: any) => void) =>
+            origOn(e, (d: any) => { console.log("[RPC IN]", typeof d === "object" ? JSON.stringify(d) : d); cb(d); });
     }
-    return new Proxy({}, {
-        has: (_, p: string | symbol) => getTarget()?.[p] !== "null",
-        get: (_, p: string | symbol) => (getTarget() && getTarget()[p] === "null" ? undefined : chain([String(p)]))
-    }) as unknown as MethodToPromise<T>;
+    createServer(socket, key, target, hooks);
 }
 
-type NoVoid<T> = { [P in Exclude<keyof T, { [K in keyof T]: T[K] extends (...args: any[]) => any ? ReturnType<T[K]> extends void ? K : never : never; }[keyof T]>]: T[P] };
-type OnlyVoid<T> = { [P in Exclude<keyof T, { [K in keyof T]: T[K] extends (...args: any[]) => any ? ReturnType<T[K]> extends void ? never : K : never; }[keyof T]>]: T[P] };
-
-function createAPIFacadeClient<T extends object>({ socket: sock, socketKey: key, limit }: { socket: Socket; socketKey: string; limit?: number }) {
-    let strictData: any = {}, resolveStrict: (v: unknown) => void;
-    const wsWrap = wsWrapper<any>({
-        sendMessage: (msg) => sock.emit(key, msg),
-        api: ({ onMessage }) => { sock.on(key, (d: any) => {
-            if (typeof d === "object" && d?.STRICTLY) { Object.keys(strictData).forEach(k => delete strictData[k]); Object.assign(strictData, d.STRICTLY); resolveStrict?.(undefined); }
-            else onMessage(d);
-        }); },
-        limit,
-    });
-    const func = createClientProxy<NoVoid<T>>(wsWrap);
-    const strict = createClientProxyStrict(wsWrap, () => strictData) as MethodToPromiseStrict<T>;
-    const space = createClientProxy<OnlyVoid<T>>(wsWrap, false);
-    return { api: wsWrap.api, func, space, all: func as MethodToPromise<T>, strict, infoStrict: () => strictData, async strictInit(obj?: object) {
-            if (obj) strictData = obj; else { sock.emit(key, "___STRICTLY"); return new Promise(resolve => { resolveStrict = resolve; }); }
-        } };
+function createAPIFacadeClient<T extends object>({ socket, socketKey: key, limit }: {
+    socket: Socket; socketKey: string; limit?: number;
+}) {
+    return createClient<T>(socket, key, { limit });
 }
 
-function createAPIFacadeServer<T extends object>({ socket: sock, object: targetObj, socketKey: key, debug = false }: { socket: Socket; object: T; socketKey: string; debug?: boolean }) {
-    function serialize(obj: any): any {
-        return Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, typeof v === "object" && v != null ? serialize(v) : typeof v === "function" ? "func" : !v ? "null" : "unknown"]));
-    }
-    const ser = serialize(targetObj);
-    promiseServer({ sendMessage: (msg) => sock.emit(key, msg), api: ({ onMessage }) => { sock.on(key, (d: any) => {
-            if (debug) console.log(typeof d === "object" ? JSON.stringify(d) : d);
-            if (d === "___STRICTLY") sock.emit(key, { STRICTLY: ser });
-            else onMessage(d);
-        }); } }, targetObj);
-}
-
-export const CreatAPIFacadeServer2 = createAPIFacadeServer;
-export const CreatAPIFacadeClient2 = createAPIFacadeClient;
+export { createAPIFacadeServer as CreatAPIFacadeServer2, createAPIFacadeClient as CreatAPIFacadeClient2 };
+export type { ClientAPI, ClientAPIStrict, ClientApiHandle, PromiseServerHooks };
