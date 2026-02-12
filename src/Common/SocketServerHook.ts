@@ -1,4 +1,5 @@
-import {funcListenBySocket2 as soc, UseListen} from "./Listen";
+import {UseListen} from "./Listen";
+import {funcListenBySocket2 as soc} from "./ListenBySocket";
 
 type transformer = (func: (data: any) => any, tag: string, data: any) => any
 export function SocketServerHook(opt?:{transformer?: transformer}) {

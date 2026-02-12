@@ -36,6 +36,10 @@ export * from "./Common/objectPath";
 
 export * from "./Common/waitRun";
 export * from "./Common/Listen";
+export * from "./Common/joinListens";
+export * from "./Common/ListenBySocket";
+export * from "./Common/SocketBuffer";
+export * from "./Common/PromiseArrayListen";
 export * from "./toError/myThrow";
 
 
@@ -60,6 +64,20 @@ export * as Math from "./Common/Math";
 export * as List from "./Common/List";
 export * as Params from "./Exchange/CParams";
 export * as LoadCandles from "./Exchange/ConnectData/Binance";
+export {PromiseArrayListen} from "./Common/PromiseArrayListen";
+export {deepModifyByListenSocket3} from "./Common/ListenBySocket";
+export {deepModifyByListenSocket2} from "./Common/ListenBySocket";
+export {deepModifyByListenSocket} from "./Common/ListenBySocket";
+export {DeepCompareKeys} from "./Common/ListenBySocket";
+export {DeepCompareKeys2} from "./Common/ListenBySocket";
+export {CompareKeys2} from "./Common/ListenBySocket";
+export {CompareKeys} from "./Common/ListenBySocket";
+export {funcListenBySocket3} from "./Common/ListenBySocket";
+export {funcListenBySocket2} from "./Common/ListenBySocket";
+export {funcListenCallbackSnapshot} from "./Common/SocketBuffer";
+export {socketBuffer3} from "./Common/SocketBuffer";
+export {getTypeCallback} from "./Common/SocketBuffer";
+export {realSocket2} from "./Common/SocketBuffer";
 
 import {CListNodeAnd} from "./Common/ListNodeAnd";
 

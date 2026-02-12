@@ -2,7 +2,7 @@
 // commonsServerMini2.ts — Optimized RPC v7.2
 // ==========================================
 
-const Pkt = { CALL: 0, RESP: 1, CB: 2, MAP: 3, STRICT: 4 } as const;
+const Pkt = { CALL: 0, RESP: 1, CB: 2, MAP: 3, STRICT: 4, CB_END: 5 } as const;
 const FN_MARKER = "$_f";
 
 const BANNED_KEYS = new Set(["__proto__", "constructor", "prototype"]);
@@ -13,14 +13,15 @@ type Socket = { emit: (e: string, d: any) => void; on: (e: string, cb: (d: any) 
 type Func = (...args: any[]) => any;
 
 // ---- LIFO ID Pool ----
-class IdPool {
-    private s: number[] = [];
-    private p = 0;
-    private n = 0;
-    next() { return this.p > 0 ? this.s[--this.p] : ++this.n; }
-    release(id: number) { this.s[this.p++] = id; }
+export const createIdPool = () => {
+    const s: number[] = [];
+    let n = 0;
+    return {
+        next: () => s.length > 0 ? s.pop()! : ++n,
+        release(id: number){s.push(id)}
+    }
 }
-
+type idPool = ReturnType<typeof createIdPool>;
 // ---- Deep walk: functions ↔ markers ----
 function walk(val: any, onLeaf: (v: any) => any): any {
     if (val == null || typeof val !== "object") return onLeaf(val);
@@ -31,7 +32,7 @@ function walk(val: any, onLeaf: (v: any) => any): any {
     return o;
 }
 
-function pack(args: any[], pool: IdPool, cbStore: Map<number, Function>, cbIds: number[]): any[] {
+function pack(args: any[], pool: idPool, cbStore: Map<number, Function>, cbIds: number[]): any[] {
     return args.map(v => walk(v, leaf => {
         if (typeof leaf === "function") {
             const id = pool.next();
@@ -43,16 +44,30 @@ function pack(args: any[], pool: IdPool, cbStore: Map<number, Function>, cbIds: 
     }));
 }
 
-function unpack(args: any[], sender: (id: number, a: any[]) => void): any[] {
-    return args.map(v => walk(v, leaf =>
-        leaf != null && typeof leaf === "object" && leaf[FN_MARKER] !== undefined
-            ? (...a: any[]) => sender(leaf[FN_MARKER], a)
-            : leaf
-    ));
+function unpack(args: any[], sender: (id: number, a: any[]) => void, onEnd: (id: number) => void): any[] {
+    return args.map(v => walk(v, leaf => {
+        if (leaf != null && typeof leaf === "object" && leaf[FN_MARKER] !== undefined) {
+            const id = leaf[FN_MARKER];
+            const wrapper = (...a: any[]) => {
+                if (a[0] === "___STOP") { onEnd(id); return; }
+                sender(id, a);
+            };
+            _stopRegistry.set(wrapper, () => onEnd(id));
+            return wrapper;
+        }
+        return leaf;
+    }));
 }
 
 const errToObj = (e: any) =>
     e instanceof Error ? { name: e.name, message: e.message, stack: e.stack } : e;
+
+const _stopRegistry = new WeakMap<Function, () => void>();
+
+/** Завершить callback на стороне клиента. Альтернатива вызову fn("___STOP"). */
+export function rpcEndCallback(fn: Function) {
+    _stopRegistry.get(fn)?.();
+}
 
 const resolveCA = (path: string[], args: any[]): [string[], any[]] => {
     const last = path[path.length - 1];
@@ -80,6 +95,7 @@ type ClientIncomingMsg =
     | [type: typeof Pkt.RESP, reqId: number, result: unknown]                     // успех
     | [type: typeof Pkt.RESP, reqId: number, result: null, error: SerializedError] // ошибка
     | [type: typeof Pkt.CB,   cbId: number, args: unknown[]]                      // вызов колбэка
+    | [type: typeof Pkt.CB_END, cbId: number]                                      // завершение колбэка
     | [type: typeof Pkt.MAP,  routes: Record<string, number> | null, schema: Record<string, unknown> | null]; // карта методов
 
 type SerializedError = {
@@ -182,7 +198,7 @@ function createServer<T extends object>(socket: Socket, key: string, target: T, 
                 }
             }
 
-            const args = unpack(rawArgs, (cbId, cbArgs) => send([Pkt.CB, cbId, cbArgs]));
+            const args = unpack(rawArgs, (cbId, cbArgs) => send([Pkt.CB, cbId, cbArgs]), (cbId) => send([Pkt.CB_END, cbId]));
             const res = await fn.apply(ctx, args);
             if (wait) send([Pkt.RESP, reqId, res]);
         } catch (e) {
@@ -215,7 +231,7 @@ type ClientApiHandle = {
 
 function createClient<T extends object>(socket: Socket, key: string, opts?: { limit?: number }) {
     const limit = opts?.limit ?? 10000;
-    const pool = new IdPool();
+    const pool = createIdPool();
     const pending = new Map<number, { ok: Function; fail: Function; cbs: number[] }>();
     const callbacks = new Map<number, Function>();
     const routeCache: Record<string, number> = {};
@@ -237,6 +253,12 @@ function createClient<T extends object>(socket: Socket, key: string, opts?: { li
             }
             case Pkt.CB: {
                 callbacks.get(msg[1])?.(...(msg[2] || []));
+                break;
+            }
+            case Pkt.CB_END: {
+                const cbId = msg[1] as number;
+                callbacks.delete(cbId);
+                pool.release(cbId);
                 break;
             }
             case Pkt.MAP: {

@@ -14,12 +14,11 @@ export type tListEvent<T=any, T2=void> = {
 export class CObjectEventsArr<T extends object>{
     private data :tListEvent[] = []
 
-    private set setup(link:tListEvent) {
+    private setup(link:tListEvent) {
         const data = link
         data.del = ()=> {
             for (let i = 0; i < this.data.length; i++) {
                 if (this.data[i]==data) {
-                    this.data[i].OnDel?.();
                     this.data.splice(i,1)
                     data.OnDel?.();
                     return;
@@ -31,20 +30,19 @@ export class CObjectEventsArr<T extends object>{
             console.log(this.count());
         }
     }
-    AddStart(data:tListEvent)               {this.data.unshift(data); this.setup = this.data[0]}
-    AddEnd(data:tListEvent)                 {this.setup = this.data[this.data.push(data)-1]}
-    Add(data:tListEvent)                    {this.setup = this.data[this.data.push(data)-1]}
-    OnEvent(data?:any)                      {this.data.forEach((e)=>{e.func?.(data); e.func2?.(data);})}
+    AddStart(data:tListEvent)               {this.data.unshift(data); this.setup(this.data[0])}
+    AddEnd(data:tListEvent)                 {this.setup(this.data[this.data.push(data)-1])}
+    Add(data:tListEvent)                    {this.setup(this.data[this.data.push(data)-1])}
+    OnEvent(data?:any)                      {[...this.data].forEach((e)=>{e.func?.(data); e.func2?.(data);})}
 
     // OnSpecEvent<T extends object>(f:(e:T)=>void)           {this.data.forEach((e)=>{let l=e.func?.() as T; if (l) {f(l);}  e.func2?.();})}
-    OnSpecEvent(f:(e:T)=>void)              {this.data.forEach((e)=>{const l= e.func?.() as unknown as (T|undefined); l&&f(l); e.func2?.();})} // l&&f(l);  if (l) {f(l);}
+    OnSpecEvent(f:(e:T)=>void)              {[...this.data].forEach((e)=>{const l= e.func?.() as unknown as (T|undefined); l&&f(l); e.func2?.();})} // l&&f(l);  if (l) {f(l);}
     Clean()                                 {
         const a = [...this.data];
+        this.data=[];
         for (let i = a.length - 1; i >= 0; i--) {
             a[i].del?.();
-            a[i].OnDel?.();
         }
-        this.data=[];
     }
     count()                                 {return this.data.length}
     get length()                            {return this.count()}
@@ -58,13 +56,13 @@ export class CObjectEventsList<T=unknown>{
     Id =0
     private _log = false
     private data = new CListNodeAnd<tListEvent<T>>()
-    private set setup(link:CListNodeAnd<tListEvent<T>>) {
+    private setup(link:CListNodeAnd<tListEvent<T>>) {
         const buf = link;
         const data = link.data!
-        let fanClub = data.del
+        let prevDel = data.del
         data.del = ()=>{
-            fanClub?.()
-            fanClub = undefined; // чтобы функция удаления отчищалась при срабатывании
+            prevDel?.()
+            prevDel = undefined; // чтобы функция удаления отчищалась при срабатывании
             buf.DeleteLink();
             data.OnDel?.();
         }
@@ -74,13 +72,13 @@ export class CObjectEventsList<T=unknown>{
         }
     }
 
-    log()                       {let er:object[]=[]; this.data.forEach(e=>er.push(e)); console.log(er);}
-    AddStart(data:tListEvent)   {this.setup = this.data.AddStart(data)}
-    AddEnd(data:tListEvent)     {this.setup = this.data.AddEnd(data)}
-    Add(data:tListEvent)        {this.setup = this.data.AddEnd(data)}
+    log()                       {const er:object[]=[]; this.data.forEach(e=>er.push(e)); console.log(er);}
+    AddStart(data:tListEvent)   {this.setup(this.data.AddStart(data))}
+    AddEnd(data:tListEvent)     {this.setup(this.data.AddEnd(data))}
+    Add(data:tListEvent)        {this.setup(this.data.AddEnd(data))}
     OnEvent(data?:T)            {this.data.forEach(e=>{e.func?.(data); e.func2?.(data);})}
-    OnSpecEvent<T>(f:(e?:T)=>void)  {this.data.forEach((e)=>{let l=e.func?.(); if (l) {f(l);}  e.func2?.();})}
-    Clean()                     {let r:CListNodeAnd<any>|undefined =this.data.First(); while (r) {let buf = r; r=r?.Next(); buf.DeleteLink()}}
+    OnSpecEvent<R>(f:(e?:R)=>void)  {this.data.forEach((e)=>{const l=e.func?.(); if (l) {f(l as unknown as R);}  e.func2?.();})}
+    Clean()                     {let r:CListNodeAnd<any>|undefined =this.data.First(); while (r) {const buf = r; r=r?.Next(); buf.DeleteLink()}}
     count()                     {return this.data.countRef()}
     get length()                {return this.count()}
 }

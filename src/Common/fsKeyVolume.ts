@@ -2,7 +2,7 @@ import * as fs from "fs";
 import {createAsyncQueue} from "./waitRun";
 import {Transformer} from "./Decorator";
 
-export type saveKeyValue = ReturnType<typeof saveKeyValue>
+export type SaveKeyValueStore = ReturnType<typeof saveKeyValue>
 
 export function saveKeyValue({ dirDef = "", key: _key = "" }: { dirDef: string; key?: string }) {
     async function ensureDir(dir: string): Promise<string> {
@@ -11,22 +11,26 @@ export function saveKeyValue({ dirDef = "", key: _key = "" }: { dirDef: string; 
         return `${fullDir}/`;
     }
 
-    const getPath = (path = "") => (dirDef ? `${dirDef}/${path}` : path);
+    async function resolvePath(path: string, key: string): Promise<string> {
+        const fullPath = await ensureDir(path);
+        return `${fullPath}${key}`;
+    }
 
     async function get({ key = _key, path = "" } = {}) {
-        const fullPath = await ensureDir(path);
-        return fs.promises.readFile(`${fullPath}${key}`, "utf-8");
+        const filePath = await resolvePath(path, key);
+        return fs.promises.readFile(filePath, "utf-8");
     }
 
     async function has({ key = _key, path = "" } = {}) {
-        return fs.promises.access(`${getPath(path)}/${key}`)
+        const filePath = await resolvePath(path, key);
+        return fs.promises.access(filePath)
             .then(() => true)
             .catch(() => false);
     }
 
     async function set({ key = _key, obj, path = "" }: { key?: string; obj: string; path?: string }) {
-        const fullPath = await ensureDir(path);
-        await fs.promises.writeFile(`${fullPath}${key}`, obj);
+        const filePath = await resolvePath(path, key);
+        await fs.promises.writeFile(filePath, obj);
     }
 
     async function setElMap({ key = _key, keyEl, valueEl, path = "" }: { key?: string; keyEl: string; valueEl: any; path?: string }) {
@@ -45,8 +49,8 @@ export function saveKeyValue({ dirDef = "", key: _key = "" }: { dirDef: string; 
     }
 
     async function del({ key = _key, path = "" } = {}) {
-        const fullPath = getPath(path);
-        await fs.promises.rm(`${fullPath}/${key}`);
+        const filePath = await resolvePath(path, key);
+        await fs.promises.rm(filePath);
     }
 
     const queue = createAsyncQueue(1);
@@ -58,6 +62,6 @@ export function saveKeyValue({ dirDef = "", key: _key = "" }: { dirDef: string; 
         set: queueFunc(set),
         setElMap: queueFunc(setElMap),
         delEl: queueFunc(delEl),
-        del,
+        del: queueFunc(del),
     };
 }
