@@ -144,7 +144,7 @@ export function deepModifyByListenSocket5<T>(obj: T, data?: Parameters<typeof fu
 // ── Устаревшая версия — делегирует в funcListenBySocket2 ────────
 // TODO: мигрировать все вызовы на funcListenBySocket2/3 и удалить
 
-/** @deprecated используйте funcListenBySocket2 */
+/**  используйте funcListenBySocket2 */
 export function funcListenBySocket<Z extends any[] = any[]>(
     e: ReturnType<typeof funcListenCallback<Z>>,
     status: () => boolean,
@@ -171,7 +171,7 @@ export function funcListenBySocketFull<Z extends any[] = any[]>(
     return r;
 }
 
-/** @deprecated алиас для funcListenBySocket */
+/** алиас для funcListenBySocket */
 export const funcListenBySocket1 = funcListenBySocket;
 
 // ── Сравнение ключей ────────────────────────────────────────────
