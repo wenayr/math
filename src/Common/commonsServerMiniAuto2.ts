@@ -1,5 +1,5 @@
 import { isListenCallback, funcListenCallbackBase } from "./Listen";
-import { listenSocket, DeepSocketListen } from "./ListenBySocket2";
+import {listenSocket, DeepSocketListen, deepListenFirst, deepListenAll, deepListenSmart} from "./ListenBySocket2";
 import {
     CreatAPIFacadeServer2,
     type PromiseServerHooks,
@@ -41,4 +41,44 @@ export function CreatAPIFacadeServerAuto2<T extends object>({ socket, object: ta
     });
 }
 
+
+
+type ClientAutoOptions = {
+    /** Режим маппинга подписок: smart (по умолчанию), first, all */
+    readonly mode?: "smart" | "first" | "all";
+    /** Проверка статуса соединения */
+    readonly status?: () => boolean;
+    /** Подписка на закрытие (для авто-отписки) */
+    readonly addListenClose?: ReturnType<typeof funcListenCallbackBase<any>>;
+};
+
+// ── Тип результата: рекурсивно заменяет Listen → SocketListen ───
+
+export type ClientAuto2Result<T> = DeepSocketListen<T>;
+
+// ── Фабрика клиентского фасада ──────────────────────────────────
+
+export function CreatAPIFacadeClientAuto2<T>(
+    api: T,
+    options?: ClientAutoOptions,
+): ClientAuto2Result<T> {
+    const { mode = "smart", status, addListenClose } = options ?? {};
+
+    const listenOptions = {
+        ...(status ? { status } : {}),
+        ...(addListenClose ? { addListenClose } : {}),
+    };
+
+    switch (mode) {
+        case "first":
+            return deepListenFirst(api, listenOptions) as ClientAuto2Result<T>;
+        case "all":
+            return deepListenAll(api, listenOptions) as ClientAuto2Result<T>;
+        case "smart":
+        default:
+            return deepListenSmart(api, listenOptions) as ClientAuto2Result<T>;
+    }
+}
+
 export type AutoClientAPI<T> = ClientAPI<DeepSocketListen<T>>;
+

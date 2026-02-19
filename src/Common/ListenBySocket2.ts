@@ -170,16 +170,24 @@ export function deepMapByKeysList<T, T3>(
 type ListenBase<T extends any[]> = ReturnType<typeof funcListenCallbackBase<T>>;
 type InferArgs<T> = T extends ListenBase<infer R> ? R : never;
 type SocketResult<T extends any[]> = ReturnType<typeof listenSocket<T>>;
+
+// ── Хвостовая рекурсия: обработка одного ключа ─────────────────
+
+type TransformValue<V> =
+    V extends ListenBase<any>
+        ? SocketResult<InferArgs<V>>
+        : V extends typeof Promise
+            ? V
+            : V extends (...a: any) => any
+                ? V
+                : V extends object
+                    ? { [K in keyof V]: TransformValue<V[K]> }
+                    : V;
+
+// ── Хвостовая DeepSocketListen через mapped type ────────────────
+
 export type DeepSocketListen<T> = {
-    [K in keyof T]: T[K] extends ListenBase<any>
-        ? SocketResult<InferArgs<T[K]>>
-        : T[K] extends typeof Promise
-            ? T[K]
-            : T[K] extends (...a: any) => any
-                ? T[K]
-                : T[K] extends object
-                    ? DeepSocketListen<T[K]>
-                    : T[K];
+    [K in keyof T]: TransformValue<T[K]>;
 };
 
 export function deepMapByKeys<T, T2 extends Obj, T3>(

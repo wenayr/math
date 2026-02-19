@@ -1,6 +1,6 @@
 {
   "name": "wenay-common",
-  "version": "1.0.246",
+  "version": "1.0.247",
   "description": "Common library",
   "strict": true,
   "main": "lib/index.js",
