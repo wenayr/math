@@ -1,11 +1,15 @@
 export type Listener<T extends any[]> = (...r: T) => void
 
-export function funcListenCallbackBase<T extends any[]>(b: (e: Listener<T>) => (void | (() => void)),
+/** Нормализация: если T уже кортеж — оставляем, иначе оборачиваем в [T] */
+type NormalizeTuple<T> = T extends any[] ? T : [T]
+
+export function funcListenCallbackBase<T>(b: (e: Listener<NormalizeTuple<T>>) => (void | (() => void)),
                                                         data?: {
                                                             event?: (type: "add" | "remove", count: number, api: ReturnType<typeof funcListenCallbackBase<T>>) => void,
                                                             fast?: boolean
                                                         }
 ) {
+    type Z = NormalizeTuple<T>
     const {fast = true, event} = data ?? {}
     type cbClose = ()=>void
     const obj = new Map<Listener<T>, Listener<T>>()
@@ -106,19 +110,14 @@ export function UseListen<T extends any[]>(data: Parameters<typeof funcListenCal
     let t: ((...a: T) => void)// | null = null
     const a = funcListenCallbackBase<T>((e)=>{t = e}, {fast: true, ...data})
     a.run()
-    t = a.func;
+    t = a.func
     return [t, a] as const
 }
 
-/** Проверяет, является ли объект результатом funcListenCallbackBase */
-export function isListenCallback(obj: any): obj is ReturnType<typeof funcListenCallbackBase> {
-    if (obj == null || typeof obj !== "object") return false
-    const obj2 = obj as ReturnType<typeof funcListenCallbackBase>
-    return (
-        typeof obj2.addListen === "function" &&
-        typeof obj2.removeListen === "function" &&
-        typeof obj2.eventClose === "function" &&
-        typeof obj2.func === "function" &&
-        typeof obj2.count === "function"
-    )
+
+function f() {
+    const [set, out] = UseListen<string>()
+    out.addListen(e=>{
+
+    })
 }
