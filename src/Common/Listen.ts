@@ -6,9 +6,11 @@ export function funcListenCallbackBase<T extends any[]>(b: (e: Listener<T>) => (
                                                             fast?: boolean
                                                         }
 ) {
-    const {fast = false, event} = data ?? {}
-
+    const {fast = true, event} = data ?? {}
+    type cbClose = ()=>void
     const obj = new Map<Listener<T>, Listener<T>>()
+    const evClose = new Map<cbClose|Listener<T>, cbClose>()
+    const sinh = new Map<cbClose, Listener<T>>()
     let a: Listener<T> | null = (...e) => {obj.forEach(z => z(...e))}
     let close: (() => void) | null = null
     let cached: Listener<T>[] | null = null
@@ -41,16 +43,51 @@ export function funcListenCallbackBase<T extends any[]>(b: (e: Listener<T>) => (
         close: () => {
             close?.()
             close = null
+            obj.clear()
+            if (fast) rebuild()
+            sinh.clear()
+            evClose.forEach(cb => cb())
+            evClose.clear()
         },
-        addListen: (cb: Listener<T>) => {
+        eventClose: (cb: ()=>void) => {
+            evClose.set(cb, cb)
+            return () => {evClose.delete(cb)}
+        },
+        removeEventClose: (cb: ()=>void) => {
+            const e=sinh.get(cb)
+            if (e) evClose.delete(e)
+            sinh.delete(cb)
+            evClose.delete(cb)
+        },
+        addListen: (cb: Listener<T>, cbClose?: ()=>void) => {
             obj.set(cb, cb)
+            if (cbClose) {
+                if (evClose.has(cb)) {
+                    // что-то странное
+                    const r=evClose.get(cb)!
+                    if (r!==cbClose) {
+                        // что-то странное очень
+                        evClose.delete(r)
+                        evClose.delete(cb)
+                        sinh.delete(r)
+                    }
+                }
+                evClose.set(cb, cbClose)
+                sinh.set(cbClose, cb)
+            }
             if (fast) rebuild()
             event?.("add", obj.size, api)
             return () => api.removeListen(cb)
         },
         removeListen: (cb: Listener<T> | null) => {
             obj.delete(cb!)
+            const e=evClose.get(cb!)
             if (fast) rebuild()
+            evClose.delete(cb!)
+            if (e) {
+                evClose.delete(e)
+                sinh.delete(e)
+            }
             event?.("remove", obj.size, api)
         },
         count: () => obj.size,
@@ -69,6 +106,19 @@ export function UseListen<T extends any[]>(data: Parameters<typeof funcListenCal
     let t: ((...a: T) => void)// | null = null
     const a = funcListenCallbackBase<T>((e)=>{t = e}, {fast: true, ...data})
     a.run()
-    t = a.func
+    t = a.func;
     return [t, a] as const
+}
+
+/** Проверяет, является ли объект результатом funcListenCallbackBase */
+export function isListenCallback(obj: any): obj is ReturnType<typeof funcListenCallbackBase> {
+    if (obj == null || typeof obj !== "object") return false
+    const obj2 = obj as ReturnType<typeof funcListenCallbackBase>
+    return (
+        typeof obj2.addListen === "function" &&
+        typeof obj2.removeListen === "function" &&
+        typeof obj2.eventClose === "function" &&
+        typeof obj2.func === "function" &&
+        typeof obj2.count === "function"
+    )
 }

@@ -23,7 +23,7 @@ export function funcListenBySocket2<Z extends any[] = any[]>(
     },
 ) {
     const { stop, addListenClose, status, paramsModify } = d ?? {};
-    const { addListen, removeListen } = e;
+    const { addListen, removeListen, eventClose } = e;
 
     let last: Listener<Z> | null = null;
     let active: Listener<any> | null = null;
@@ -248,6 +248,5 @@ export function deepModifyByListenSocket3<T>(obj: T, data?: Parameters<typeof fu
 export function deepModifyByListenSocket4<T>(obj: T, status: () => boolean) {
     return DeepCompareKeys(obj, NOOP_LISTEN, (e) => funcListenBySocketFull(e, status)) as DeepSocket<T>;
 }
-
 /** @deprecated используйте deepModifyByListenSocket */
 export const funcListenBySocketObj = deepModifyByListenSocket;

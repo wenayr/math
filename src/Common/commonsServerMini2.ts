@@ -9,7 +9,45 @@ const BANNED_KEYS = new Set(["__proto__", "constructor", "prototype"]);
 const isSafeKey = (k: string) => !BANNED_KEYS.has(k);
 const hasOwn = (obj: any, k: string) => Object.prototype.hasOwnProperty.call(obj, k);
 
-type Socket = { emit: (e: string, d: any) => void; on: (e: string, cb: (d: any) => void) => void };
+// ---- Payload Safety Limits ----
+export type RpcLimits = {
+    /** Макс. глубина вложенности объекта (default: 32) */
+    maxDepth?: number;
+    /** Макс. кол-во ключей в одном объекте (default: 1000) */
+    maxKeys?: number;
+    /** Макс. кол-во аргументов вызова (default: 64) */
+    maxArgs?: number;
+    /** Макс. длина любого вложенного массива (default: 10000) */
+    maxArrayLen?: number;
+    /** Макс. длина строки в символах (default: 1_000_000) */
+    maxStringLen?: number;
+    /** Макс. кол-во callback-маркеров в одном вызове (default: 100) */
+    maxCallbacks?: number;
+    /** Макс. длина ref path — string[] (default: 16) */
+    maxPathLen?: number;
+};
+
+const DEFAULT_LIMITS: Required<RpcLimits> = {
+    maxDepth: 32,
+    maxKeys: 1000,
+    maxArgs: 64,
+    maxArrayLen: 10_000,
+    maxStringLen: 1_000_000,
+    maxCallbacks: 100,
+    maxPathLen: 16,
+};
+
+const resolveLimits = (opts?: RpcLimits): Required<RpcLimits> =>
+    opts ? { ...DEFAULT_LIMITS, ...opts } : DEFAULT_LIMITS;
+
+class PayloadLimitError extends Error {
+    constructor(reason: string) {
+        super(`Payload limit exceeded: ${reason}`);
+        this.name = "PayloadLimitError";
+    }
+}
+
+export type SocketTmpl = { emit: (e: string, d: any) => void; on: (e: string, cb: (d: any) => void) => void };
 type Func = (...args: any[]) => any;
 
 // ---- LIFO ID Pool ----
@@ -23,12 +61,21 @@ export const createIdPool = () => {
 }
 type idPool = ReturnType<typeof createIdPool>;
 // ---- Deep walk: functions ↔ markers ----
-function walk(val: any, onLeaf: (v: any) => any): any {
+function walk(val: any, onLeaf: (v: any) => any, lim?: Required<RpcLimits>, depth = 0): any {
+    if (lim) {
+        if (depth > lim.maxDepth) throw new PayloadLimitError("max depth exceeded");
+        if (typeof val === "string" && val.length > lim.maxStringLen) throw new PayloadLimitError("string too long");
+    }
     if (val == null || typeof val !== "object") return onLeaf(val);
     if (val[FN_MARKER] !== undefined) return onLeaf(val);
-    if (Array.isArray(val)) return val.map(v => walk(v, onLeaf));
+    if (Array.isArray(val)) {
+        if (lim && val.length > lim.maxArrayLen) throw new PayloadLimitError("array too long");
+        return val.map(v => walk(v, onLeaf, lim, depth + 1));
+    }
+    const keys = Object.keys(val);
+    if (lim && keys.length > lim.maxKeys) throw new PayloadLimitError("too many keys in object");
     const o: any = {};
-    for (const k of Object.keys(val)) if (isSafeKey(k)) o[k] = walk(val[k], onLeaf);
+    for (const k of keys) if (isSafeKey(k)) o[k] = walk(val[k], onLeaf, lim, depth + 1);
     return o;
 }
 
@@ -44,10 +91,18 @@ function pack(args: any[], pool: idPool, cbStore: Map<number, Function>, cbIds: 
     }));
 }
 
-function unpack(args: any[], sender: (id: number, a: any[]) => void, onEnd: (id: number) => void): any[] {
+function unpack(
+    args: any[],
+    sender: (id: number, a: any[]) => void,
+    onEnd: (id: number) => void,
+    lim?: Required<RpcLimits>,
+): any[] {
+    let cbCount = 0;
     return args.map(v => walk(v, leaf => {
         if (leaf != null && typeof leaf === "object" && leaf[FN_MARKER] !== undefined) {
+            if (lim && ++cbCount > lim.maxCallbacks) throw new PayloadLimitError("too many callbacks");
             const id = leaf[FN_MARKER];
+            if (typeof id !== "number" || !Number.isFinite(id)) throw new PayloadLimitError("invalid callback id");
             const wrapper = (...a: any[]) => {
                 if (a[0] === "___STOP") { onEnd(id); return; }
                 sender(id, a);
@@ -56,7 +111,7 @@ function unpack(args: any[], sender: (id: number, a: any[]) => void, onEnd: (id:
             return wrapper;
         }
         return leaf;
-    }));
+    }, lim));
 }
 
 const errToObj = (e: any) =>
@@ -83,6 +138,7 @@ const resolveCA = (path: string[], args: any[]): [string[], any[]] => {
 type PromiseServerHooks<T> = {
     onRequest?: (ctx: { key: string[]; request: any[]; fnName: string; fn: Func }) => boolean | Promise<boolean>;
     onInvalid?: (ctx: { reason: "invalid_payload" | "not_function" | "resolve_error" | "rate_limit"; key?: any; request?: any; error?: any }) => void | Promise<void>;
+    resolveTransform?: (value: any, key: string, parent: any) => any;
 };
 
 // Входящие сообщения на сервер
@@ -104,19 +160,41 @@ type SerializedError = {
     stack?: string;
 } | unknown;
 
-function createServer<T extends object>(socket: Socket, key: string, target: T, hooks?: PromiseServerHooks<T>) {
-    const methods: Function[] = [];
-    const contexts: any[] = [];
-    const routeMap: Record<string, number> = {};
+function createServer<T extends object>(
+        socket: SocketTmpl,
+        key: string,
+        target: T,
+        hooks?: PromiseServerHooks<T>,
+        limits?: RpcLimits,
+    ) {
+        const lim = resolveLimits(limits);
+        const methods: Function[] = [];
+        const contexts: any[] = [];
+        const routeMap: Record<string, number> = {};
+
+    function transformTree(obj: any): any {
+        if (obj == null || typeof obj !== "object") return obj;
+        const out: any = {};
+        for (const k of Object.keys(obj)) {
+            if (!isSafeKey(k)) continue;
+            let v = obj[k];
+            if (hooks?.resolveTransform) v = hooks.resolveTransform(v, k, obj);
+            out[k] = typeof v === "function" ? v : v != null && typeof v === "object" ? transformTree(v) : v;
+        }
+        return out;
+    }
+
+    const resolved = hooks?.resolveTransform ? transformTree(target) : target;
 
     (function index(obj: any, prefix: string) {
         for (const k of Object.keys(obj)) {
             if (!isSafeKey(k)) continue;
-            const v = obj[k], path = prefix ? prefix + "." + k : k;
+            const v = obj[k];
+            const path = prefix ? prefix + "." + k : k;
             if (typeof v === "function") { routeMap[path] = methods.length; methods.push(v); contexts.push(obj); }
             else if (v && typeof v === "object") index(v, path);
         }
-    })(target, "");
+    })(resolved, "");
 
     function serialize(obj: any): any {
         const out: any = {};
@@ -128,7 +206,7 @@ function createServer<T extends object>(socket: Socket, key: string, target: T, 
         return out;
     }
 
-    const strictSchema = serialize(target);
+    const strictSchema = serialize(resolved);
     const send = (d: any) => socket.emit(key, d);
 
     send([Pkt.MAP, routeMap, strictSchema]);
@@ -174,10 +252,16 @@ function createServer<T extends object>(socket: Socket, key: string, target: T, 
                     for (let i = 0; i < ref.length - 1; i++) {
                         const seg = ref[i];
                         if (curr == null || typeof curr !== "object" || !hasOwn(curr, seg)) { curr = undefined; break; }
+                        const parent = curr;
                         curr = curr[seg];
+                        if (hooks?.resolveTransform) curr = hooks.resolveTransform(curr, seg, parent);
                     }
                     const last = ref[ref.length - 1];
-                    if (curr != null && typeof curr === "object" && hasOwn(curr, last)) { ctx = curr; fn = curr[last]; }
+                    if (curr != null && typeof curr === "object" && hasOwn(curr, last)) {
+                        ctx = curr;
+                        fn = curr[last];
+                        if (hooks?.resolveTransform) fn = hooks.resolveTransform(fn, last, curr);
+                    }
                 }
             }
 
@@ -198,7 +282,7 @@ function createServer<T extends object>(socket: Socket, key: string, target: T, 
                 }
             }
 
-            const args = unpack(rawArgs, (cbId, cbArgs) => send([Pkt.CB, cbId, cbArgs]), (cbId) => send([Pkt.CB_END, cbId]));
+            const args = unpack(rawArgs, (cbId, cbArgs) => send([Pkt.CB, cbId, cbArgs]), (cbId) => send([Pkt.CB_END, cbId]), lim);
             const res = await fn.apply(ctx, args);
             if (wait) send([Pkt.RESP, reqId, res]);
         } catch (e) {
@@ -229,7 +313,7 @@ type ClientApiHandle = {
     callbackEnd: (fn: Function) => void;
 };
 
-function createClient<T extends object>(socket: Socket, key: string, opts?: { limit?: number }) {
+function createClient<T extends object>(socket: SocketTmpl, key: string, opts?: { limit?: number }) {
     const limit = opts?.limit ?? 10000;
     const pool = createIdPool();
     const pending = new Map<number, { ok: Function; fail: Function; cbs: number[] }>();
@@ -371,19 +455,19 @@ function createClient<T extends object>(socket: Socket, key: string, opts?: { li
 //  FACADE (backward compat)
 // ==========================================
 
-function createAPIFacadeServer<T extends object>({ socket, object: target, socketKey: key, debug = false, hooks }: {
-    socket: Socket; object: T; socketKey: string; debug?: boolean; hooks?: PromiseServerHooks<T>;
+function createAPIFacadeServer<T extends object>({ socket, object: target, socketKey: key, debug = false, hooks, limits }: {
+    socket: SocketTmpl; object: T; socketKey: string; debug?: boolean; hooks?: PromiseServerHooks<T>; limits?: RpcLimits;
 }) {
-    if (debug) {
-        const origOn = socket.on.bind(socket);
-        socket.on = (e: string, cb: (d: any) => void) =>
-            origOn(e, (d: any) => { console.log("[RPC IN]", typeof d === "object" ? JSON.stringify(d) : d); cb(d); });
+        if (debug) {
+            const origOn = socket.on.bind(socket);
+            socket.on = (e: string, cb: (d: any) => void) =>
+                origOn(e, (d: any) => { console.log("[RPC IN]", typeof d === "object" ? JSON.stringify(d) : d); cb(d); });
+        }
+        createServer(socket, key, target, hooks, limits);
     }
-    createServer(socket, key, target, hooks);
-}
 
 function createAPIFacadeClient<T extends object>({ socket, socketKey: key, limit }: {
-    socket: Socket; socketKey: string; limit?: number;
+    socket: SocketTmpl; socketKey: string; limit?: number;
 }) {
     return createClient<T>(socket, key, { limit });
 }

@@ -67,7 +67,7 @@ export function joinListens(
         map[portId].addListen((...data: any[]) => {
             const tid = getKey(data[0])
             if (!buckets.has(tid)) buckets.set(tid, new Map())
-            buckets.get(tid)!.set(portId, data)
+            buckets.get(tid)!.set(portId, data.length <= 1 ? data[0] : data)
             tryFire(tid)
         })
     }
