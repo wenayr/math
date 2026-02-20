@@ -641,10 +641,7 @@ export function GetSimpleParams<T extends ReadonlyFull<IParams>>(params : T) //:
     return simpleParams as SimpleParamsMutable<T>;
 }
 
-
-
 let p= GetSimpleParams(new Test());
-
 
 let p0 : number = p.p1;
 
@@ -656,53 +653,6 @@ let p5 : number|undefined = p.p5?.p1;
 
 //let p6 : number = p.p5.p1; // пример ошибки
 
-function test22(){
-    const base = {
-        kBorrow: {
-            value: 1,
-            name: 'borrow step',
-            range: { max: 3, min: 1, step: 0.1 }
-        },
-        checkBorrow: { value: false, name: 'check borrow' },
-        checkBorrowFutures: { value: false, name: 'check borrow for futures' },
-        depoMulti: {
-            value: 1,
-            name: 'koef depoMulti',
-            range: { min: 0.01, max: 4, step: 0.01 }
-        },
-        depoMulti2: {
-            value: 2,
-            name: 'koef depoMulti',
-            range: { min: 0.01, max: 4, step: 0.01 }
-        }
-    }
-
-    const params = {
-        kBorrow: {
-            value: 2,
-            name: 'borrow step',
-            range: { max: 3, min: 1, step: 0.1 }
-        },
-        checkBorrow: { value: true, name: 'check borrow' },
-        checkBorrowFutures: { value: true, name: 'check borrow for futures' },
-        depoMulti: {
-            value: 1.32,
-            name: 'koef depoMulti',
-            range: { min: 0.01, max: 4, step: 0.01 }
-        },
-        depoMulti3: {
-            value: 1,
-            name: 'koef depoMulti',
-            range: { min: 0.01, max: 4, step: 0.01 }
-        }
-    }
-    const tr = GetSimpleParams(params);
-    console.log(tr)
-    // @ts-ignore
-    const i = mergeParamValuesToInfos(base,tr)
-    console.log(i)
-}
-test22()
 function convert_(valuesObj :{[key :string] :any}, srcObj : IParamsReadonly | readonly any[]) {
     let resObj : {[key :string] :IParamReadonly} = {};
     if (srcObj instanceof Array)

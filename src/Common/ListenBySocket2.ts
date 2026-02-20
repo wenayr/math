@@ -1,4 +1,3 @@
-import { isProxy } from "./isProxy";
 import { funcListenCallback, funcListenCallbackBase, Listener } from "./Listen";
 
 type ListenCallbackResult<T extends any[] = any[]> = ReturnType<typeof funcListenCallback<T>>;
@@ -9,8 +8,7 @@ function isLeafValue(value: unknown): boolean {
         value == null ||
         typeof value === "function" ||
         value instanceof Function ||
-        typeof value !== "object" ||
-        isProxy(value)
+        typeof value !== "object"
     );
 }
 

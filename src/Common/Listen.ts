@@ -16,7 +16,7 @@ export function funcListenCallbackBase<T>(b: (e: Listener<NormalizeTuple<T>>) =>
     const evClose = new Map<cbClose|Listener<Z>, cbClose>()
     const sinh = new Map<cbClose, Listener<Z>>()
     let a: Listener<Z> | null = (...e) => {obj.forEach(z => z(...e))}
-    let close: (() => void) | null = null
+    let close: (() => void) | null | undefined= null
     let cached: Listener<Z>[] | null = null
 
     const getArr = () => cached ?? (cached = Array.from(obj.values()))
@@ -38,7 +38,7 @@ export function funcListenCallbackBase<T>(b: (e: Listener<NormalizeTuple<T>>) =>
     }
 
     const func: Listener<Z> = (...e) => { a?.(...e) }
-    const run = () => { close = b(func) ?? (() => {}) }
+    const run = () => { close = (b(func) ?? (() => {})) as (() => void) }
 
     const api = {
         func,
@@ -116,6 +116,7 @@ export function UseListen<T>(data: Parameters<typeof funcListenCallbackBase<T>>[
 
 /** Проверяет, является ли объект результатом funcListenCallbackBase */
 export function isListenCallback(obj: any): obj is ReturnType<typeof funcListenCallbackBase> {
+    console.log(obj)
     if (obj == null || typeof obj !== "object") return false
     const obj2 = obj as ReturnType<typeof funcListenCallbackBase>
     return (

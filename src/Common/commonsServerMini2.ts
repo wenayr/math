@@ -2,6 +2,9 @@
 // commonsServerMini2.ts — Optimized RPC v7.2
 // ==========================================
 
+import {createIdPool, idPool} from "./mini";
+import {isProxy} from "./isProxy";
+
 const Pkt = { CALL: 0, RESP: 1, CB: 2, MAP: 3, STRICT: 4, CB_END: 5 } as const;
 const FN_MARKER = "$_f";
 
@@ -51,20 +54,12 @@ export type SocketTmpl = { emit: (e: string, d: any) => void; on: (e: string, cb
 type Func = (...args: any[]) => any;
 
 // ---- LIFO ID Pool ----
-export const createIdPool = () => {
-    const s: number[] = [];
-    let n = 0;
-    return {
-        next: () => s.length > 0 ? s.pop()! : ++n,
-        release(id: number){s.push(id)}
-    }
-}
-type idPool = ReturnType<typeof createIdPool>;
+
 // ---- Deep walk: functions ↔ markers ----
 function walk(val: any, onLeaf: (v: any) => any, lim?: Required<RpcLimits>, depth = 0): any {
     if (lim) {
         if (depth > lim.maxDepth) throw new PayloadLimitError("max depth exceeded");
-        if (typeof val === "string" && val.length > lim.maxStringLen) throw new PayloadLimitError("string too long");
+        if (typeof val == "string" && val.length > lim.maxStringLen) throw new PayloadLimitError("string too long");
     }
     if (val == null || typeof val !== "object") return onLeaf(val);
     if (val[FN_MARKER] !== undefined) return onLeaf(val);
@@ -81,7 +76,7 @@ function walk(val: any, onLeaf: (v: any) => any, lim?: Required<RpcLimits>, dept
 
 function pack(args: any[], pool: idPool, cbStore: Map<number, Function>, cbIds: number[]): any[] {
     return args.map(v => walk(v, leaf => {
-        if (typeof leaf === "function") {
+        if (typeof leaf == "function") {
             const id = pool.next();
             cbStore.set(id, leaf);
             cbIds.push(id);
@@ -99,12 +94,12 @@ function unpack(
 ): any[] {
     let cbCount = 0;
     return args.map(v => walk(v, leaf => {
-        if (leaf != null && typeof leaf === "object" && leaf[FN_MARKER] !== undefined) {
+        if (leaf != null && typeof leaf == "object" && leaf[FN_MARKER] !== undefined) {
             if (lim && ++cbCount > lim.maxCallbacks) throw new PayloadLimitError("too many callbacks");
             const id = leaf[FN_MARKER];
             if (typeof id !== "number" || !Number.isFinite(id)) throw new PayloadLimitError("invalid callback id");
             const wrapper = (...a: any[]) => {
-                if (a[0] === "___STOP") { onEnd(id); return; }
+                if (a[0] == "___STOP") { onEnd(id); return; }
                 sender(id, a);
             };
             _stopRegistry.set(wrapper, () => onEnd(id));
@@ -126,8 +121,8 @@ export function rpcEndCallback(fn: Function) {
 
 const resolveCA = (path: string[], args: any[]): [string[], any[]] => {
     const last = path[path.length - 1];
-    if (last === "call") return [path.slice(0, -1), args.slice(1)];
-    if (last === "apply") return [path.slice(0, -1), args[1] ?? []];
+    if (last == "call") return [path.slice(0, -1), args.slice(1)];
+    if (last == "apply") return [path.slice(0, -1), args[1] ?? []];
     return [path, args];
 };
 
@@ -138,7 +133,7 @@ const resolveCA = (path: string[], args: any[]): [string[], any[]] => {
 type PromiseServerHooks<T> = {
     onRequest?: (ctx: { key: string[]; request: any[]; fnName: string; fn: Func }) => boolean | Promise<boolean>;
     onInvalid?: (ctx: { reason: "invalid_payload" | "not_function" | "resolve_error" | "rate_limit"; key?: any; request?: any; error?: any }) => void | Promise<void>;
-    resolveTransform?: (value: any, key: string, parent: any) => any;
+    resolveTransform?: (value: any) => any;
 };
 
 // Входящие сообщения на сервер
@@ -173,38 +168,47 @@ function createServer<T extends object>(
         const routeMap: Record<string, number> = {};
 
     function transformTree(obj: any): any {
-        if (obj == null || typeof obj !== "object") return obj;
+        if (obj == null || typeof obj != "object" || isProxy(obj)) return obj;
         const out: any = {};
         for (const k of Object.keys(obj)) {
             if (!isSafeKey(k)) continue;
-            let v = obj[k];
-            if (hooks?.resolveTransform) v = hooks.resolveTransform(v, k, obj);
-            out[k] = typeof v === "function" ? v : v != null && typeof v === "object" ? transformTree(v) : v;
+            const v = obj[k];
+            if (isProxy(v)) {obj[k] = v; continue;}
+            out[k] = typeof v == "function" ? v : v != null && typeof v == "object" ? transformTree(v) : v;
         }
         return out;
     }
 
     const resolved = hooks?.resolveTransform ? transformTree(target) : target;
 
-    (function index(obj: any, prefix: string) {
+    function index(obj: any, prefix: string) {
         for (const k of Object.keys(obj)) {
             if (!isSafeKey(k)) continue;
             const v = obj[k];
             const path = prefix ? prefix + "." + k : k;
-            if (typeof v === "function") { routeMap[path] = methods.length; methods.push(v); contexts.push(obj); }
-            else if (v && typeof v === "object") index(v, path);
+            if (typeof v == "function") { routeMap[path] = methods.length; methods.push(v); contexts.push(obj); }
+            else if (v && typeof v == "object" && !isProxy(v)) index(v, path);
         }
-    })(resolved, "");
-
-    function serialize(obj: any): any {
-        const out: any = {};
-        for (const k of Object.keys(obj)) {
-            if (!isSafeKey(k)) continue;
-            const v = obj[k];
-            out[k] = typeof v === "function" ? "func" : v != null && typeof v === "object" ? serialize(v) : v == null ? "null" : "unknown";
-        }
-        return out;
     }
+    index(resolved, "");
+
+        function serialize(obj: any): any {
+            const out: any = {};
+            for (const k of Object.keys(obj)) {
+                if (!isSafeKey(k)) continue;
+                const v = obj[k];
+                switch (true) {
+                    case v == null:        out[k] = "null";        break;
+                    case isProxy(v):       out[k] = "dynamic";     break;
+                    case typeof v == "function": out[k] = "func";  break;
+                    case typeof v == "object":   out[k] = serialize(v); break;
+                    default:               out[k] = "unknown";
+                    break;
+                }
+
+            }
+            return out;
+        }
 
     const strictSchema = serialize(resolved);
     const send = (d: any) => socket.emit(key, d);
@@ -212,7 +216,7 @@ function createServer<T extends object>(
     send([Pkt.MAP, routeMap, strictSchema]);
 
     socket.on(key, async (msg: ServerIncomingMsg) => {
-        if (msg === Pkt.STRICT) { send([Pkt.MAP, routeMap, strictSchema]); return; }
+        if (msg == Pkt.STRICT) { send([Pkt.MAP, routeMap, strictSchema]); return; }
         if (!Array.isArray(msg) || msg[0] !== Pkt.CALL) return;
 
         const [, reqId, ref, rawArgs, w] = msg;
@@ -236,10 +240,10 @@ function createServer<T extends object>(
         try {
             let fn: Function | undefined, ctx: any;
 
-            if (typeof ref === "number") {
+            if (typeof ref == "number") {
                 fn = methods[ref]; ctx = contexts[ref];
             } else {
-                if (!ref.every((s: any) => typeof s === "string" && isSafeKey(s))) {
+                if (!ref.every((s: any) => typeof s == "string" && isSafeKey(s))) {
                     hooks?.onInvalid?.({ reason: "invalid_payload", key: ref, request: rawArgs });
                     if (wait) send([Pkt.RESP, reqId, null, errToObj(new Error("Forbidden path segment"))]);
                     return;
@@ -252,19 +256,17 @@ function createServer<T extends object>(
                     for (let i = 0; i < ref.length - 1; i++) {
                         const seg = ref[i];
                         if (curr == null || typeof curr !== "object" || !hasOwn(curr, seg)) { curr = undefined; break; }
-                        const parent = curr;
+
                         curr = curr[seg];
-                        if (hooks?.resolveTransform) curr = hooks.resolveTransform(curr, seg, parent);
+                        if (hooks?.resolveTransform && !isProxy(curr)) curr = hooks.resolveTransform(curr);
                     }
                     const last = ref[ref.length - 1];
-                    if (curr != null && typeof curr === "object" && hasOwn(curr, last)) {
+                    if (curr != null && typeof curr == "object") {
                         ctx = curr;
-                        fn = curr[last];
-                        if (hooks?.resolveTransform) fn = hooks.resolveTransform(fn, last, curr);
+                        fn = hasOwn(curr, last) ? curr[last] : undefined;
                     }
                 }
             }
-
             if (typeof fn !== "function") {
                 hooks?.onInvalid?.({ reason: "not_function", key: ref, request: rawArgs });
                 if (wait) send([Pkt.RESP, reqId, null, errToObj(new Error("Not a function: " + ref))]);
@@ -272,11 +274,11 @@ function createServer<T extends object>(
             }
 
             if (hooks?.onRequest) {
-                const keyArr = typeof ref === "number"
-                    ? Object.keys(routeMap).find(k => routeMap[k] === ref)?.split(".") ?? []
+                const keyArr = typeof ref == "number"
+                    ? Object.keys(routeMap).find(k => routeMap[k] == ref)?.split(".") ?? []
                     : ref;
                 const allowed = await hooks.onRequest({ key: keyArr, request: rawArgs, fnName: keyArr[keyArr.length - 1] ?? "", fn: fn as Func });
-                if (allowed === false) {
+                if (allowed == false) {
                     if (wait) send([Pkt.RESP, reqId, null, errToObj(new Error("Rejected by hook"))]);
                     return;
                 }
@@ -379,7 +381,7 @@ function createClient<T extends object>(socket: SocketTmpl, key: string, opts?: 
     const buildProxy = (path: string[], wait: boolean): any =>
         new Proxy(function () {}, {
             get(_, p: string | symbol) {
-                if (p === "then" || p === "catch" || p === Symbol.toPrimitive) return undefined;
+                if (p == "then" || p == "catch" || p == Symbol.toPrimitive) return undefined;
                 return buildProxy([...path, String(p)], wait);
             },
             apply(_, __, args) {
@@ -390,18 +392,23 @@ function createClient<T extends object>(socket: SocketTmpl, key: string, opts?: 
 
     const buildStrict = (path: string[], wait: boolean): any => {
         let tgt: any = strictData;
-        for (const seg of path) { tgt = tgt?.[seg]; if (tgt == null || tgt === "null") return undefined; }
+        for (const seg of path) {
+            tgt = tgt?.[seg];
+            if (tgt == null || tgt == "null") return undefined;
+            if (tgt == "dynamic") return buildProxy([...path], wait);
+        }
+        if (tgt == "dynamic") return buildProxy(path, wait);
 
-        return new Proxy(tgt === "func" ? function () {} : {}, {
+        return new Proxy(tgt == "func" ? function () {} : {}, {
             has: (_, p) => tgt?.[String(p)] !== "null",
-            ownKeys: () => tgt && typeof tgt === "object" ? Object.keys(tgt) : [],
+            ownKeys: () => tgt && typeof tgt == "object" ? Object.keys(tgt) : [],
             getOwnPropertyDescriptor: () => ({ enumerable: true, configurable: true }),
-            getPrototypeOf: () => !tgt || tgt === "null" ? Object.prototype : tgt === "func" ? Function.prototype : null,
+            getPrototypeOf: () => !tgt || tgt == "null" ? Object.prototype : tgt == "func" ? Function.prototype : null,
             get(_, p: string | symbol) {
-                if (p === "then" || p === "catch" || p === Symbol.toPrimitive) return undefined;
-                if (p === "call" && tgt === "func") return (_: any, ...args: any[]) => sendCall(path, args, wait);
+                if (p == "then" || p == "catch" || p == Symbol.toPrimitive) return undefined;
+                if (p == "call" && tgt == "func") return (_: any, ...args: any[]) => sendCall(path, args, wait);
                 const child = tgt?.[String(p)];
-                return child === "null" || child === undefined ? undefined : buildStrict([...path, String(p)], wait);
+                return child == "null" || child == undefined ? undefined : buildStrict([...path, String(p)], wait);
             },
             apply(_, __, args) {
                 const [fp, fa] = resolveCA(path, args);
@@ -411,7 +418,7 @@ function createClient<T extends object>(socket: SocketTmpl, key: string, opts?: 
     };
 
     const releaseCbs = (fn: Function) => {
-        callbacks.forEach((cb, id) => { if (cb === fn) { callbacks.delete(id); pool.release(id); } });
+        callbacks.forEach((cb, id) => { if (cb == fn) { callbacks.delete(id); pool.release(id); } });
     };
 
     const clearAll = (rejectReason?: any) => {
@@ -461,7 +468,7 @@ function createAPIFacadeServer<T extends object>({ socket, object: target, socke
         if (debug) {
             const origOn = socket.on.bind(socket);
             socket.on = (e: string, cb: (d: any) => void) =>
-                origOn(e, (d: any) => { console.log("[RPC IN]", typeof d === "object" ? JSON.stringify(d) : d); cb(d); });
+                origOn(e, (d: any) => { console.log("[RPC IN]", typeof d == "object" ? JSON.stringify(d) : d); cb(d); });
         }
         createServer(socket, key, target, hooks, limits);
     }

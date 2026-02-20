@@ -32,10 +32,9 @@ export function CreatAPIFacadeServerAuto2<T extends object>({ socket, object: ta
         socket, object: target as any, socketKey: key, debug, limits,
         hooks: {
             ...hooks,
-            resolveTransform: (value: any, k: string, parent: any) => {
-                if (k !== "callback" && k !== "removeCallback") return value;
-                if (!isListenCallback(parent)) return value;
-                return getListenSocket(parent, disconnectListen)[k as "callback" | "removeCallback"];
+            resolveTransform: (obj: any) => {
+                if (!isListenCallback(obj)) return obj;
+                return getListenSocket(obj, disconnectListen);
             },
         } as any,
     });
